@@ -176,7 +176,7 @@ const textWithGroupRegex = new RegExp(...);
 | Subagent | ui-reviewer           | `.claude/agents/ui-reviewer.md`                            | 編集UI（パネル・モーダル・並べ替え等）の変更時、アクセシビリティ（キーボード操作・ARIA）をレビュー                         |
 | Hook     | 型チェック自動実行    | `.claude/settings.json` + `.claude/hooks/type-check.sh`    | `.ts`/`.vue`/`.tsx` を編集した直後に `vue-tsc --noEmit` を自動実行し、失敗時のみ結果をClaudeに通知                         |
 | Hook     | 関連テスト自動実行    | `.claude/settings.json` + `.claude/hooks/related-tests.sh` | 同上のタイミングで `vitest related --run` を自動実行し、失敗時のみ結果をClaudeに通知                                       |
-| MCP      | context7              | `.mcp.json`                                                | Tiptap / Monaco Editor / vue-i18n 等のドキュメント検索（要 `/mcp` で承認）                                                 |
+| MCP      | context7              | `.mcp.json`                                                | Monaco Editor / vue-i18n 等のドキュメント検索（要 `/mcp` で承認）                                                          |
 | MCP      | github                | `.mcp.json`                                                | Issue/PR操作（要 `/mcp` で承認 + 初回利用時にGitHub OAuth認証）                                                            |
 
 **有効化の注意**: hooksの設定は Claude Code のセッション開始時に存在した `.claude/` 配下のみ監視されるため、追加・変更後は一度 `/hooks` を開くか Claude Code を再起動する必要がある。MCPサーバーはプロジェクトスコープ登録のため `/mcp` での承認が別途必要。
@@ -534,6 +534,12 @@ interface ImageData {
 - `src/core/utils/data-version.ts`: データ形式のバージョン（`ZERO_CODE_DATA_VERSION`）と移行処理（`migrateZeroCodeData`）。データ形式を変える場合は version を上げて `MIGRATIONS` に移行処理を追加する
 - `src/core/utils/css-manager.ts`: CSS管理
 - `src/core/utils/validation.ts`: バリデーション処理
+- `src/features/editor/rich-text/`: 自前のリッチテキストエディタのコア（Vue 非依存）
+  - `features.ts`: 機能 ID・デフォルト・config の解決（`resolveRichTextFeatures`）
+  - `dom.ts`: 編集操作（文字装飾・ブロック・リスト・リンク・水平線）。`execCommand` は使わない
+  - `normalize.ts`: 読み込み・貼り付け・出力時の正規化（意味を持つタグのみ、機能制限の適用）
+  - `selection.ts`: Shadow DOM 内の選択範囲（`getComposedRanges` / `setBaseAndExtent`）と履歴用のシリアライズ
+  - `history.ts`: 元に戻す・やり直しのスナップショット履歴
 
 ### レンダラー
 
@@ -547,7 +553,7 @@ interface ImageData {
 
 ### ビルド構成
 
-- `vite.config.ts`: ES ビルド（`index` + `cms-entry` のマルチエントリ、共有チャンク分割あり。Tiptap は `RichTextEditor` の遅延ロードで別チャンク）
+- `vite.config.ts`: ES ビルド（`index` + `cms-entry` のマルチエントリ、共有チャンク分割あり。`RichTextEditor` は遅延ロードで別チャンク）
 - `vite.umd.config.ts`: CDN 向け UMD 単一ファイル（`inlineDynamicImports` で遅延ロードをインライン化）
 - `package.json` の `size-limit` でエントリ別サイズ上限を管理（CI の `Bundle size check` で検証、`npm run size`）
 
@@ -639,7 +645,8 @@ interface ImageData {
 25. ✅ **E2Eテスト（Playwright）**（2026年7月）
 
 - `e2e/cms-smoke.spec.ts`: `test-cms.html` に対し「パーツ追加 → 編集 → 並べ替え → 保存で `save-request`（`targets: ['page', 'images-special']`）発火」を検証するスモークテスト
-- `e2e/rich-text-lazy.spec.ts`: 遅延ロードされる リッチテキストエディタ（Tiptap）の表示を検証
+- `e2e/rich-text-lazy.spec.ts`: 遅延ロードされるリッチテキストエディタの表示を検証
+- `e2e/rich-text-editor.spec.ts`: リッチテキストの書式・リスト・リンク・Undo・貼り付けを検証（chromium / webkit / firefox の3ブラウザで実行）
 - 実行: `npm run test:e2e`（vite dev サーバーは `playwright.config.ts` の webServer で自動起動）。UI モード: `npm run test:e2e:ui`
 - CI では `e2e` ジョブとして chromium で実行、失敗時は Playwright レポートをアーティファクトに保存
 - 注意: パーツ追加直後の選択は編集モードへハンドオフされ編集パネルが自動で開く（テストはこの挙動に依存）
@@ -699,6 +706,16 @@ interface ImageData {
 - リッチテキストを編集モードでも無害化（改ざんデータによる Editor / Studio での XSS を防止）
 - URL 属性を全展開後の最終値で検査、`xlink:href` を対象に追加（トークン連結・`{key}` プレースホルダー経由の `javascript:` を防止）
 - 信頼境界を `TECHNICAL_SPECIFICATION.md` / `docs-backend.html` に明記。回帰テストは `template-processor.security.test.ts`
+
+33. ✅ **リッチテキストエディタの自作化（Tiptap 依存の削除）と機能選択**（2026年10月）
+
+- Tiptap（13パッケージ＋ProseMirror）を削除し、`src/features/editor/rich-text/` に自前実装。遅延チャンクは約115KB→約10KB、UMD は約118KB
+- config の `richText.features` でプロダクトごとに使える機能を選択（デフォルト: 太字・斜体・取り消し線・下線・リンク・箇条書き・番号付きリスト・水平線。オプトイン: 見出し h2〜h4・引用・上付き・下付き）
+- `sanitizeRichText` の許可リストに `h2` `h3` `h4` `blockquote` `sup` `sub` を追加（config には連動させない）
+- 見出し・リスト等のブロック要素で始まるリッチテキストの値を `<p>` で包まないよう修正（包むと HTML の解析で空の `<p>` が生まれていた）
+- 動作環境: Chrome 137+ / Firefox 142+ / Safari 17+（`getComposedRanges`）
+- E2E を chromium / webkit / firefox で実行（CI の `e2e` ジョブで3ブラウザをインストール）
+- キーボード操作（ui-reviewer 指摘を反映）: ツールバーはロービング tabindex（Tab で止まるのは1つ、←→ / Home / End で移動）、選択範囲がなくてもボタン操作で本文末尾から開始、リンクボタンは `aria-expanded` / `aria-controls`、リンクフォーム内の Esc は外へ伝えない、Mac の修飾キーは Cmd のみ（Ctrl+B 等の標準カーソル操作を奪わない）、`readonly` / `disabled` フィールドは編集不可。`useModalA11y` のフォーカストラップに `[contenteditable="true"]` を追加
 
 ### 未実装（スコープ関連）
 
@@ -764,6 +781,8 @@ interface ImageData {
 - **URL 属性**: トークン単位ではなく、`markTemplatedUrlAttributes` / `sanitizeMarkedUrlAttributes` で全展開後の最終値を検査する。URL 属性を追加する場合は `isUrlAttribute` に追加する
 - **CSP**: `unsafe-eval` を必要としない状態を保つ（`eval` / `new Function` を使わない。vue-i18n は各 vite 設定の `__INTLIFY_JIT_COMPILATION__: true` で JIT コンパイル）。回帰テストは `e2e/csp.spec.ts`
 - **DOMPurify のテスト**: happy-dom 上では DOMPurify 3.4 の無害化が機能しないため、無害化を検証するテストは `// @vitest-environment jsdom` を付ける
+- **リッチテキストエディタ**: `document.execCommand` で編集操作をしない（文字装飾は計算済みスタイルで判定されて見出し内で `font-weight: normal` の span が入る、WebKit では Shadow DOM 内のリスト操作がホスト要素を壊す）。操作は `src/features/editor/rich-text/dom.ts` にタグ基準で実装し、Undo も自前の履歴で扱う。選択範囲は `selection.ts` 経由で読み書きする（WebKit では `getSelection().getRangeAt()` / `addRange()` が shadow 内で使えない）
+- **リッチテキストの機能**: 機能を追加する場合は `features.ts`（ID）、`dom.ts`（操作）、`normalize.ts`（許可タグ・機能制限）、`sanitize.ts` の `sanitizeRichText` の許可リスト、`RichTextEditor.vue`（ツールバー）、i18n の `richText` を更新する
 - **オプショナルフィールド**: `undefined`のまま残す（初期化しない）
 
 ### コンポーネント初期化

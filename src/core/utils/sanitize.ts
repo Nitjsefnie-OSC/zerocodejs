@@ -45,7 +45,25 @@ function getPurify(): Purify {
 
 export function sanitizeRichText(html: string): string {
   return getPurify().sanitize(html, {
-    ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 's', 'u', 'ul', 'ol', 'li', 'a', 'hr'],
+    ALLOWED_TAGS: [
+      'p',
+      'br',
+      'strong',
+      'em',
+      's',
+      'u',
+      'sup',
+      'sub',
+      'h2',
+      'h3',
+      'h4',
+      'blockquote',
+      'ul',
+      'ol',
+      'li',
+      'a',
+      'hr'
+    ],
     ALLOWED_ATTR: ['href', 'target', 'rel'],
     ALLOW_DATA_ATTR: false,
     FORBID_TAGS: ['script', 'iframe', 'object', 'embed', 'form', 'input', 'button', 'style'],

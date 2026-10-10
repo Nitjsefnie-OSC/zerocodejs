@@ -218,7 +218,8 @@ import {
   provide,
   type Ref
 } from 'vue';
-import { zcodeTeleportTargetKey } from '../core/injectionKeys';
+import { zcodeRichTextFeaturesKey, zcodeTeleportTargetKey } from '../core/injectionKeys';
+import { resolveRichTextFeatures } from '../features/editor/rich-text/features';
 import { Save } from 'lucide-vue-next';
 import ZeroCodePreview from './ZeroCodePreview.vue';
 import PreviewArea from '../features/preview/PreviewArea.vue';
@@ -317,6 +318,7 @@ const parseConfig = (configString?: string): Partial<CMSConfig> => {
 };
 
 const config = parseConfig(props.config);
+provide(zcodeRichTextFeaturesKey, resolveRichTextFeatures(config.richText?.features));
 
 /** ページ保存時はページ本体に加え、専用画像プール（images-special）もホストが永続化できるよう含める */
 const saveTargets = ['page', 'images-special'];

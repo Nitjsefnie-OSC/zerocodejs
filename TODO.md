@@ -603,7 +603,7 @@ ZC-3（並行可）
 
 ---
 
-### リッチテキストエディタの自作化（Tiptap 依存の削除）＋機能選択【着手】
+### リッチテキストエディタの自作化（Tiptap 依存の削除）＋機能選択【完了】
 
 - **複雑度**: 中〜高
 - **背景**: Tiptap は13パッケージ＋ProseMirror 一式（遅延チャンク約115KB、UMD には常時同梱）だが、実際に使うのは文字装飾・リスト・リンクのみ。出力の整形は既に `sanitizeRichText`（DOMPurify）が担っている。依存削減と保守コスト削減のため、`contenteditable` + `execCommand` で自作する
@@ -636,10 +636,10 @@ ZC-3（並行可）
   - 見出しレベルの個別指定（`heading: { levels: [3, 4] }`）は将来検討
 - **進め方**:
   1. ✅ 未使用の `@tiptap/starter-kit` を削除（2026年10月10日）
-  2. Shadow DOM 内の `contenteditable` で Chrome / Safari(WebKit) / Firefox の動作検証（選択範囲・execCommand・アクティブ状態判定・IME）
-  3. 本実装（正規化の単体テスト含む）
-  4. `e2e/rich-text-lazy.spec.ts` を webkit / firefox でも実行
-  5. Tiptap 依存を削除、size-limit の上限を見直し
+  2. ✅ Shadow DOM 内の `contenteditable` で Chrome / Safari(WebKit) / Firefox の動作検証（選択範囲・execCommand・アクティブ状態判定・IME）
+  3. ✅ 本実装（正規化の単体テスト含む）
+  4. ✅ `e2e/rich-text-editor.spec.ts` を追加し、リッチテキストの E2E を webkit / firefox でも実行
+  5. ✅ Tiptap 依存を削除、size-limit の上限を見直し（遅延チャンク 15KB / UMD 130KB）
 - **撤退基準**: 検証で Safari の Shadow DOM 対応が実用に耐えない場合は Tiptap を維持し、依存パッケージの整理のみ行う
 - **検証結果（2026年10月10日、Playwright: Chromium 149 / WebKit 26.5 / Firefox 151、Shadow DOM 内 contenteditable）**:
   - 文字装飾（bold / italic / underline / strikeThrough / superscript / subscript / createLink / removeFormat）と `formatBlock`（h2〜h4 / blockquote）は3ブラウザで動作
@@ -656,6 +656,12 @@ ZC-3（並行可）
   - **execCommand の文字装飾は、タグではなく計算済みスタイルで状態を判定する**（3ブラウザ共通）: 見出し内（既定で太字）で bold を実行すると `<span style="font-weight: normal;">` が挿入される。逆に CSS で `font-weight: normal` にした見出しでは Chromium / WebKit は何も起きない。編集画面の CSS と公開サイトの CSS は異なるため、出力が CSS に左右されるのは不可 → 文字装飾も自前のラップ/アンラップ（祖先タグで状態判定）で実装し、execCommand は使わない方針に変更
   - アプリ内ブラウザ（Chrome 152 ベース）でも、リスト・見出し・自前 Undo/Redo の動作を確認
   - 日本語 IME の手動確認: OK（2026年10月10日）
+- **実装済み**: 2026年10月10日
+  - `src/features/editor/rich-text/`（features / dom / normalize / selection / history）＋ `RichTextEditor.vue`
+  - config `richText.features`、`zcodeRichTextFeaturesKey` で CMS / Editor / Studio から provide
+  - リンクは window.prompt をやめ、ツールバー下のフォーム（URL・新しいタブ・解除）に変更
+  - ブロック要素で始まるリッチテキスト値を `<p>` で包まないよう `template-processor.ts` を修正
+  - 将来検討: 見出しレベルの個別指定、フィールド単位の機能指定（`{$body::rich=bold,link}`）
 
 ---
 

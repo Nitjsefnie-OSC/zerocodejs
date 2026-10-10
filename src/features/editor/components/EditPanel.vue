@@ -98,6 +98,9 @@
             <RichTextEditor
               :model-value="String(field.currentValue ?? '')"
               :placeholder="field.defaultValue"
+              :label="field.label"
+              :readonly="field.readonly"
+              :disabled="field.disabled"
               @update:model-value="handleRichTextUpdate(field, $event)"
             />
             <div v-if="getFieldError(field.fieldName)" class="zcode-field-error-message">
@@ -271,7 +274,7 @@
 import { ref, computed, watch, defineAsyncComponent } from 'vue';
 import type { ComponentData, ZeroCodeData } from '../../../types';
 
-// Tiptap を含むため遅延ロードし、リッチテキスト未使用時はバンドルに含めない
+// リッチテキスト未使用時は読み込まないよう遅延ロードする
 const RichTextEditor = defineAsyncComponent(() => import('./RichTextEditor.vue'));
 import ImageSelectModal from './ImageSelectModal.vue';
 import { X, ChevronUp, Image } from 'lucide-vue-next';

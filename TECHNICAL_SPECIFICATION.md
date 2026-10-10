@@ -403,6 +403,43 @@ cmsElement.setAttribute('config', JSON.stringify(cmsConfig));
   - テンプレート記法の予測変換を有効にする
   - パーツ管理パネルのエディタで使用
 
+### リッチテキスト設定（`richText`）
+
+`zcode-cms` / `zcode-editor` / `zcode-studio` 共通。リッチテキストエディタのツールバーで使える機能を、プロダクトごとに選択できます。localStorage には保存されず、ユーザーが変更することはできません。
+
+- **`features`** (デフォルト: `["bold", "italic", "strike", "underline", "link", "bulletList", "orderedList", "horizontalRule"]`)
+  - 有効にする機能 ID の配列。未知の ID は警告して無視する。空配列ではツールバーの装飾ボタンを表示しない（元に戻す・やり直しのみ）
+  - 無効な機能のタグは、貼り付け時とエディタの出力時に内容を残して取り除く（見出し・引用・無効なリストの項目は段落になる）
+
+| 機能 ID          | 内容                                 | 出力タグ                   | デフォルト |
+| ---------------- | ------------------------------------ | -------------------------- | ---------- |
+| `bold`           | 太字（Cmd/Ctrl+B）                   | `strong`                   | ✅         |
+| `italic`         | 斜体（Cmd/Ctrl+I）                   | `em`                       | ✅         |
+| `strike`         | 取り消し線（Cmd/Ctrl+Shift+X）       | `s`                        | ✅         |
+| `underline`      | 下線（Cmd/Ctrl+U）                   | `u`                        | ✅         |
+| `link`           | リンク（Cmd/Ctrl+K、新しいタブ指定） | `a`（href / target / rel） | ✅         |
+| `bulletList`     | 箇条書き                             | `ul` `li`                  | ✅         |
+| `orderedList`    | 番号付きリスト                       | `ol` `li`                  | ✅         |
+| `horizontalRule` | 水平線                               | `hr`                       | ✅         |
+| `heading`        | 見出し（h2〜h4）                     | `h2` `h3` `h4`             |            |
+| `blockquote`     | 引用                                 | `blockquote`               |            |
+| `superscript`    | 上付き                               | `sup`                      |            |
+| `subscript`      | 下付き                               | `sub`                      |            |
+
+段落・改行（`p` `br`）、書式のクリア、元に戻す・やり直す（Cmd/Ctrl+Z、Cmd/Ctrl+Shift+Z）は常に使えます。出力には `style` / `class` 属性を含めません（見た目はサイトの CSS で決める）。`target="_blank"` のリンクには `rel="noopener noreferrer"` を付けます。
+
+```html
+<zcode-cms
+  config='{"richText": {"features": ["bold", "link", "bulletList", "heading", "blockquote"]}}'
+></zcode-cms>
+```
+
+機能 ID の一覧は `RICH_TEXT_FEATURES`、デフォルトは `DEFAULT_RICH_TEXT_FEATURES` として export しています。
+
+**注意**: `features` はエディタの UI を制限するもので、サニタイズ（`sanitizeRichText`）の許可リストには連動しません。公開表示・SSR では config を参照しないため、許可リストは常に上の表のタグ全体です。
+
+**動作環境**: Shadow DOM 内の選択範囲の取得に `Selection.getComposedRanges` を使うため、リッチテキストの編集には Chrome 137 以降 / Firefox 142 以降 / Safari 17 以降が必要です。
+
 ### 設定モーダル
 
 #### ツールバー用設定（ZeroCodeCMS）
@@ -438,13 +475,16 @@ interface DevSettings {
   enableTemplateSuggestions?: boolean;
 }
 
+interface RichTextSettings {
+  features?: RichTextFeature[];
+}
+
 interface CMSConfig {
-  enableVirtualization?: boolean;
-  autoSaveInterval?: number;
-  maxBackups?: number;
-  theme?: 'light' | 'dark';
   cms?: CMSSettings;
   dev?: DevSettings;
+  studio?: StudioSettings;
+  richText?: RichTextSettings;
+  categoryOrder?: 'common' | 'individual' | 'special';
 }
 
 interface UserSettings {
@@ -619,8 +659,10 @@ watch(enableContextMenu, (newValue) => {
 **例**:
 
 ```html
-<p>{$description:説明文:rich}</p>
+<div>{$description:説明文:rich}</div>
 ```
+
+編集パネルではリッチテキストエディタとして表示されます。使える書式は config の `richText.features` で選択します（「リッチテキスト設定」を参照）。値は見出し・リスト・引用などのブロック要素を含む HTML になるため、`<p>` ではなく `<div>` などのブロック要素の中に置いてください。
 
 #### 画像フィールド
 
@@ -904,7 +946,7 @@ watch(enableContextMenu, (newValue) => {
 
 - **Node / SSR（推奨）**: `zerocodejs/ssr` から `renderToHtml`、`renderCssToHtml`、`RenderError` を import する。Vue や Web Components を含まない軽量バンドル（`package.json` の `exports["./ssr"]`）。テンプレート処理は **グローバルに `DOMParser` があればそれを利用**し、無い環境では [jsdom](https://github.com/jsdom/jsdom) を自動で読み込み、その `window` を `DOMParser` と DOMPurify の両方に使う（jsdom は任意の peer 依存。SSR で使う場合はホスト側で `npm install jsdom` する）。ESM では `require` が使えないため、Node.js 20.16+ / 22.3+ の `process.getBuiltinModule` 経由で、カレントディレクトリを基準に jsdom を解決する。それより古い Node.js の ESM では、描画前に `globalThis.DOMParser`（と DOMPurify 用の `globalThis.__ZCODE_SSR_WINDOW__`）を jsdom から設定する。`DOMParser` が先に使える場合は jsdom を読み込まない。
 - **フルエントリ**: `zerocodejs` 本体からも同じ関数が export されている（ブラウザ用ビルドにまとめて解決する場合や、既存コードとの互換用）。
-- **CMS 専用エントリ**: `zerocodejs/cms`（`package.json` の `exports["./cms"]`）。`<zcode-cms>` のみを登録する軽量エントリで、editor / studio・パーツ管理・画像管理・データビューアを含まない。サニタイズ関数・`renderToHtml` / `renderCssToHtml`・`ZeroCodePreview` は本体と同様に export される。リッチテキストエディタ（Tiptap）は初回利用時に遅延ロードされる（UMD ビルドでは従来どおりインライン）。
+- **CMS 専用エントリ**: `zerocodejs/cms`（`package.json` の `exports["./cms"]`）。`<zcode-cms>` のみを登録する軽量エントリで、editor / studio・パーツ管理・画像管理・データビューアを含まない。サニタイズ関数・`renderToHtml` / `renderCssToHtml`・`ZeroCodePreview` は本体と同様に export される。リッチテキストエディタは初回利用時に遅延ロードされる（UMD ビルドでは従来どおりインライン）。
 
 #### 関数
 
@@ -965,7 +1007,7 @@ ZeroCode.js は Web Component ごとに責務を分け、**HTML を生成でき�
 **信頼しない入力に対してライブラリが保証すること**（公開表示・編集画面・SSR 共通）:
 
 - テキスト・テキストエリアはテキストノード／属性値として挿入し、HTML として解釈しない
-- リッチテキストは DOMPurify の許可リスト（`p` `br` `strong` `em` `s` `u` `ul` `ol` `li` `a` `hr`、属性は `href` `target` `rel` のみ）で無害化する
+- リッチテキストは DOMPurify の許可リスト（`p` `br` `strong` `em` `s` `u` `sup` `sub` `h2` `h3` `h4` `blockquote` `ul` `ol` `li` `a` `hr`、属性は `href` `target` `rel` のみ）で無害化する。エディタは保存済みの値を読み込むときにも同じ無害化を行う
 - URL 属性（`href` `xlink:href` `src` `action` `formaction` `poster`）は、テンプレート記法を含む場合に**すべての展開後の最終値**を `sanitizeUrl` で検査し、`javascript:` 等の危険なスキームを除去する（複数トークンの連結や `{key}` プレースホルダー経由も対象）。テンプレート作者が直接書いた固定値は検査しない
 - `z-tag` で選択できるタグは許可リストに限る
 
@@ -1262,7 +1304,6 @@ cms.addEventListener('save-request', async (event) => {
 
 - **Vue 3**: UIフレームワーク
 - **Monaco Editor**: コードエディター（Editor / Studio のパーツ管理のみ）。パッケージの容量を抑えるため、実行時に CDN（jsdelivr）から読み込む。npm の `monaco-editor` は版の管理と脆弱性監査のための devDependencies
-- **TipTap**: リッチテキストエディター
 - **SortableJS**: 並べ替えパネル内 D&D
 - **lucide-vue-next**: アイコンライブラリ
 
@@ -1331,7 +1372,7 @@ npm run lint
 - **設定**: `config` 属性で受け付ける設定オプション（「設定オプション」の節）
 - **データ形式**: `ZeroCodeData`（`version` を含む）。形式を変える場合は `version` を上げ、`migrateZeroCodeData()` で旧形式から自動で移行できるようにする
 - **テンプレート記法**: フィールド・選択肢・バリデーション・バックエンドデータ参照・`z-if` / `z-tag` / `z-empty` / `z-for` / `z-slot`
-- **npm エントリと export**: `zerocodejs`・`zerocodejs/cms`・`zerocodejs/ssr` と、そこから export する関数・型（`renderToHtml`、`renderCssToHtml`、`RenderError`、`sanitizeRichText`、`sanitizeUrl`、`sanitizePartTemplate`、`ZERO_CODE_DATA_VERSION`、`migrateZeroCodeData`、型定義）
+- **npm エントリと export**: `zerocodejs`・`zerocodejs/cms`・`zerocodejs/ssr` と、そこから export する関数・型（`renderToHtml`、`renderCssToHtml`、`RenderError`、`sanitizeRichText`、`sanitizeUrl`、`sanitizePartTemplate`、`ZERO_CODE_DATA_VERSION`、`migrateZeroCodeData`、`RICH_TEXT_FEATURES`、`DEFAULT_RICH_TEXT_FEATURES`、型定義）
 - **公開 HTML**: 公開表示（`enableEditorAttributes: false`）の出力に、編集用の `data-zcode-*` 属性やラッパー要素を含めないこと
 
 ### 安定させない対象（予告なく変わりうる）

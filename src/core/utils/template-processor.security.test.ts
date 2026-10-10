@@ -36,11 +36,32 @@ describe('リッチテキストの無害化', () => {
     expect(out).toContain('本文');
   });
 
-  it('編集モードでも Tiptap が出力する書式・リンクは保持する', () => {
-    const tiptapHtml =
-      '<p><strong>太字</strong><em>斜体</em><s>取消</s><br><a href="https://example.com" target="_blank" rel="noopener noreferrer nofollow">リンク</a></p><ul><li><p>項目</p></li></ul><ol><li><p>番号</p></li></ol>';
-    const out = render('<div>{$body:x:rich}</div>', { body: tiptapHtml }, true);
-    expect(out).toBe(`<div>${tiptapHtml}</div>`);
+  it('編集モードでもリッチテキストエディタが出力する書式・リンクは保持する', () => {
+    const editorHtml =
+      '<h2>見出し</h2><h3>小見出し</h3><h4>補足</h4><p><strong>太字</strong><em>斜体</em><s>取消</s><u>下線</u>m<sup>2</sup>H<sub>2</sub>O<br><a href="https://example.com" target="_blank" rel="noopener noreferrer">リンク</a></p><blockquote>引用</blockquote><hr><ul><li>項目</li></ul><ol><li>番号</li></ol>';
+    const out = render('<div>{$body:x:rich}</div>', { body: editorHtml }, true);
+    expect(out).toBe(`<div>${editorHtml}</div>`);
+  });
+
+  it.each([
+    ['見出し', '<h2>t</h2><p>本文</p>'],
+    ['リスト', '<ul><li>a</li></ul>'],
+    ['引用', '<blockquote>q</blockquote>'],
+    ['水平線', '<hr><p>a</p>']
+  ])('%sで始まる値を段落で包まない', (_label, value) => {
+    expect(render('<div>{$body:x:rich}</div>', { body: value }, false)).toBe(`<div>${value}</div>`);
+  });
+
+  it('タグのないテキストは段落で包む', () => {
+    expect(render('<div>{$body:x:rich}</div>', { body: 'plain' }, false)).toBe(
+      '<div><p>plain</p></div>'
+    );
+  });
+
+  it('旧 Tiptap が保存した li 内の段落も保持する', () => {
+    const legacyHtml = '<ul><li><p>項目</p></li></ul>';
+    const out = render('<div>{$body:x:rich}</div>', { body: legacyHtml }, true);
+    expect(out).toBe(`<div>${legacyHtml}</div>`);
   });
 
   it('リンクの javascript: スキームを除去する', () => {

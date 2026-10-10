@@ -11,6 +11,12 @@ export { renderToHtml, renderCssToHtml, RenderError } from './core/renderer/rend
 export { sanitizeRichText, sanitizeUrl, sanitizePartTemplate } from './core/utils/sanitize';
 export type { UrlContext } from './core/utils/sanitize';
 
+export {
+  RICH_TEXT_FEATURES,
+  DEFAULT_RICH_TEXT_FEATURES
+} from './features/editor/rich-text/features';
+export type { RichTextFeature } from './features/editor/rich-text/features';
+
 export { ZERO_CODE_DATA_VERSION, migrateZeroCodeData } from './core/utils/data-version';
 
 export { default as ZeroCodePreview } from './components/ZeroCodePreview.vue';

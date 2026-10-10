@@ -172,9 +172,18 @@
         <h4 id="rich-text-field">リッチテキストフィールド</h4>
         <pre><code>{$fieldName:defaultValue:rich}</code></pre>
         <p>
-          リッチテキストエディター（TipTap）として表示されます。HTMLタグを含むテキストを編集できます。
+          リッチテキストエディターとして表示され、太字・リンク・リストなどの書式を付けたテキストを編集できます。
+          使える書式は <code>config</code> の
+          <code>richText.features</code> でプロダクトごとに選べます（<a
+            href="docs-api.html#rich-text-settings"
+            >リッチテキスト設定</a
+          >）。
         </p>
         <pre><code>&lt;div&gt;{$content:本文:rich}&lt;/div&gt;</code></pre>
+        <p>
+          値は見出し・リスト・引用などのブロック要素を含む HTML になるため、<code>&lt;p&gt;</code>
+          ではなく <code>&lt;div&gt;</code> などのブロック要素の中に置いてください。
+        </p>
 
         <h4 id="image-field">画像フィールド</h4>
         <pre><code>{$fieldName:defaultValue:image}</code></pre>

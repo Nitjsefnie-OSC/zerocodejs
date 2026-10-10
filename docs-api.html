@@ -538,6 +538,9 @@
     "showDataViewer": false,
     "enableTemplateSuggestions": false
   },
+  "richText": {
+    "features": ["bold", "italic", "strike", "underline", "link", "bulletList", "orderedList", "horizontalRule"]
+  },
   "categoryOrder": "common"
 }</code></pre>
 
@@ -605,6 +608,122 @@
           <li>データビューアタブ（<code>zcode-editor</code>のみ、パーツ/画像表示時）</li>
           <li>追加パネル（<code>zcode-cms</code>と<code>zcode-editor</code>の両方）</li>
         </ul>
+
+        <h3 id="rich-text-settings">リッチテキスト設定（richText）</h3>
+        <p>
+          <code>zcode-cms</code>・<code>zcode-editor</code>・<code>zcode-studio</code>
+          共通の設定です。リッチテキストエディタのツールバーで使える機能を、プロダクトごとに選択できます。ユーザーが変更することはできません。
+        </p>
+
+        <h4>features</h4>
+        <p>
+          デフォルト:
+          <code
+            >["bold", "italic", "strike", "underline", "link", "bulletList", "orderedList",
+            "horizontalRule"]</code
+          >
+        </p>
+        <p>
+          有効にする機能 ID
+          の配列です。無効な機能の書式は、貼り付けたときや保存するときに取り除かれます（文字は残ります。見出しや引用は段落になります）。
+        </p>
+        <table class="docs-table">
+          <thead>
+            <tr>
+              <th>機能 ID</th>
+              <th>内容</th>
+              <th>出力タグ</th>
+              <th>デフォルト</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>bold</code></td>
+              <td>太字</td>
+              <td><code>strong</code></td>
+              <td>有効</td>
+            </tr>
+            <tr>
+              <td><code>italic</code></td>
+              <td>斜体</td>
+              <td><code>em</code></td>
+              <td>有効</td>
+            </tr>
+            <tr>
+              <td><code>strike</code></td>
+              <td>取り消し線</td>
+              <td><code>s</code></td>
+              <td>有効</td>
+            </tr>
+            <tr>
+              <td><code>underline</code></td>
+              <td>下線</td>
+              <td><code>u</code></td>
+              <td>有効</td>
+            </tr>
+            <tr>
+              <td><code>link</code></td>
+              <td>リンク（新しいタブで開く指定も可）</td>
+              <td><code>a</code></td>
+              <td>有効</td>
+            </tr>
+            <tr>
+              <td><code>bulletList</code></td>
+              <td>箇条書き</td>
+              <td><code>ul</code> <code>li</code></td>
+              <td>有効</td>
+            </tr>
+            <tr>
+              <td><code>orderedList</code></td>
+              <td>番号付きリスト</td>
+              <td><code>ol</code> <code>li</code></td>
+              <td>有効</td>
+            </tr>
+            <tr>
+              <td><code>horizontalRule</code></td>
+              <td>水平線</td>
+              <td><code>hr</code></td>
+              <td>有効</td>
+            </tr>
+            <tr>
+              <td><code>heading</code></td>
+              <td>見出し（h2〜h4）</td>
+              <td><code>h2</code> <code>h3</code> <code>h4</code></td>
+              <td>無効</td>
+            </tr>
+            <tr>
+              <td><code>blockquote</code></td>
+              <td>引用</td>
+              <td><code>blockquote</code></td>
+              <td>無効</td>
+            </tr>
+            <tr>
+              <td><code>superscript</code></td>
+              <td>上付き</td>
+              <td><code>sup</code></td>
+              <td>無効</td>
+            </tr>
+            <tr>
+              <td><code>subscript</code></td>
+              <td>下付き</td>
+              <td><code>sub</code></td>
+              <td>無効</td>
+            </tr>
+          </tbody>
+        </table>
+        <p>
+          段落・改行、書式のクリア、元に戻す・やり直すは常に使えます。出力には
+          <code>style</code> / <code>class</code> 属性を含めません（見た目はサイトの CSS
+          で決めます）。
+        </p>
+        <pre><code>&lt;zcode-cms
+  config='{"richText": {"features": ["bold", "link", "bulletList", "heading", "blockquote"]}}'
+&gt;&lt;/zcode-cms&gt;</code></pre>
+        <p>
+          この設定はエディタの UI
+          を制限するもので、公開表示の無害化（<code>sanitizeRichText</code>）の許可リストには連動しません。
+          リッチテキストの編集には Chrome 137 以降 / Firefox 142 以降 / Safari 17 以降が必要です。
+        </p>
 
         <h3 id="config-examples">設定の使用例</h3>
         <pre><code>&lt;zcode-cms
