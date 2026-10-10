@@ -71,7 +71,6 @@
     "@tiptap/extension-paragraph": "^3.31.3",
     "@tiptap/extension-strike": "^3.31.3",
     "@tiptap/extension-text": "^3.31.3",
-    "@tiptap/starter-kit": "^3.31.3",
     "@tiptap/vue-3": "^3.31.3",
     "dompurify": "^3.4.16",
     "lucide-vue-next": "^0.553.0",
