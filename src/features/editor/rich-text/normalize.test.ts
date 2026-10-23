@@ -69,10 +69,13 @@ describe('機能の制限', () => {
     ).toBe('<p>t</p><p>q</p><p>a</p><p>l<strong>b</strong></p>');
   });
 
-  it('デフォルトでは見出し・引用・上付き・下付きを使わない', () => {
-    expect(output('<h3>h</h3><blockquote>q</blockquote><p>x<sup>2</sup></p>', defaults)).toBe(
-      '<p>h</p><p>q</p><p>x2</p>'
-    );
+  it('デフォルトでは太字・取り消し線・リンク・リスト以外の書式を使わない', () => {
+    expect(
+      output(
+        '<h3>h</h3><blockquote>q</blockquote><p>x<sup>2</sup><em>i</em><u>u</u><strong>b</strong><s>s</s></p><hr>',
+        defaults
+      )
+    ).toBe('<p>h</p><p>q</p><p>x2iu<strong>b</strong><s>s</s></p>');
   });
 
   it('未知の機能名は無視し、指定がなければデフォルトを使う', () => {

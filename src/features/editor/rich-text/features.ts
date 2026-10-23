@@ -12,20 +12,20 @@ export const RICH_TEXT_FEATURES = [
   'heading',
   'blockquote',
   'superscript',
-  'subscript'
+  'subscript',
+  'clearFormat',
+  'history'
 ] as const;
 
 export type RichTextFeature = (typeof RICH_TEXT_FEATURES)[number];
 
 export const DEFAULT_RICH_TEXT_FEATURES: readonly RichTextFeature[] = [
   'bold',
-  'italic',
   'strike',
-  'underline',
   'link',
   'bulletList',
   'orderedList',
-  'horizontalRule'
+  'history'
 ];
 
 export type MarkTag = 'strong' | 'em' | 's' | 'u' | 'sup' | 'sub';

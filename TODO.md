@@ -661,6 +661,7 @@ ZC-3（並行可）
   - config `richText.features`、`zcodeRichTextFeaturesKey` で CMS / Editor / Studio から provide
   - リンクは window.prompt をやめ、ツールバー下のフォーム（URL・新しいタブ・解除）に変更
   - ブロック要素で始まるリッチテキスト値を `<p>` で包まないよう `template-processor.ts` を修正
+  - 初期設定を最小化（2026年10月24日）: 太字・取り消し線・リンク・2種のリスト＋`history`（元に戻す/やり直すボタン）。斜体・下線・水平線・`clearFormat`（「文字の装飾を解除」に改名）はオプトインへ。斜体は日本語フォントで見栄えが悪く、下線はリンクと誤認されやすいため
   - 将来検討: 見出しレベルの個別指定、フィールド単位の機能指定（`{$body::rich=bold,link}`）
 
 ---

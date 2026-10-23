@@ -50,11 +50,11 @@ test.describe('リッチテキストエディタ', () => {
     await expect(preview.locator('strong')).toHaveText('world');
   });
 
-  test('ショートカットで斜体にできる', async ({ page }) => {
+  test('ショートカットで取り消し線にできる', async ({ page }) => {
     const { preview } = await openRichTextEditor(page);
     await selectLastChars(page, 5);
-    await page.keyboard.press('ControlOrMeta+i');
-    await expect(preview.locator('em')).toHaveText('world');
+    await page.keyboard.press('ControlOrMeta+Shift+x');
+    await expect(preview.locator('s')).toHaveText('world');
   });
 
   test('リストを作成・解除しても編集領域とホスト要素が壊れない', async ({ page }) => {

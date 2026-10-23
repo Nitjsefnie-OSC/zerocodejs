@@ -115,7 +115,7 @@ export default {
     blockquote: 'Quote',
     horizontalRule: 'Horizontal line',
     link: 'Link',
-    clearFormat: 'Clear formatting',
+    clearFormat: 'Remove text formatting',
     undo: 'Undo',
     redo: 'Redo',
     placeholder: 'Enter text...',

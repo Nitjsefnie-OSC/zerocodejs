@@ -534,7 +534,7 @@ const toolbarGroups = computed<ToolbarItem[][]>(() => {
           }
         ]
       : []),
-    ...(marks.length
+    ...(has('clearFormat')
       ? [
           {
             id: 'clearFormat',
@@ -545,10 +545,12 @@ const toolbarGroups = computed<ToolbarItem[][]>(() => {
         ]
       : [])
   ];
-  const historyItems: ToolbarItem[] = [
-    { id: 'undo', label: t('richText.undo'), icon: Undo2, disabled: !canUndo.value, run: undo },
-    { id: 'redo', label: t('richText.redo'), icon: Redo2, disabled: !canRedo.value, run: redo }
-  ];
+  const historyItems: ToolbarItem[] = has('history')
+    ? [
+        { id: 'undo', label: t('richText.undo'), icon: Undo2, disabled: !canUndo.value, run: undo },
+        { id: 'redo', label: t('richText.redo'), icon: Redo2, disabled: !canRedo.value, run: redo }
+      ]
+    : [];
   const groups = [marks, blocks, extras, historyItems].filter((group) => group.length > 0);
   let index = 0;
   for (const item of groups.flat()) {

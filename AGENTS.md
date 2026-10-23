@@ -710,7 +710,7 @@ interface ImageData {
 33. ✅ **リッチテキストエディタの自作化（Tiptap 依存の削除）と機能選択**（2026年10月）
 
 - Tiptap（13パッケージ＋ProseMirror）を削除し、`src/features/editor/rich-text/` に自前実装。遅延チャンクは約115KB→約10KB、UMD は約118KB
-- config の `richText.features` でプロダクトごとに使える機能を選択（デフォルト: 太字・斜体・取り消し線・下線・リンク・箇条書き・番号付きリスト・水平線。オプトイン: 見出し h2〜h4・引用・上付き・下付き）
+- config の `richText.features` でプロダクトごとに使える機能を選択。初期設定は最小限（太字・取り消し線・リンク・箇条書き・番号付きリスト＋元に戻す/やり直すのボタン `history`）。オプトイン: 斜体・下線・水平線・見出し h2〜h4・引用・上付き・下付き・文字の装飾を解除するボタン `clearFormat`（`history` / `clearFormat` はボタンのみで出力に影響しない）
 - `sanitizeRichText` の許可リストに `h2` `h3` `h4` `blockquote` `sup` `sub` を追加（config には連動させない）
 - 見出し・リスト等のブロック要素で始まるリッチテキストの値を `<p>` で包まないよう修正（包むと HTML の解析で空の `<p>` が生まれていた）
 - 動作環境: Chrome 137+ / Firefox 142+ / Safari 17+（`getComposedRanges`）

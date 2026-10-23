@@ -32,14 +32,10 @@ describe('RichTextEditor', () => {
     const wrapper = mountEditor('<p>a</p>');
     expect(buttonLabels(wrapper)).toEqual([
       '太字',
-      '斜体',
-      '下線',
       '取り消し線',
       '箇条書き',
       '番号付きリスト',
-      '水平線',
       'リンク',
-      '書式をクリア',
       '元に戻す',
       'やり直す'
     ]);
@@ -47,16 +43,14 @@ describe('RichTextEditor', () => {
   });
 
   it('指定した機能のボタンだけを表示する', () => {
-    const wrapper = mountEditor('<p>a</p>', ['heading', 'blockquote', 'subscript']);
+    const wrapper = mountEditor('<p>a</p>', ['heading', 'blockquote', 'subscript', 'clearFormat']);
     expect(buttonLabels(wrapper)).toEqual([
       '下付き',
       '見出し2',
       '見出し3',
       '見出し4',
       '引用',
-      '書式をクリア',
-      '元に戻す',
-      'やり直す'
+      '文字の装飾を解除'
     ]);
     wrapper.unmount();
   });
@@ -88,12 +82,12 @@ describe('RichTextEditor', () => {
     expect(tabStops()).toEqual(['太字']);
 
     await wrapper.find('.zcode-rich-text-toolbar').trigger('keydown', { key: 'ArrowRight' });
-    expect(tabStops()).toEqual(['斜体']);
-    expect(document.activeElement?.getAttribute('aria-label')).toBe('斜体');
+    expect(tabStops()).toEqual(['取り消し線']);
+    expect(document.activeElement?.getAttribute('aria-label')).toBe('取り消し線');
 
     // 無効な「元に戻す」「やり直す」は飛ばす
     await wrapper.find('.zcode-rich-text-toolbar').trigger('keydown', { key: 'End' });
-    expect(tabStops()).toEqual(['書式をクリア']);
+    expect(tabStops()).toEqual(['リンク']);
     await wrapper.find('.zcode-rich-text-toolbar').trigger('keydown', { key: 'ArrowRight' });
     expect(tabStops()).toEqual(['太字']);
     wrapper.unmount();

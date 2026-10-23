@@ -405,32 +405,35 @@ cmsElement.setAttribute('config', JSON.stringify(cmsConfig));
 
 ### リッチテキスト設定（`richText`）
 
-`zcode-cms` / `zcode-editor` / `zcode-studio` 共通。リッチテキストエディタのツールバーで使える機能を、プロダクトごとに選択できます。localStorage には保存されず、ユーザーが変更することはできません。
+`zcode-cms` / `zcode-editor` / `zcode-studio` 共通。リッチテキストエディタのツールバーで使える機能を、プロダクトごとに選択できます。初期設定は、お知らせや紹介文でよく使う機能だけに絞っています。localStorage には保存されず、ユーザーが変更することはできません。
 
-- **`features`** (デフォルト: `["bold", "italic", "strike", "underline", "link", "bulletList", "orderedList", "horizontalRule"]`)
-  - 有効にする機能 ID の配列。未知の ID は警告して無視する。空配列ではツールバーの装飾ボタンを表示しない（元に戻す・やり直しのみ）
-  - 無効な機能のタグは、貼り付け時とエディタの出力時に内容を残して取り除く（見出し・引用・無効なリストの項目は段落になる）
+- **`features`** (デフォルト: `["bold", "strike", "link", "bulletList", "orderedList", "history"]`)
+  - 有効にする機能 ID の配列。未知の ID は警告して無視する
+  - 書式の機能を無効にすると、そのタグは貼り付け時とエディタの出力時に内容を残して取り除く（見出し・引用・無効なリストの項目は段落になる）
+  - 「ボタンのみ」の機能は出力に影響せず、無効にしてもツールバーのボタンが消えるだけ
 
-| 機能 ID          | 内容                                 | 出力タグ                   | デフォルト |
-| ---------------- | ------------------------------------ | -------------------------- | ---------- |
-| `bold`           | 太字（Cmd/Ctrl+B）                   | `strong`                   | ✅         |
-| `italic`         | 斜体（Cmd/Ctrl+I）                   | `em`                       | ✅         |
-| `strike`         | 取り消し線（Cmd/Ctrl+Shift+X）       | `s`                        | ✅         |
-| `underline`      | 下線（Cmd/Ctrl+U）                   | `u`                        | ✅         |
-| `link`           | リンク（Cmd/Ctrl+K、新しいタブ指定） | `a`（href / target / rel） | ✅         |
-| `bulletList`     | 箇条書き                             | `ul` `li`                  | ✅         |
-| `orderedList`    | 番号付きリスト                       | `ol` `li`                  | ✅         |
-| `horizontalRule` | 水平線                               | `hr`                       | ✅         |
-| `heading`        | 見出し（h2〜h4）                     | `h2` `h3` `h4`             |            |
-| `blockquote`     | 引用                                 | `blockquote`               |            |
-| `superscript`    | 上付き                               | `sup`                      |            |
-| `subscript`      | 下付き                               | `sub`                      |            |
+| 機能 ID          | 内容                                     | 出力タグ                   | デフォルト |
+| ---------------- | ---------------------------------------- | -------------------------- | ---------- |
+| `bold`           | 太字（Cmd/Ctrl+B）                       | `strong`                   | ✅         |
+| `strike`         | 取り消し線（Cmd/Ctrl+Shift+X）           | `s`                        | ✅         |
+| `link`           | リンク（Cmd/Ctrl+K、新しいタブ指定）     | `a`（href / target / rel） | ✅         |
+| `bulletList`     | 箇条書き                                 | `ul` `li`                  | ✅         |
+| `orderedList`    | 番号付きリスト                           | `ol` `li`                  | ✅         |
+| `italic`         | 斜体（Cmd/Ctrl+I）                       | `em`                       |            |
+| `underline`      | 下線（Cmd/Ctrl+U）                       | `u`                        |            |
+| `horizontalRule` | 水平線                                   | `hr`                       |            |
+| `heading`        | 見出し（h2〜h4）                         | `h2` `h3` `h4`             |            |
+| `blockquote`     | 引用                                     | `blockquote`               |            |
+| `superscript`    | 上付き                                   | `sup`                      |            |
+| `subscript`      | 下付き                                   | `sub`                      |            |
+| `history`        | 元に戻す・やり直すのボタン（ボタンのみ） | —                          | ✅         |
+| `clearFormat`    | 文字の装飾を解除するボタン（ボタンのみ） | —                          |            |
 
-段落・改行（`p` `br`）、書式のクリア、元に戻す・やり直す（Cmd/Ctrl+Z、Cmd/Ctrl+Shift+Z）は常に使えます。出力には `style` / `class` 属性を含めません（見た目はサイトの CSS で決める）。`target="_blank"` のリンクには `rel="noopener noreferrer"` を付けます。
+段落・改行（`p` `br`）は常に使えます。元に戻す・やり直す（Cmd/Ctrl+Z、Cmd/Ctrl+Shift+Z）のショートカットは `history` を無効にしても使えます。文字の装飾の解除はリンク以外の装飾を外します。出力には `style` / `class` 属性を含めません（見た目はサイトの CSS で決める）。`target="_blank"` のリンクには `rel="noopener noreferrer"` を付けます。
 
 ```html
 <zcode-cms
-  config='{"richText": {"features": ["bold", "link", "bulletList", "heading", "blockquote"]}}'
+  config='{"richText": {"features": ["bold", "italic", "link", "bulletList", "heading", "history"]}}'
 ></zcode-cms>
 ```
 

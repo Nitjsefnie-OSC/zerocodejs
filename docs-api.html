@@ -539,7 +539,7 @@
     "enableTemplateSuggestions": false
   },
   "richText": {
-    "features": ["bold", "italic", "strike", "underline", "link", "bulletList", "orderedList", "horizontalRule"]
+    "features": ["bold", "strike", "link", "bulletList", "orderedList", "history"]
   },
   "categoryOrder": "common"
 }</code></pre>
@@ -612,20 +612,17 @@
         <h3 id="rich-text-settings">リッチテキスト設定（richText）</h3>
         <p>
           <code>zcode-cms</code>・<code>zcode-editor</code>・<code>zcode-studio</code>
-          共通の設定です。リッチテキストエディタのツールバーで使える機能を、プロダクトごとに選択できます。ユーザーが変更することはできません。
+          共通の設定です。リッチテキストエディタのツールバーで使える機能を、プロダクトごとに選択できます。初期設定は、お知らせや紹介文でよく使う機能だけに絞っています。ユーザーが変更することはできません。
         </p>
 
         <h4>features</h4>
         <p>
           デフォルト:
-          <code
-            >["bold", "italic", "strike", "underline", "link", "bulletList", "orderedList",
-            "horizontalRule"]</code
-          >
+          <code>["bold", "strike", "link", "bulletList", "orderedList", "history"]</code>
         </p>
         <p>
           有効にする機能 ID
-          の配列です。無効な機能の書式は、貼り付けたときや保存するときに取り除かれます（文字は残ります。見出しや引用は段落になります）。
+          の配列です。書式の機能を無効にすると、その書式は貼り付けたときや保存するときに取り除かれます（文字は残ります。見出しや引用は段落になります）。「ボタンのみ」の機能は出力に影響しません。
         </p>
         <table class="docs-table">
           <thead>
@@ -644,21 +641,9 @@
               <td>有効</td>
             </tr>
             <tr>
-              <td><code>italic</code></td>
-              <td>斜体</td>
-              <td><code>em</code></td>
-              <td>有効</td>
-            </tr>
-            <tr>
               <td><code>strike</code></td>
               <td>取り消し線</td>
               <td><code>s</code></td>
-              <td>有効</td>
-            </tr>
-            <tr>
-              <td><code>underline</code></td>
-              <td>下線</td>
-              <td><code>u</code></td>
               <td>有効</td>
             </tr>
             <tr>
@@ -680,10 +665,22 @@
               <td>有効</td>
             </tr>
             <tr>
+              <td><code>italic</code></td>
+              <td>斜体</td>
+              <td><code>em</code></td>
+              <td>無効</td>
+            </tr>
+            <tr>
+              <td><code>underline</code></td>
+              <td>下線</td>
+              <td><code>u</code></td>
+              <td>無効</td>
+            </tr>
+            <tr>
               <td><code>horizontalRule</code></td>
               <td>水平線</td>
               <td><code>hr</code></td>
-              <td>有効</td>
+              <td>無効</td>
             </tr>
             <tr>
               <td><code>heading</code></td>
@@ -709,15 +706,28 @@
               <td><code>sub</code></td>
               <td>無効</td>
             </tr>
+            <tr>
+              <td><code>history</code></td>
+              <td>元に戻す・やり直すのボタン（ボタンのみ）</td>
+              <td>—</td>
+              <td>有効</td>
+            </tr>
+            <tr>
+              <td><code>clearFormat</code></td>
+              <td>文字の装飾を解除するボタン（ボタンのみ）</td>
+              <td>—</td>
+              <td>無効</td>
+            </tr>
           </tbody>
         </table>
         <p>
-          段落・改行、書式のクリア、元に戻す・やり直すは常に使えます。出力には
-          <code>style</code> / <code>class</code> 属性を含めません（見た目はサイトの CSS
-          で決めます）。
+          段落・改行は常に使えます。元に戻す・やり直すのショートカット（Cmd/Ctrl+Z、Cmd/Ctrl+Shift+Z）は
+          <code>history</code> を無効にしても使えます。出力には <code>style</code> /
+          <code>class</code>
+          属性を含めません（見た目はサイトの CSS で決めます）。
         </p>
         <pre><code>&lt;zcode-cms
-  config='{"richText": {"features": ["bold", "link", "bulletList", "heading", "blockquote"]}}'
+  config='{"richText": {"features": ["bold", "italic", "link", "bulletList", "heading", "history"]}}'
 &gt;&lt;/zcode-cms&gt;</code></pre>
         <p>
           この設定はエディタの UI

@@ -115,7 +115,7 @@ export default {
     blockquote: '引用',
     horizontalRule: '水平線',
     link: 'リンク',
-    clearFormat: '書式をクリア',
+    clearFormat: '文字の装飾を解除',
     undo: '元に戻す',
     redo: 'やり直す',
     placeholder: 'テキストを入力...',
