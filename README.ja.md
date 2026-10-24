@@ -31,7 +31,7 @@ ZeroCode.js は、既存 Web サービスに後付けできる埋め込み型 CM
 - **パーツ管理**: 再利用可能なパーツを作成・管理
 - **画像管理**: 画像のアップロード・管理機能
 - **柔軟なテンプレート**: カスタムHTMLテンプレート構文で動的なコンテンツを定義
-- **初期ロードが小さい**: `zerocodejs/cms` の初期ロードは圧縮後約100KB（リッチテキストエディタは遅延ロード）。Vue 3 を peer 依存として利用します
+- **初期ロードが小さい**: `zerocodejs/cms` の初期ロードは圧縮後約87KB（リッチテキストエディタは遅延ロード）。Vue 3.5 以上を peer 依存として利用します
 
 ## デモ
 
@@ -52,7 +52,7 @@ ZeroCode.js は、既存 Web サービスに後付けできる埋め込み型 CM
   <body>
     <zcode-editor></zcode-editor>
 
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/vue@3.5/dist/vue.global.prod.js"></script>
     <script src="https://unpkg.com/zerocodejs/dist/zerocode.umd.js"></script>
   </body>
 </html>

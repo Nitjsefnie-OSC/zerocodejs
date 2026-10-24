@@ -1346,7 +1346,7 @@ cms.addEventListener('save-request', async (event) => {
 
 ### 主要な依存関係
 
-- **Vue 3**: UIフレームワーク
+- **Vue 3（3.5 以上）**: UIフレームワーク。peerDependencies で利用者が用意する（`dist` は Vue 3.5 のコンパイラで生成しており、`defineModel` など 3.4 以降の機能も使うため）
 - **Monaco Editor**: コードエディター（Editor / Studio のパーツ管理のみ）。パッケージの容量を抑えるため、実行時に CDN（jsdelivr）から読み込む。npm の `monaco-editor` は版の管理と脆弱性監査のための devDependencies
 - **SortableJS**: 並べ替えパネル内 D&D
 - **アイコン**: Lucide の SVG を `src/core/icons/` に手元で持つ（パッケージには依存しない。ライセンスは `create-icon.ts` に記載）

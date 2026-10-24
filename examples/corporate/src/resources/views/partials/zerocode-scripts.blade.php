@@ -1,4 +1,4 @@
-<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<script src="https://unpkg.com/vue@3.5/dist/vue.global.prod.js"></script>
 <script src="{{ asset('dist/zerocode.umd.js') }}"></script>
 <link rel="stylesheet" href="{{ asset('dist/zerocodejs.css') }}">
 <script src="{{ asset('js/zerocode-api.js') }}"></script>
