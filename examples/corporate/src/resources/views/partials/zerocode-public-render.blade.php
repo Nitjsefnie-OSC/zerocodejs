@@ -1,7 +1,7 @@
 <div id="zcode-public-content" data-page-id="{{ $pageId ?? '' }}" data-news-slug="{{ $newsSlug ?? '' }}">
     <p>読み込み中…</p>
 </div>
-<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<script src="https://unpkg.com/vue@3.5/dist/vue.global.prod.js"></script>
 <script src="{{ asset('dist/zerocode.umd.js') }}"></script>
 <script>
 (function () {

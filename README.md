@@ -23,7 +23,7 @@ ZeroCode.js is an embeddable CMS library for existing web services. Authenticati
 - **Parts Management** - Create and manage reusable content blocks
 - **Image Management** - Built-in image upload and management
 - **Flexible Templates** - Custom HTML template syntax for dynamic content
-- **Small Initial Load** - `zerocodejs/cms` is about 100 KB (brotli) on first load, with the rich text editor loaded lazily. Requires Vue 3 as a peer dependency
+- **Small Initial Load** - `zerocodejs/cms` is about 87 KB (brotli) on first load, with the rich text editor loaded lazily. Requires Vue 3.5+ as a peer dependency
 - **i18n Ready** - Built-in Japanese & English UI support
 
 ## Demo
@@ -45,7 +45,7 @@ ZeroCode.js is an embeddable CMS library for existing web services. Authenticati
   <body>
     <zcode-editor locale="en"></zcode-editor>
 
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/vue@3.5/dist/vue.global.prod.js"></script>
     <script src="https://unpkg.com/zerocodejs/dist/zerocode.umd.js"></script>
   </body>
 </html>
