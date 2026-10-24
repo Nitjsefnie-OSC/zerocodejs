@@ -280,7 +280,16 @@ export default {
     currentlySelected: '現在選択中',
     select: '選択',
     tabAll: '全て',
-    addSpecialImage: '専用画像を追加'
+    addSpecialImage: '専用画像を追加',
+    uploading: 'アップロード中…',
+    uploadFailed: '画像のアップロードに失敗しました',
+    fileTypeNotAllowed: 'この種類のファイルは追加できません（{accept}）',
+    fileTooLarge: 'ファイルが大きすぎます（{max} まで）',
+    chooseFromMedia: 'メディアから選ぶ',
+    mediaLoading: '読み込み中…',
+    mediaLoadFailed: 'メディアの一覧を読み込めませんでした',
+    mediaEmpty: 'メディアに画像がありません',
+    mediaAdded: '登録済み'
   },
   dataViewer: {
     page: 'ページ',

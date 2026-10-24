@@ -71,16 +71,30 @@
             </button>
           </div>
           <div class="zcode-image-select-add-wrapper">
+            <span class="zcode-image-uploading" role="status">{{
+              uploading ? $t('imagesManager.uploading') : ''
+            }}</span>
             <input
               ref="fileInputRef"
               type="file"
-              accept="image/*"
+              :accept="accept"
               style="display: none"
               @change="handleFileSelect"
             />
             <button
+              v-if="canListMedia"
+              type="button"
+              class="zcode-btn-secondary zcode-image-select-add-btn"
+              :aria-disabled="uploading"
+              @click="openMediaPicker"
+            >
+              <ImageIcon :size="14" />
+              <span>{{ $t('imagesManager.chooseFromMedia') }}</span>
+            </button>
+            <button
               type="button"
               class="zcode-btn-primary zcode-image-select-add-btn"
+              :aria-disabled="uploading"
               @click="openSpecialImageFilePicker"
             >
               <Plus :size="14" />
@@ -99,8 +113,8 @@
               role="button"
               tabindex="0"
               @click="selectImage(image)"
-              @keydown.enter.prevent="selectImage(image)"
-              @keydown.space.prevent="selectImage(image)"
+              @keydown.enter.self.prevent="selectImage(image)"
+              @keydown.space.self.prevent="selectImage(image)"
             >
               <div v-if="reorderSourceImage === image.id" class="zcode-reorder-source-indicator">
                 {{ $t('partsManager.source') }}
@@ -149,8 +163,8 @@
               role="button"
               tabindex="0"
               @click="selectImage(entry.image)"
-              @keydown.enter.prevent="selectImage(entry.image)"
-              @keydown.space.prevent="selectImage(entry.image)"
+              @keydown.enter.self.prevent="selectImage(entry.image)"
+              @keydown.space.self.prevent="selectImage(entry.image)"
             >
               <span
                 v-if="activeTab === 'all'"
@@ -215,18 +229,22 @@
             <input
               ref="replaceFileInputRef"
               type="file"
-              accept="image/*"
+              :accept="accept"
               class="zcode-image-replace-input"
               @change="handleReplaceFile"
             />
             <button
               type="button"
               class="zcode-image-select-btn"
-              @click="replaceFileInputRef?.click()"
+              :aria-disabled="uploading"
+              @click="!uploading && replaceFileInputRef?.click()"
             >
               <ImageIcon :size="16" />
               <span>{{ $t('imagesManager.replaceImage') }}</span>
             </button>
+            <span class="zcode-image-uploading" role="status">{{
+              uploading ? $t('imagesManager.uploading') : ''
+            }}</span>
           </div>
 
           <div class="zcode-form-field">
@@ -240,7 +258,11 @@
           </div>
 
           <div class="zcode-image-editor-actions">
-            <button class="zcode-btn-primary zcode-image-editor-actions-btn" @click="saveImage">
+            <button
+              class="zcode-btn-primary zcode-image-editor-actions-btn"
+              :aria-disabled="uploading"
+              @click="!uploading && saveImage()"
+            >
               <Check :size="16" />
               <span>{{ $t('common.confirm') }}</span>
             </button>
@@ -253,6 +275,15 @@
       </div>
     </div>
   </Teleport>
+
+  <MediaPickerModal
+    v-if="canListMedia"
+    :show="mediaPickerOpen"
+    :load="listMediaImages"
+    :is-added="isMediaAdded"
+    @pick="handleMediaPick"
+    @close="mediaPickerOpen = false"
+  />
 </template>
 
 <script setup lang="ts">
@@ -260,8 +291,12 @@ import { ref, watch, computed } from 'vue';
 import { useModalA11y } from '../../../core/composables/useModalA11y';
 import { useI18n } from '../../../i18n';
 import { useZcodeTeleportTo } from '../../../core/composables/useZcodeTeleportTo';
-import type { ZeroCodeData, ImageData } from '../../../types';
-import { useImagesManager } from '../../images-manager/composables/useImagesManager';
+import type { ZeroCodeData, ImageData, MediaImage } from '../../../types';
+import {
+  useImagesManager,
+  imageFileErrorMessage
+} from '../../images-manager/composables/useImagesManager';
+import MediaPickerModal from '../../images-manager/components/MediaPickerModal.vue';
 import { filterSpecialImagesForPage } from '../../../core/utils/image-scope';
 import { logger } from '../../../core/utils/logger';
 import {
@@ -313,12 +348,20 @@ const {
   editingImage,
   currentImages,
   addImage,
+  replaceEditingImageFile,
+  uploading,
+  accept,
+  canListMedia,
+  listMediaImages,
+  addMediaImage,
   deleteImage,
   startEditing,
   saveImage,
   cancelEditing,
   checkImageUsage
 } = useImagesManager(props.cmsData, { pageId: props.pageId });
+
+const mediaPickerOpen = ref(false);
 
 const displayImages = computed((): DisplayImageEntry[] => {
   const { common, individual, special } = props.cmsData.images;
@@ -448,6 +491,7 @@ const close = () => {
 };
 
 function openSpecialImageFilePicker() {
+  if (uploading.value) return;
   activeCategory.value = 'special';
   fileInputRef.value?.click();
 }
@@ -455,6 +499,7 @@ function openSpecialImageFilePicker() {
 async function handleFileSelect(event: Event) {
   const input = event.target as HTMLInputElement;
   const file = input.files?.[0];
+  input.value = '';
   if (!file) return;
 
   activeCategory.value = 'special';
@@ -462,28 +507,41 @@ async function handleFileSelect(event: Event) {
   try {
     const newImage = await addImage(file);
     selectedImageId.value = newImage.id;
-    if (input) input.value = '';
   } catch (error) {
     logger.error('画像追加エラー:', error);
-    alert(t('imagesManager.addImageFailed'));
+    alert(imageFileErrorMessage(error, t, accept.value));
   }
 }
 
-function handleReplaceFile(event: Event) {
+async function handleReplaceFile(event: Event) {
   const input = event.target as HTMLInputElement;
   const file = input.files?.[0];
-  if (!file || !editingImage.value) return;
+  input.value = '';
+  if (!file) return;
 
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    const base64 = e.target?.result as string;
-    if (!base64 || !editingImage.value) return;
-    editingImage.value.url = base64;
-    editingImage.value.mimeType = file.type;
-    editingImage.value.needsUpload = true;
-  };
-  reader.readAsDataURL(file);
-  if (input) input.value = '';
+  try {
+    await replaceEditingImageFile(file);
+  } catch (error) {
+    logger.error('画像差し替えエラー:', error);
+    alert(imageFileErrorMessage(error, t, accept.value));
+  }
+}
+
+function openMediaPicker() {
+  if (uploading.value) return;
+  activeCategory.value = 'special';
+  mediaPickerOpen.value = true;
+}
+
+function isMediaAdded(media: MediaImage) {
+  return props.cmsData.images.special.some((image) => image.url === media.url);
+}
+
+function handleMediaPick(media: MediaImage) {
+  activeCategory.value = 'special';
+  selectedImageId.value = addMediaImage(media).id;
+  activeTab.value = 'special';
+  mediaPickerOpen.value = false;
 }
 
 function getSpecialItemClass(image: ImageData) {

@@ -197,12 +197,7 @@
     </div>
 
     <!-- Teleport 用（Shadow DOM 内にモーダル向け。Editor 埋め込み時は provide なし） -->
-    <div
-      v-if="!skipTeleportTargetProvide"
-      ref="teleportTargetRef"
-      class="zcode-teleport-root"
-      aria-hidden="true"
-    />
+    <div v-if="!skipTeleportTargetProvide" ref="teleportTargetRef" class="zcode-teleport-root" />
   </div>
 </template>
 
@@ -261,7 +256,8 @@ import {
 } from '../core/utils/cms-settings-reset';
 import { logger } from '../core/utils/logger';
 import { useI18n } from '../i18n';
-import type { CMSConfig, CMSSettings } from '../types';
+import type { CMSConfig, CMSSettings, ZeroCodeHooks } from '../types';
+import { provideZeroCodeHost } from '../core/composables/useZeroCodeHost';
 
 const { t } = useI18n();
 
@@ -292,6 +288,8 @@ const props = defineProps<{
   skipTeleportTargetProvide?: boolean;
   /** true のとき内蔵ツールバーを出さない（ZeroCodeEditor / Studio が外側で表示する場合） */
   hideToolbar?: boolean;
+  /** ホストの関数（画像のアップロードなど）。Web Component では要素の hooks プロパティ */
+  hooks?: ZeroCodeHooks;
 }>();
 
 const hideToolbar = computed(() => props.hideToolbar === true);
@@ -319,6 +317,11 @@ const parseConfig = (configString?: string): Partial<CMSConfig> => {
 
 const config = parseConfig(props.config);
 provide(zcodeRichTextConfigKey, resolveRichTextConfig(config.richText));
+provideZeroCodeHost({
+  source: props.saveRequestSource ?? 'cms',
+  hooks: () => props.hooks,
+  images: config.images
+});
 
 /** ページ保存時はページ本体に加え、専用画像プール（images-special）もホストが永続化できるよう含める */
 const saveTargets = ['page', 'images-special'];

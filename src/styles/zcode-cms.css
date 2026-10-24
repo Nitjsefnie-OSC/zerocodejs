@@ -3126,8 +3126,32 @@
 .zcode-image-select-add-wrapper {
   display: flex;
   align-items: center;
+  gap: 8px;
   flex-shrink: 0;
   padding: 8px 8px 8px 0;
+}
+
+.zcode-image-uploading {
+  font-size: 13px;
+  color: #4b5563;
+  white-space: nowrap;
+}
+
+/* 空のときもライブリージョンとして残し、レイアウトからは外す */
+.zcode-image-uploading:empty {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+.zcode-image-select-add-btn[aria-disabled='true'],
+.zcode-image-select-btn[aria-disabled='true'],
+.zcode-images-add-btn[aria-disabled='true'],
+.zcode-image-editor-actions-btn[aria-disabled='true'] {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .zcode-image-select-add-btn {
@@ -3532,6 +3556,7 @@
 .zcode-images-add-wrapper {
   display: flex;
   align-items: center;
+  gap: 8px;
   flex-shrink: 0;
 }
 
@@ -4830,7 +4855,8 @@
 }
 
 .zcode-btn-primary.zcode-parts-new-btn,
-.zcode-btn-primary.zcode-images-add-btn {
+.zcode-btn-primary.zcode-images-add-btn,
+.zcode-btn-secondary.zcode-images-add-btn {
   padding: 6px 12px;
   font-size: 13px;
   border: 1px solid #d1d5db;
@@ -5292,7 +5318,8 @@
   pointer-events: auto;
 }
 
-.zcode-image-item:hover .zcode-image-item-actions {
+.zcode-image-item:hover .zcode-image-item-actions,
+.zcode-image-item:focus-within .zcode-image-item-actions {
   opacity: 1;
 }
 
@@ -5442,6 +5469,15 @@
   .zcode-parts-add-wrapper,
   .zcode-images-add-wrapper {
     flex: 0 0 auto;
+  }
+
+  .zcode-images-add-wrapper {
+    flex: 1 1 100%;
+  }
+
+  .zcode-images-add-wrapper .zcode-images-add-btn {
+    flex: 1;
+    justify-content: center;
   }
 
   .zcode-part-editor-header {

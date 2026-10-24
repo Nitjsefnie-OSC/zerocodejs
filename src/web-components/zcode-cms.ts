@@ -4,6 +4,8 @@ import cssText from '../styles/zcode-cms.css?inline';
 import { injectShadowDOMExtension } from '../core/utils/dom-utils';
 import { determineLocale, setupI18n } from '../core/utils/i18n-setup';
 import { logger } from '../core/utils/logger';
+import { createHooksProperty } from './hooks-property';
+import type { ZeroCodeHooks } from '../types';
 
 /**
  * Web Component for ZeroCode.js CMS (ユーザー用管理画面)
@@ -14,9 +16,19 @@ class ZeroCodeCMSElement extends HTMLElement {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private componentInstance: any = null;
   private _shadowRoot: ShadowRoot | null = null;
+  private hooksProperty = createHooksProperty(this);
 
   constructor() {
     super();
+  }
+
+  /** ホストの関数（画像のアップロード・メディアの一覧・パーツ保存前の処理） */
+  get hooks(): ZeroCodeHooks | undefined {
+    return this.hooksProperty.hooks.value;
+  }
+
+  set hooks(value: ZeroCodeHooks | undefined) {
+    this.hooksProperty.hooks.value = value;
   }
 
   connectedCallback() {
@@ -81,6 +93,7 @@ class ZeroCodeCMSElement extends HTMLElement {
     });
 
     setupI18n(this.app, locale);
+    this.hooksProperty.provide(this.app);
 
     this.componentInstance = this.app.mount(this);
 
@@ -132,6 +145,7 @@ class ZeroCodeCMSElement extends HTMLElement {
     });
 
     setupI18n(this.app, locale);
+    this.hooksProperty.provide(this.app);
 
     this.componentInstance = this.app.mount(this._shadowRoot!);
 

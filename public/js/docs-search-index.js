@@ -45,6 +45,18 @@ window.__DOCS_SEARCH_INDEX__ = [
   },
   {
     page: 'docs.html',
+    id: 'about-operation',
+    text: '運用の例',
+    parent: 'ZeroCode.js とは'
+  },
+  {
+    page: 'docs.html',
+    id: 'about-retrofit',
+    text: '既存のサイトに後から組み込む',
+    parent: 'ZeroCode.js とは'
+  },
+  {
+    page: 'docs.html',
     id: 'about-not-provided',
     text: 'ZeroCode.js が提供しないもの',
     parent: 'ZeroCode.js とは'

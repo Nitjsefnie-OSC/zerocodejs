@@ -281,7 +281,16 @@ export default {
     currentlySelected: 'Currently selected',
     select: 'Select',
     tabAll: 'All',
-    addSpecialImage: 'Add dedicated image'
+    addSpecialImage: 'Add dedicated image',
+    uploading: 'Uploading…',
+    uploadFailed: 'Failed to upload the image',
+    fileTypeNotAllowed: 'This file type cannot be added ({accept})',
+    fileTooLarge: 'The file is too large (up to {max})',
+    chooseFromMedia: 'Choose from media',
+    mediaLoading: 'Loading…',
+    mediaLoadFailed: 'Could not load the media list',
+    mediaEmpty: 'No images in the media library',
+    mediaAdded: 'Added'
   },
   dataViewer: {
     page: 'Page',

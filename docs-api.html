@@ -43,6 +43,10 @@
               <a href="docs.html#about-components" class="docs-nav-link-sub"
                 >コンポーネントと役割</a
               >
+              <a href="docs.html#about-operation" class="docs-nav-link-sub">運用の例</a>
+              <a href="docs.html#about-retrofit" class="docs-nav-link-sub"
+                >既存のサイトに後から組み込む</a
+              >
               <a href="docs.html#roadmap" class="docs-nav-link-sub">編集体験改善ロードマップ</a>
             </div>
           </div>
@@ -506,7 +510,12 @@
           <code>true</code
           >の場合、バックエンドで画像のアップロード処理が必要です。通常、base64画像は<code
             >needsUpload: true</code
-          >として保存されます。
+          >として保存されます。要素の <code>hooks</code> に
+          <code>uploadImage</code> を渡した場合は、追加した時点でアップロードした URL が入り、<code
+            >needsUpload</code
+          >
+          は付きません（<a href="docs-backend.html#save-request-image-upload">画像のアップロード</a
+          >）。
         </p>
 
         <h3 id="image-selection-modal">画像選択モーダル</h3>

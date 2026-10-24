@@ -487,13 +487,14 @@ interface ImageData {
 
 - `src/components/ZeroCodeCMS.vue`: ユーザー用管理画面
 - `src/components/ZeroCodeEditor.vue`: エンジニア用管理画面（ZeroCodeCMS + パーツ管理・画像管理・データビューア）
-- `src/components/ZeroCodeStudio.vue`: 制作会社向け管理画面（専用パーツ・専用CSS・専用画像のみ編集可、それ以外は読み取り専用プレビュー）
+- `src/components/ZeroCodeStudio.vue`: 専用パーツを編集する画面（専用パーツ・専用CSS・専用画像のみ編集可、それ以外は読み取り専用プレビュー）
 - `src/components/ZeroCodePreview.vue`: プレビュー表示用コンポーネント
 
 ### コアコンポーザブル
 
 - `src/core/composables/useZeroCodeData.ts`: データ管理（読み込み、取得、設定）
 - `src/core/composables/useZeroCodeRenderer.ts`: レンダリング処理
+- `src/core/composables/useZeroCodeHost.ts`: ホストとの連携（`hooks` と `config.images`、`source`）。最上位のコンポーネントが `provideZeroCodeHost` で決め、`useZeroCodeHost` で取り出す。Web Component の `hooks` プロパティは `src/web-components/hooks-property.ts` から `app.provide` で渡る
 
 ### 機能別コンポーザブル
 
@@ -530,6 +531,7 @@ interface ImageData {
 - `src/core/utils/path-utils.ts`: パス操作ユーティリティ
 - `src/core/utils/image-utils.ts`: 画像処理ユーティリティ
 - `src/core/utils/image-scope.ts`: 専用画像の page-id スコープ（フィルタ・追加デフォルト）
+- `src/core/utils/image-files.ts`: 画像ファイルの条件（`accept` / `maxSize`）の確認、base64 への変換、カテゴリをまたいで重ならない画像 ID
 - `src/features/parts-manager/components/CodeTextarea.vue`: パーツ管理の HTML・CSS の編集欄（テキストエリア）。パーツは手元のエディタで書いて貼り付け、ここでは登録と小さな修正を行う想定。スマホでは iOS の自動拡大を避けるため 16px
 - `src/core/utils/data-version.ts`: データ形式のバージョン（`ZERO_CODE_DATA_VERSION`）と移行処理（`migrateZeroCodeData`）。データ形式を変える場合は version を上げて `MIGRATIONS` に移行処理を追加する
 - `src/core/utils/css-manager.ts`: CSS管理
@@ -559,6 +561,7 @@ interface ImageData {
 - `vite.config.ts`: ES ビルド（`index` + `cms-entry` のマルチエントリ、共有チャンク分割あり。`RichTextEditor` は遅延ロードで別チャンク）
 - `vite.umd.config.ts`: CDN 向け UMD 単一ファイル（`inlineDynamicImports` で遅延ロードをインライン化）
 - `package.json` の `size-limit` でエントリ別サイズ上限を管理（CI の `Bundle size check` で検証、`npm run size`）
+- **依存の置き場所**: `dependencies` は `dompurify` と `sortablejs` だけ。どちらもビルドで `dist` に取り込んでおり（外部扱いは `vue` と `jsdom` のみ）、利用者の環境では読み込まれないが、`dependencies` に残している。CI の `npm audit --omit=dev` と利用者側の `npm audit` で、取り込んでいるパッケージの脆弱性に気づけるようにするため。`devDependencies` に移すと監査から外れる。新しいパッケージを取り込む場合も、実行時のコードに入るものは `dependencies` に置く
 
 ### 検証用 HTML（ルート）
 
@@ -608,11 +611,11 @@ interface ImageData {
     - テンプレート編集時のプレビュー更新を 300ms debounce
     - 入力のたびに発生していた「Image not found」警告の連発を抑制
 
-19. ✅ **ZeroCodeStudio（制作会社向けコンポーネント）**（2026年3月）
+19. ✅ **ZeroCodeStudio（専用パーツを編集する画面）**（2026年3月）
     - `<zcode-studio>` Web Component（シェルは `zcode-editor` と同型、ページ管理は CMS 同等、パーツ/画像/データは専用系に限定）
     - `save-request` の `source: 'studio'` を追加（サーバー側での権限チェック用）
     - パーツテンプレート用サニタイズ関数 `sanitizePartTemplate` を追加（DOMPurify ベース、z-\* 属性許可）
-    - `beforeSavePart` フック、`sanitizePartTemplate` オプトインを config から設定可能
+    - `sanitizePartTemplate` オプトインを config から設定可能（`beforeSavePart` は2026年10月に要素の `hooks` へ移動）
     - サニタイズ関数を npm パッケージから export（サーバーとルール共有用）
 
 20. ✅ **Husky + lint-staged（pre-commit）**（2026年3月）
@@ -736,6 +739,16 @@ interface ImageData {
 - 形式: `<dir>/<category>/<NN-type>/_type.json` と `<NN-part>.html`（先頭の `<!--zerocode { JSON } -->` に `id` 必須）、パーツの `.css`、`<category>/_category.css`。並び順は名前の先頭の番号
 - CSS はパーツごとに `/* zerocode-part: <id> */` の目印付きで連結し、`split-parts` で分け直せる
 - 運用の前提: パーツはプロダクトのリポジトリで書き、管理画面にはまとめた JSON の取り込みか貼り付けで登録する。どのカテゴリをファイルで管理するかはプロダクトが決める
+
+36. ✅ **画像の連携（hooks）**（2026年10月）
+
+- 要素の `hooks` プロパティ（Vue では `hooks` prop）でホストの関数を渡す。`config` は属性の JSON 文字列で関数を入れられないため。`ZeroCodeHooks`: `uploadImage` / `listImages` / `beforeSavePart`
+- `uploadImage`: 画像を追加・差し替えた時点でアップロードし、返した URL をデータに入れる（`needsUpload` なし）。未指定なら従来どおり base64 + `needsUpload: true`。失敗時は画像を追加しない。差し替えでは ID を変えない
+- `listImages`: 画像管理と画像の選択画面に「メディアから選ぶ」（`MediaPickerModal.vue`）。選んだ画像は URL の参照として今のカテゴリに登録
+- `config.images`（`accept` / `maxSize`）でファイルの条件をアップロード前に確認
+- `config.studio.beforeSavePart` は関数を設定できない不具合があったため削除し、`hooks.beforeSavePart` に移動
+- 画像の追加処理（`useImagesManager`・`ImageSelectModal`・`ImagesManagerPanel` で重複していた FileReader の処理）を `useImagesManager` の `addImage` / `replaceEditingImageFile` にまとめた
+- デモ: `test-dev.html` に `uploadImage`（待ってから data URL を返す）と `listImages`（`public/images` の画像）の例
 
 ### 未実装（スコープ関連）
 

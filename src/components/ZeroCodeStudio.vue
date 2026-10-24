@@ -174,7 +174,7 @@
       </div>
     </div>
 
-    <div ref="teleportTargetRef" class="zcode-teleport-root" aria-hidden="true" />
+    <div ref="teleportTargetRef" class="zcode-teleport-root" />
   </div>
 </template>
 
@@ -191,7 +191,8 @@ import DataViewer from '../features/data-viewer/components/DataViewer.vue';
 import Toolbar from '../features/editor/components/Toolbar.vue';
 import SettingsPanel from '../features/editor/components/SettingsPanel.vue';
 import { Edit, Package, Image, Settings, Save, Database } from '../core/icons';
-import type { ZeroCodeData } from '../types';
+import type { ZeroCodeData, ZeroCodeHooks } from '../types';
+import { provideZeroCodeHost } from '../core/composables/useZeroCodeHost';
 import { useZeroCodeData } from '../core/composables/useZeroCodeData';
 import { getCMSSetting } from '../core/utils/storage';
 import { logger } from '../core/utils/logger';
@@ -215,6 +216,8 @@ const props = defineProps<{
   config?: string;
   endpoints?: string;
   backendData?: string;
+  /** ホストの関数（画像のアップロードなど）。Web Component では要素の hooks プロパティ */
+  hooks?: ZeroCodeHooks;
 }>();
 
 const teleportTargetRef = ref<HTMLElement | null>(null);
@@ -243,6 +246,11 @@ const parseConfig = (configString?: string): Partial<CMSConfig> => {
 
 const config = parseConfig(props.config);
 provide(zcodeRichTextConfigKey, resolveRichTextConfig(config.richText));
+provideZeroCodeHost({
+  source: 'studio',
+  hooks: () => props.hooks,
+  images: config.images
+});
 
 const showSaveConfirm = ref(config.studio?.showSaveConfirm !== false);
 

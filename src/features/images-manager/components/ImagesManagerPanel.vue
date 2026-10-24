@@ -27,14 +27,30 @@
         </button>
       </div>
       <div class="zcode-images-add-wrapper">
+        <span class="zcode-image-uploading" role="status">{{
+          uploading ? $t('imagesManager.uploading') : ''
+        }}</span>
         <input
           ref="fileInput"
           type="file"
-          accept="image/*"
+          :accept="accept"
           style="display: none"
           @change="handleFileSelect"
         />
-        <button class="zcode-btn-primary zcode-images-add-btn" @click="fileInput?.click()">
+        <button
+          v-if="canListMedia"
+          class="zcode-btn-secondary zcode-images-add-btn"
+          :aria-disabled="uploading"
+          @click="mediaPickerOpen = !uploading"
+        >
+          <Image :size="14" />
+          <span>{{ $t('imagesManager.chooseFromMedia') }}</span>
+        </button>
+        <button
+          class="zcode-btn-primary zcode-images-add-btn"
+          :aria-disabled="uploading"
+          @click="!uploading && fileInput?.click()"
+        >
           <Plus :size="14" />
           <span>{{ $t('imagesManager.addImage') }}</span>
         </button>
@@ -48,7 +64,11 @@
           v-for="image in currentImages"
           :key="image.id"
           :class="getImageItemClass(image)"
+          role="button"
+          tabindex="0"
           @click="startEditing(image)"
+          @keydown.enter.self.prevent="startEditing(image)"
+          @keydown.space.self.prevent="startEditing(image)"
         >
           <!-- 並べ替え中の移動元インジケーター -->
           <div v-if="reorderSourceImage === image.id" class="zcode-reorder-source-indicator">
@@ -108,18 +128,22 @@
               <input
                 ref="replaceFileInputRef"
                 type="file"
-                accept="image/*"
+                :accept="accept"
                 class="zcode-image-replace-input"
                 @change="handleReplaceFile"
               />
               <button
                 type="button"
                 class="zcode-image-select-btn"
-                @click="replaceFileInputRef?.click()"
+                :aria-disabled="uploading"
+                @click="!uploading && replaceFileInputRef?.click()"
               >
                 <Image :size="16" />
                 <span>{{ $t('imagesManager.replaceImage') }}</span>
               </button>
+              <span class="zcode-image-uploading" role="status">{{
+                uploading ? $t('imagesManager.uploading') : ''
+              }}</span>
             </div>
 
             <div class="zcode-form-field">
@@ -133,7 +157,11 @@
             </div>
 
             <div class="zcode-image-editor-actions">
-              <button class="zcode-btn-primary zcode-image-editor-actions-btn" @click="saveImage">
+              <button
+                class="zcode-btn-primary zcode-image-editor-actions-btn"
+                :aria-disabled="uploading"
+                @click="!uploading && saveImage()"
+              >
                 <Check :size="16" />
                 <span>{{ $t('common.confirm') }}</span>
               </button>
@@ -152,6 +180,14 @@
 
     <!-- カテゴリ情報モーダル -->
     <CategoryInfoModal :show="showCategoryInfoModal" @close="showCategoryInfoModal = false" />
+    <MediaPickerModal
+      v-if="canListMedia"
+      :show="mediaPickerOpen"
+      :load="listMediaImages"
+      :is-added="isMediaAdded"
+      @pick="handleMediaPick"
+      @close="mediaPickerOpen = false"
+    />
   </div>
 </template>
 
@@ -159,8 +195,9 @@
 import { ref, computed } from 'vue';
 import { useZcodeTeleportTo } from '../../../core/composables/useZcodeTeleportTo';
 import { useI18n } from '../../../i18n';
-import type { ZeroCodeData, ImageData, CMSConfig } from '../../../types';
-import { useImagesManager } from '../composables/useImagesManager';
+import type { ZeroCodeData, ImageData, CMSConfig, MediaImage } from '../../../types';
+import { useImagesManager, imageFileErrorMessage } from '../composables/useImagesManager';
+import MediaPickerModal from './MediaPickerModal.vue';
 import { useModalA11y } from '../../../core/composables/useModalA11y';
 import { logger } from '../../../core/utils/logger';
 import { Plus, Trash2, X, Check, ArrowUpDown, HelpCircle, Image } from '../../../core/icons';
@@ -207,6 +244,12 @@ const {
   editingImage,
   currentImages,
   addImage,
+  replaceEditingImageFile,
+  uploading,
+  accept,
+  canListMedia,
+  listMediaImages,
+  addMediaImage,
   deleteImage: deleteImageInternal,
   startEditing,
   saveImage,
@@ -234,37 +277,40 @@ useModalA11y(() => !!editingImage.value, cancelEditing, imageEditModalRef);
 async function handleFileSelect(event: Event) {
   const input = event.target as HTMLInputElement;
   const file = input.files?.[0];
+  input.value = '';
   if (!file) return;
 
   try {
     await addImage(file);
-    // ファイル入力をリセット
-    if (input) {
-      input.value = '';
-    }
   } catch (error) {
     logger.error('画像追加エラー:', error);
-    alert(t('imagesManager.addImageFailed'));
+    alert(imageFileErrorMessage(error, t, accept.value));
   }
 }
 
-function handleReplaceFile(event: Event) {
+async function handleReplaceFile(event: Event) {
   const input = event.target as HTMLInputElement;
   const file = input.files?.[0];
-  if (!file || !editingImage.value) return;
+  input.value = '';
+  if (!file) return;
 
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    const base64 = e.target?.result as string;
-    if (!base64 || !editingImage.value) return;
-    editingImage.value.url = base64;
-    editingImage.value.mimeType = file.type;
-    editingImage.value.needsUpload = true;
-  };
-  reader.readAsDataURL(file);
-  if (input) {
-    input.value = '';
+  try {
+    await replaceEditingImageFile(file);
+  } catch (error) {
+    logger.error('画像差し替えエラー:', error);
+    alert(imageFileErrorMessage(error, t, accept.value));
   }
+}
+
+const mediaPickerOpen = ref(false);
+
+function isMediaAdded(media: MediaImage) {
+  return currentImages.value.some((image) => image.url === media.url);
+}
+
+function handleMediaPick(media: MediaImage) {
+  addMediaImage(media);
+  mediaPickerOpen.value = false;
 }
 
 // アイテムのクラスを動的に生成

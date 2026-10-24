@@ -43,6 +43,10 @@
               <a href="docs.html#about-components" class="docs-nav-link-sub"
                 >コンポーネントと役割</a
               >
+              <a href="docs.html#about-operation" class="docs-nav-link-sub">運用の例</a>
+              <a href="docs.html#about-retrofit" class="docs-nav-link-sub"
+                >既存のサイトに後から組み込む</a
+              >
               <a href="docs.html#roadmap" class="docs-nav-link-sub">編集体験改善ロードマップ</a>
             </div>
           </div>
@@ -561,6 +565,64 @@ cms.addEventListener('save-request', (event) => {
         </table>
 
         <h3 id="save-request-image-upload">画像のアップロード</h3>
+        <p>画像をサーバーに置く方法は2つあります。</p>
+        <ul>
+          <li>
+            <strong>追加した時点でアップロードする（おすすめ）</strong>: 要素の
+            <code>hooks</code> プロパティに <code>uploadImage</code> を渡します。データに大きな
+            base64 が入らず、保存も軽くなります。
+          </li>
+          <li>
+            <strong>保存するときにアップロードする</strong>:
+            <code>hooks</code> を渡さない場合は、追加した画像が base64 と
+            <code>needsUpload: true</code>
+            でデータに入ります。保存のときにホストがアップロードして URL に置き換えます。
+          </li>
+        </ul>
+
+        <h4>追加した時点でアップロードする（hooks）</h4>
+        <p>
+          関数は属性（JSON 文字列）では渡せないため、要素のプロパティで渡します。<code
+            >zcode-cms</code
+          >
+          / <code>zcode-editor</code> / <code>zcode-studio</code> で共通です。
+        </p>
+        <pre><code>const cms = document.querySelector('zcode-cms');
+cms.hooks = {
+  // 画像を追加・差し替えた時点で呼ぶ。返した URL をデータに入れる
+  async uploadImage(file, context) {
+    // context: { category, pageId, source, replacingId }
+    const body = new FormData();
+    body.append('file', file);
+    body.append('category', context.category);
+    const res = await fetch('/api/media', { method: 'POST', body });
+    if (!res.ok) throw new Error('upload failed'); // 画面にエラーを出し、画像は追加しない
+    const { id, url } = await res.json();
+    return { id, url }; // id・name は省略可
+  },
+  // 指定すると「メディアから選ぶ」を出す（サーバーにある画像を参照として登録する）
+  async listImages(context) {
+    return (await fetch('/api/media')).json(); // [{ id, url, name }]
+  }
+};</code></pre>
+        <ul>
+          <li>
+            ファイルの種類と最大サイズは <code>config</code> の
+            <code>images</code> で指定できます（例:
+            <code>{"images":{"accept":"image/png,image/jpeg","maxSize":5000000}}</code
+            >）。条件に合わないファイルはアップロードの前に止めます。
+          </li>
+          <li>
+            追加して保存しなかった画像はサーバーに残ります。どこからも参照されていない画像は、ホスト側で定期的に消してください。
+          </li>
+          <li>画像の一覧から削除しても、サーバーのファイルは消しません。</li>
+          <li>
+            Studio のパーツ保存前の処理 <code>beforeSavePart</code> も、同じ <code>hooks</code>
+            で渡します。
+          </li>
+        </ul>
+
+        <h4>保存するときにアップロードする（needsUpload）</h4>
         <p>
           <code>targets</code
           >配列に<code>images-common</code>、<code>images-individual</code>、または<code>images-special</code>が含まれる場合、<code
@@ -926,6 +988,11 @@ app.post('/api/zero-code/save', authenticate, (req, res) => {
         <h3>画像アップロードのセキュリティ</h3>
         <ul>
           <li><code>needsUpload: true</code>の画像のみアップロード処理を行ってください</li>
+          <li>
+            <code>uploadImage</code> で受け取るアップロードの API
+            でも、サーバー側で種類・サイズを検証してください（<code>config.images</code>
+            は画面の上での確認です）
+          </li>
           <li>MIMEタイプ（<code>mimeType</code>）の検証を実装してください</li>
           <li>ファイルサイズの制限を設定してください</li>
           <li>ファイル名のサニタイズを実装してください</li>

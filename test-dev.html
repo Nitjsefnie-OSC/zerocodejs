@@ -125,11 +125,32 @@
     <script>
       let cms = null;
 
+      // ホストとの連携（hooks）のデモ。サーバーがないため、アップロードは少し待ってから
+      // ファイルを data URL にして返す。実際には API にアップロードして URL を返す
+      const demoHooks = {
+        uploadImage(file) {
+          return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => setTimeout(() => resolve({ url: reader.result }), 800);
+            reader.onerror = () => reject(reader.error);
+            reader.readAsDataURL(file);
+          });
+        },
+        async listImages() {
+          return ['sample-1.jpg', 'sample-2.jpg', 'sample-3.jpg', 'hero-bg.jpg'].map((name) => ({
+            id: `media-${name.replace(/\.\w+$/, '')}`,
+            url: `./images/${name}`,
+            name
+          }));
+        }
+      };
+
       async function init() {
         await waitForCMS();
         setTimeout(() => {
           cms = document.getElementById('test-cms');
           if (cms) {
+            cms.hooks = demoHooks;
             // 未保存時のみサンプル投入し、保存済み（空配列含む）はそのまま適用
             ZeroCodeCommon.StorageManager.ensureSampleDataIfNeeded('test-cms');
             ZeroCodeCommon.StorageManager.applyToComponent('test-cms');

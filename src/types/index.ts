@@ -92,7 +92,6 @@ export interface UserSettings {
 export interface StudioSettings {
   showSaveConfirm?: boolean;
   sanitizePartTemplate?: boolean;
-  beforeSavePart?: (body: string) => string | Promise<string>;
   /**
    * 指定したカテゴリをパーツマネージャー（タイプ/パーツの追加・編集・削除・並べ替えUI）から
    * 除外する。タブ自体を表示せず、一覧にも出さない。
@@ -112,12 +111,64 @@ export interface RichTextSettings {
   };
 }
 
+export interface ImageUploadSettings {
+  /** 追加・差し替えできるファイルの種類（input の accept と同じ書き方。未指定は image/*） */
+  accept?: string;
+  /** 追加・差し替えできるファイルの最大サイズ（バイト） */
+  maxSize?: number;
+}
+
 export interface CMSConfig {
   cms?: CMSSettings;
   dev?: DevSettings;
   studio?: StudioSettings;
   richText?: RichTextSettings;
+  images?: ImageUploadSettings;
   categoryOrder?: 'common' | 'individual' | 'special';
+}
+
+export type ImageCategory = 'common' | 'individual' | 'special';
+export type ZeroCodeSource = 'cms' | 'editor' | 'studio';
+
+export interface ImageHookContext {
+  /** 画像を追加・差し替えるカテゴリ */
+  category: ImageCategory;
+  /** 要素の page-id 属性 */
+  pageId?: string;
+  /** 呼び出した画面（save-request の source と同じ） */
+  source: ZeroCodeSource;
+  /** 差し替えのとき、差し替える画像の ID */
+  replacingId?: string;
+}
+
+export interface UploadedImage {
+  url: string;
+  /** 省略時は自動で付ける。ほかの画像と重なるときは末尾に番号を付ける */
+  id?: string;
+  /** 省略時はファイル名 */
+  name?: string;
+}
+
+export interface MediaImage {
+  id: string;
+  url: string;
+  name?: string;
+}
+
+/**
+ * ホストが要素の hooks プロパティ（Vue では hooks prop）で渡す関数。
+ * config は属性の JSON 文字列のため、関数はこちらで渡す。
+ */
+export interface ZeroCodeHooks {
+  /**
+   * 画像を追加・差し替えた時点で呼ぶ。返した URL を画像のデータに入れる。
+   * 未指定のときは base64 にして needsUpload: true を付ける（保存時にホストがアップロードする）
+   */
+  uploadImage?: (file: File, context: ImageHookContext) => Promise<UploadedImage>;
+  /** 指定すると、画像の一覧に「メディアから選ぶ」を出す。選んだ画像は URL を参照として登録する */
+  listImages?: (context: ImageHookContext) => Promise<MediaImage[]>;
+  /** パーツ管理でパーツを保存する前に、テンプレートを受け取って返す */
+  beforeSavePart?: (body: string) => string | Promise<string>;
 }
 
 // ZeroCodeDataのprops型定義
