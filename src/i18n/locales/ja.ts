@@ -265,7 +265,7 @@ export default {
     editPanelPreviewDesc: 'ページ編集時に表示される編集パネルの項目一覧です。',
     imageIdReference: '画像ID参照',
     imageIdReferenceDesc:
-      "テンプレートの '{'$field:default:image'}' の default には画像IDを指定します。",
+      'テンプレートの {$field:default:image} の default には画像IDを指定します。',
     insert: '挿入',
     noImagesRegistered: '画像が登録されていません。画像管理で追加してください。'
   },

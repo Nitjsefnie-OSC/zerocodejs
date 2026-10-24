@@ -176,7 +176,7 @@ const textWithGroupRegex = new RegExp(...);
 | Subagent | ui-reviewer           | `.claude/agents/ui-reviewer.md`                            | 編集UI（パネル・モーダル・並べ替え等）の変更時、アクセシビリティ（キーボード操作・ARIA）をレビュー                         |
 | Hook     | 型チェック自動実行    | `.claude/settings.json` + `.claude/hooks/type-check.sh`    | `.ts`/`.vue`/`.tsx` を編集した直後に `vue-tsc --noEmit` を自動実行し、失敗時のみ結果をClaudeに通知                         |
 | Hook     | 関連テスト自動実行    | `.claude/settings.json` + `.claude/hooks/related-tests.sh` | 同上のタイミングで `vitest related --run` を自動実行し、失敗時のみ結果をClaudeに通知                                       |
-| MCP      | context7              | `.mcp.json`                                                | Monaco Editor / vue-i18n 等のドキュメント検索（要 `/mcp` で承認）                                                          |
+| MCP      | context7              | `.mcp.json`                                                | Monaco Editor 等のドキュメント検索（要 `/mcp` で承認）                                                                     |
 | MCP      | github                | `.mcp.json`                                                | Issue/PR操作（要 `/mcp` で承認 + 初回利用時にGitHub OAuth認証）                                                            |
 
 **有効化の注意**: hooksの設定は Claude Code のセッション開始時に存在した `.claude/` 配下のみ監視されるため、追加・変更後は一度 `/hooks` を開くか Claude Code を再起動する必要がある。MCPサーバーはプロジェクトスコープ登録のため `/mcp` での承認が別途必要。
@@ -635,7 +635,7 @@ interface ImageData {
 
 23. ✅ **英語対応（i18n）**（2026年1月）
 
-- vue-i18n ベースで日英のUIロケールを実装（`src/i18n/locales/ja.ts` / `en.ts`）
+- 日英のUIロケールを実装（`src/i18n/locales/ja.ts` / `en.ts`）。翻訳は自前の `src/i18n/index.ts`（`useI18n()` の `t` / `locale` とテンプレートの `$t`、`{name}` の差し込み、ja へのフォールバック）で、vue-i18n は2026年10月に削除
 - 各 Web Component の `locale` 属性で切り替え
 
 24. ✅ **ユニットテスト（Vitest）**（順次拡充中）
@@ -783,7 +783,7 @@ interface ImageData {
 - **セキュリティ**: 有効なタグ名のみ許可（`z-tag`の場合）
 - **信頼境界**: パーツテンプレート・CSS・`backendData` は信頼する入力（無害化しない）、CMS のフィールド値は信頼しない入力（公開・編集・SSR すべてで無害化）。詳細は `TECHNICAL_SPECIFICATION.md` の「セキュリティモデル（信頼境界）」
 - **URL 属性**: トークン単位ではなく、`markTemplatedUrlAttributes` / `sanitizeMarkedUrlAttributes` で全展開後の最終値を検査する。URL 属性を追加する場合は `isUrlAttribute` に追加する
-- **CSP**: `unsafe-eval` を必要としない状態を保つ（`eval` / `new Function` を使わない。vue-i18n は各 vite 設定の `__INTLIFY_JIT_COMPILATION__: true` で JIT コンパイル）。回帰テストは `e2e/csp.spec.ts`
+- **CSP**: `unsafe-eval` を必要としない状態を保つ（`eval` / `new Function` を使わない。翻訳は自前の `src/i18n/index.ts` で文字列を置き換えるだけ）。回帰テストは `e2e/csp.spec.ts`
 - **DOMPurify のテスト**: happy-dom 上では DOMPurify 3.4 の無害化が機能しないため、無害化を検証するテストは `// @vitest-environment jsdom` を付ける
 - **リッチテキストエディタ**: `document.execCommand` で編集操作をしない（文字装飾は計算済みスタイルで判定されて見出し内で `font-weight: normal` の span が入る、WebKit では Shadow DOM 内のリスト操作がホスト要素を壊す）。操作は `src/features/editor/rich-text/dom.ts` にタグ基準で実装し、Undo も自前の履歴で扱う。選択範囲は `selection.ts` 経由で読み書きする（WebKit では `getSelection().getRangeAt()` / `addRange()` が shadow 内で使えない）
 - **リッチテキストの性質テスト**: `src/features/editor/rich-text/rich-text.property.test.ts` がランダムな入力・操作列で正規化と編集操作の性質を検証する。失敗時のメッセージの seed は `RICH_TEXT_PROPERTY_FROM=<seed> RICH_TEXT_PROPERTY_RUNS=1` で再現できる。jsdom は1プロセスで大量に DOM を作るほど遅くなるため、多く回すときは `FROM` をずらして分割する

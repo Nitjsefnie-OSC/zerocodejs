@@ -2,10 +2,8 @@ import { createApp, type App } from 'vue';
 import ZeroCodeStudio from '../components/ZeroCodeStudio.vue';
 import cssText from '../styles/zcode-cms.css?inline';
 import { injectShadowDOMExtension } from '../core/utils/dom-utils';
-import { setupI18nErrorHandler, determineLocale, setupI18n } from '../core/utils/i18n-setup';
+import { determineLocale, setupI18n } from '../core/utils/i18n-setup';
 import { logger } from '../core/utils/logger';
-
-setupI18nErrorHandler();
 
 /**
  * Web Component for ZeroCode.js Studio (制作会社・信頼ユーザー向け管理画面)

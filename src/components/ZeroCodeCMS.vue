@@ -260,7 +260,7 @@ import {
   REORDER_PANEL_CMS_SETTING_KEYS
 } from '../core/utils/cms-settings-reset';
 import { logger } from '../core/utils/logger';
-import { useI18n } from 'vue-i18n';
+import { useI18n } from '../i18n';
 import type { CMSConfig, CMSSettings } from '../types';
 
 const { t } = useI18n();

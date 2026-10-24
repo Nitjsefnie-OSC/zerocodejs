@@ -182,7 +182,7 @@
 import { ref, computed, watch, onMounted, provide, nextTick, type Ref } from 'vue';
 import { zcodeRichTextConfigKey, zcodeTeleportTargetKey } from '../core/injectionKeys';
 import { resolveRichTextConfig } from '../features/editor/rich-text/features';
-import { useI18n } from 'vue-i18n';
+import { useI18n } from '../i18n';
 import ZeroCodeCMS from './ZeroCodeCMS.vue';
 import ZeroCodePreview from './ZeroCodePreview.vue';
 import PartsManagerPanel from '../features/parts-manager/components/PartsManagerPanel.vue';

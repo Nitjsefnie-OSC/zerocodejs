@@ -137,7 +137,7 @@ let instanceCount = 0;
 <script setup lang="ts">
 import { computed, inject, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 import type { Component } from 'vue';
-import { useI18n } from 'vue-i18n';
+import { useI18n } from '../../../i18n';
 import {
   Bold,
   Italic,

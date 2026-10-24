@@ -61,8 +61,7 @@
   "dependencies": {
     "@monaco-editor/loader": "^1.6.1",
     "dompurify": "^3.4.17",
-    "sortablejs": "^1.15.7",
-    "vue-i18n": "^9.14.5"
+    "sortablejs": "^1.15.7"
   },
   "peerDependencies": {
     "jsdom": ">=20.0.0",

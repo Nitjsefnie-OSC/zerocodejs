@@ -1,5 +1,5 @@
 import { ref, computed, reactive, toRaw, nextTick } from 'vue';
-import { useI18n } from 'vue-i18n';
+import { useI18n } from '../../../i18n';
 import type { ZeroCodeData, TypeData, PartData, ComponentData } from '../../../types';
 import { findPartById, findTypeAndPartByPartId, generateId } from '../../../core/utils/path-utils';
 import { useZeroCodeRenderer } from '../../../core/composables/useZeroCodeRenderer';

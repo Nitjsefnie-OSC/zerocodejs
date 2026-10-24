@@ -158,7 +158,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { useZcodeTeleportTo } from '../../../core/composables/useZcodeTeleportTo';
-import { useI18n } from 'vue-i18n';
+import { useI18n } from '../../../i18n';
 import type { ZeroCodeData, ImageData, CMSConfig } from '../../../types';
 import { useImagesManager } from '../composables/useImagesManager';
 import { useModalA11y } from '../../../core/composables/useModalA11y';

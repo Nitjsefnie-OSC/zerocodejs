@@ -687,7 +687,7 @@ import { ref, reactive, watch, computed, onBeforeUnmount, nextTick, inject, type
 import { useZcodeTeleportTo } from '../../../core/composables/useZcodeTeleportTo';
 import { useModalA11y } from '../../../core/composables/useModalA11y';
 import { zcodeTeleportTargetKey } from '../../../core/injectionKeys';
-import { useI18n } from 'vue-i18n';
+import { useI18n } from '../../../i18n';
 import type { ZeroCodeData, TypeData, CMSConfig, ComponentData } from '../../../types';
 import { usePartsManager } from '../composables/usePartsManager';
 import { getAvailableFieldsFromPart } from '../../../core/utils/edit-panel-fields';

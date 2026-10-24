@@ -2,11 +2,8 @@ import { createApp, type App } from 'vue';
 import ZeroCodeCMS from '../components/ZeroCodeCMS.vue';
 import cssText from '../styles/zcode-cms.css?inline';
 import { injectShadowDOMExtension } from '../core/utils/dom-utils';
-import { setupI18nErrorHandler, determineLocale, setupI18n } from '../core/utils/i18n-setup';
+import { determineLocale, setupI18n } from '../core/utils/i18n-setup';
 import { logger } from '../core/utils/logger';
-
-// vue-i18nのDevToolsエラーを抑制（Web Component環境でのエラーを回避）
-setupI18nErrorHandler();
 
 /**
  * Web Component for ZeroCode.js CMS (ユーザー用管理画面)
@@ -83,7 +80,6 @@ class ZeroCodeCMSElement extends HTMLElement {
       backendData: this.getAttribute('backend-data') || ''
     });
 
-    // i18nプラグインの適用
     setupI18n(this.app, locale);
 
     this.componentInstance = this.app.mount(this);
@@ -135,7 +131,6 @@ class ZeroCodeCMSElement extends HTMLElement {
       backendData: this.getAttribute('backend-data') || ''
     });
 
-    // i18nプラグインの適用
     setupI18n(this.app, locale);
 
     this.componentInstance = this.app.mount(this._shadowRoot!);

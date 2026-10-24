@@ -1,5 +1,5 @@
 import { nextTick, type Ref } from 'vue';
-import { useI18n } from 'vue-i18n';
+import { useI18n } from '../../../i18n';
 import type { ZeroCodeData, ComponentData } from '../../../types';
 import { getComponentByPath } from '../../../core/utils/path-utils';
 import {

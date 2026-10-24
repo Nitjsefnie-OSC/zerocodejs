@@ -6,12 +6,6 @@ import { resolve } from 'path';
 // 遅延ロード（dynamic import）をインライン化した単一ファイルを生成する。
 export default defineConfig({
   define: {
-    __VUE_I18N_FULL_INSTALL__: false,
-    __VUE_I18N_LEGACY_API__: false,
-    // 文言を new Function で変換しない（CSP の unsafe-eval を不要にする）
-    __INTLIFY_JIT_COMPILATION__: true,
-    __INTLIFY_PROD_DEVTOOLS__: false,
-    __VUE_I18N_PROD_DEVTOOLS__: false,
     'process.env.NODE_ENV': JSON.stringify('production')
   },
   plugins: [

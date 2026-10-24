@@ -211,7 +211,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import { useI18n } from 'vue-i18n';
+import { useI18n } from '../../../i18n';
 import { X, HelpCircle } from '../../../core/icons';
 import { saveUserSettings } from '../../../core/utils/storage';
 import type { SupportedLocale } from '../../../i18n';
