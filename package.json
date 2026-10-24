@@ -59,7 +59,6 @@
     ]
   },
   "dependencies": {
-    "@monaco-editor/loader": "^1.6.1",
     "dompurify": "^3.4.17",
     "sortablejs": "^1.15.7"
   },
@@ -90,7 +89,6 @@
     "husky": "^9.1.7",
     "jsdom": "^27.2.0",
     "lint-staged": "^16.4.0",
-    "monaco-editor": "^0.57.0",
     "prettier": "^3.1.0",
     "size-limit": "^12.1.0",
     "typescript": "^5.3.0",

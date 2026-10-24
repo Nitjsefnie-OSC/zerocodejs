@@ -47,9 +47,6 @@ export default defineConfig({
     copyPublicDir: false,
     minify: 'esbuild'
   },
-  optimizeDeps: {
-    include: ['monaco-editor', '@monaco-editor/loader']
-  },
   resolve: {
     alias: {
       '@': resolve(__dirname, 'src')

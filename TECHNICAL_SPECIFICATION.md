@@ -320,8 +320,7 @@ interface ImageData {
     "enableContextMenu": false
   },
   "dev": {
-    "showDataViewer": false,
-    "enableTemplateSuggestions": false
+    "showDataViewer": false
   }
 }
 ```
@@ -398,10 +397,6 @@ cmsElement.setAttribute('config', JSON.stringify(cmsConfig));
 - **`showDataViewer`** (デフォルト: `false`)
   - データビューアを表示する
   - 設定パネルでは「データビューアを表示」として表示
-
-- **`enableTemplateSuggestions`** (デフォルト: `false`)
-  - テンプレート記法の予測変換を有効にする
-  - パーツ管理パネルのエディタで使用
 
 ### リッチテキスト設定（`richText`）
 
@@ -500,7 +495,6 @@ interface CMSSettings {
 
 interface DevSettings {
   showDataViewer?: boolean;
-  enableTemplateSuggestions?: boolean;
 }
 
 interface RichTextSettings {
@@ -1064,16 +1058,13 @@ ZeroCode.js は Web Component ごとに責務を分け、**HTML を生成でき�
 
 ZeroCode.js は `unsafe-eval` を必要としない（1.0.1-beta.26 以降。現在は翻訳に vue-i18n を使わず、`eval` / `new Function` を使わない自前の実装）。必要なディレクティブは次のとおり（実ブラウザで確認済み）。
 
-| 用途                                       | ディレクティブ                                               | 理由                                                                 |
-| ------------------------------------------ | ------------------------------------------------------------ | -------------------------------------------------------------------- |
-| 全コンポーネント                           | `script-src` にライブラリの配信元（自サーバーや unpkg など） |                                                                      |
-| 全コンポーネント                           | `style-src 'unsafe-inline'`                                  | Web Component が UI 用とパーツ用 CSS の `<style>` 要素を注入するため |
-| 全コンポーネント                           | `img-src` に画像の配信元と `data:`                           | パーツの画像と、アップロード前の base64 画像を表示するため           |
-| Editor / Studio のパーツ管理（コード編集） | `script-src` と `style-src` に `https://cdn.jsdelivr.net`    | Monaco エディタを CDN から読み込むため                               |
-| Editor / Studio のパーツ管理（コード編集） | `font-src data:`                                             | Monaco のアイコン用フォント                                          |
-| Editor / Studio のパーツ管理（コード編集） | `worker-src blob:`                                           | Monaco の Web Worker                                                 |
+| 用途             | ディレクティブ                                               | 理由                                                                 |
+| ---------------- | ------------------------------------------------------------ | -------------------------------------------------------------------- |
+| 全コンポーネント | `script-src` にライブラリの配信元（自サーバーや unpkg など） |                                                                      |
+| 全コンポーネント | `style-src 'unsafe-inline'`                                  | Web Component が UI 用とパーツ用 CSS の `<style>` 要素を注入するため |
+| 全コンポーネント | `img-src` に画像の配信元と `data:`                           | パーツの画像と、アップロード前の base64 画像を表示するため           |
 
-- `zcode-cms`（`zerocodejs/cms`）は外部 CDN を使わない。Monaco は Editor / Studio のパーツ管理を開いたときだけ読み込まれる
+- 外部の CDN からは何も読み込まない（Editor / Studio のパーツ管理のコード編集も、Monaco をやめてテキストエリアにした）
 - 回帰テスト: `e2e/csp.spec.ts`（`unsafe-eval` を禁止した CSP の下で `zcode-cms` が描画されることを確認）
 
 ### 推奨事項
@@ -1240,7 +1231,7 @@ cms.addEventListener('save-request', async (event) => {
 - パーツの作成・編集・削除
 - タイプ間の並べ替え
 - パーツのプレビュー表示
-- Monaco Editorによるコード編集
+- HTML・CSS のコード編集（テキストエリア。パーツは手元のエディタで書いて貼り付け、ここでは登録と小さな修正を行う想定）
 - **編集パネルプレビューと表示プレビューの連動**: パーツ編集モーダル内で「編集パネルプレビュー」のフィールドを変更すると、「表示プレビュー」タブおよび拡大モーダルに同じ内容が即時反映される。また、ページ上で同じパーツを使用している先頭のコンポーネントにも値が同期され、表示モードに切り替えた際に反映される。
 
 ## 画像管理
@@ -1347,7 +1338,6 @@ cms.addEventListener('save-request', async (event) => {
 ### 主要な依存関係
 
 - **Vue 3**: UIフレームワーク
-- **Monaco Editor**: コードエディター（Editor / Studio のパーツ管理のみ）。パッケージの容量を抑えるため、実行時に CDN（jsdelivr）から読み込む。npm の `monaco-editor` は版の管理と脆弱性監査のための devDependencies
 - **SortableJS**: 並べ替えパネル内 D&D
 - **アイコン**: Lucide の SVG を `src/core/icons/` に手元で持つ（パッケージには依存しない。ライセンスは `create-icon.ts` に記載）
 

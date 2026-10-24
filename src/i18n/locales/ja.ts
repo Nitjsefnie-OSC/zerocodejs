@@ -219,7 +219,6 @@ export default {
     defaultSlot: 'デフォルトスロット',
     codeEdit: 'コード編集',
     cssEditInfo: 'CSS編集について',
-    templateSuggestions: '予測変換',
     preview: 'プレビュー:',
     cssEditWarning: 'CSS編集について',
     cssEditWarningMessageCommon:
@@ -243,8 +242,6 @@ export default {
       tag: 'タグ選択',
       slot: 'スロット（子要素挿入）',
       note: '補足',
-      suggestionNote:
-        '予測変換を有効にすると、<code>$</code>、<code>(</code>、<code>z</code>を入力時に自動補完が表示されます',
       fieldNameNote: 'フィールド名は英数字とアンダースコアが使用できます',
       defaultValueNote: 'デフォルト値は省略可能です（空文字になります）'
     },

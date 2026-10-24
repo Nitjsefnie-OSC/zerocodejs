@@ -176,7 +176,7 @@ const textWithGroupRegex = new RegExp(...);
 | Subagent | ui-reviewer           | `.claude/agents/ui-reviewer.md`                            | 編集UI（パネル・モーダル・並べ替え等）の変更時、アクセシビリティ（キーボード操作・ARIA）をレビュー                         |
 | Hook     | 型チェック自動実行    | `.claude/settings.json` + `.claude/hooks/type-check.sh`    | `.ts`/`.vue`/`.tsx` を編集した直後に `vue-tsc --noEmit` を自動実行し、失敗時のみ結果をClaudeに通知                         |
 | Hook     | 関連テスト自動実行    | `.claude/settings.json` + `.claude/hooks/related-tests.sh` | 同上のタイミングで `vitest related --run` を自動実行し、失敗時のみ結果をClaudeに通知                                       |
-| MCP      | context7              | `.mcp.json`                                                | Monaco Editor 等のドキュメント検索（要 `/mcp` で承認）                                                                     |
+| MCP      | context7              | `.mcp.json`                                                | ライブラリのドキュメント検索（要 `/mcp` で承認）                                                                           |
 | MCP      | github                | `.mcp.json`                                                | Issue/PR操作（要 `/mcp` で承認 + 初回利用時にGitHub OAuth認証）                                                            |
 
 **有効化の注意**: hooksの設定は Claude Code のセッション開始時に存在した `.claude/` 配下のみ監視されるため、追加・変更後は一度 `/hooks` を開くか Claude Code を再起動する必要がある。MCPサーバーはプロジェクトスコープ登録のため `/mcp` での承認が別途必要。
@@ -530,7 +530,7 @@ interface ImageData {
 - `src/core/utils/path-utils.ts`: パス操作ユーティリティ
 - `src/core/utils/image-utils.ts`: 画像処理ユーティリティ
 - `src/core/utils/image-scope.ts`: 専用画像の page-id スコープ（フィルタ・追加デフォルト）
-- `src/features/parts-manager/monaco-cdn.ts`: Monaco を CDN から読み込む版（`MONACO_VERSION`）。devDependencies の `monaco-editor` と一致させる（`monaco-cdn.test.ts` と E2E で一致、CI の `scripts/audit-monaco.mjs` で脆弱性を検査）
+- `src/features/parts-manager/components/CodeTextarea.vue`: パーツ管理の HTML・CSS の編集欄（テキストエリア）。パーツは手元のエディタで書いて貼り付け、ここでは登録と小さな修正を行う想定。スマホでは iOS の自動拡大を避けるため 16px
 - `src/core/utils/data-version.ts`: データ形式のバージョン（`ZERO_CODE_DATA_VERSION`）と移行処理（`migrateZeroCodeData`）。データ形式を変える場合は version を上げて `MIGRATIONS` に移行処理を追加する
 - `src/core/utils/css-manager.ts`: CSS管理
 - `src/core/icons/`: UI のアイコン（Lucide の SVG を手元に持ったもの。`index.ts` は管理画面用、`rich-text.ts` はリッチテキストの遅延チャンク用、`create-icon.ts` に描画とライセンス）。アイコンを足すときは https://lucide.dev/icons/ の SVG の子要素を書き写す
@@ -549,7 +549,7 @@ interface ImageData {
 ### npm エントリポイント
 
 - `src/index.ts`: メインエントリ `zerocodejs`（cms / editor / studio すべて登録。ES + UMD）
-- `src/cms-entry.ts`: `zerocodejs/cms` の軽量エントリ（`<zcode-cms>` のみ登録。パーツ管理・画像管理・データビューア・Monaco を含まない）
+- `src/cms-entry.ts`: `zerocodejs/cms` の軽量エントリ（`<zcode-cms>` のみ登録。パーツ管理・画像管理・データビューアを含まない）
 - `src/ssr-entry.ts`: `zerocodejs/ssr` の公開エントリ（`renderToHtml`、`renderCssToHtml`、`RenderError` のみ。`vite.ssr.config.ts` で `dist/zerocode-ssr.es.js` を生成）
 
 ### ビルド構成
@@ -673,7 +673,7 @@ interface ImageData {
 - `src/core/composables/useModalA11y.ts` を新設: Esc で閉じる（モーダルスタックで最前面のみ・IME 変換取消は無視・`shouldIgnoreEscape` オプション）、Tab のフォーカストラップ、開閉時のフォーカス移動/復元
 - 適用: 保存確認ダイアログ / ImageSelectModal（選択・画像編集オーバーレイ）/ パーツ管理のタイプ・パーツ編集モーダル / 抽出済み4モーダル
 - ポップオーバー（`usePanelOptionsPopover`）は capture フェーズ + `preventDefault` で先に Esc を処理し、背後のモーダルを閉じない
-- Monaco エディタ内の Esc は `shouldIgnoreEscape`（composedPath に `.monaco-editor`）で除外
+- 独自に Esc を処理する要素の中では `shouldIgnoreEscape` で除外できる（Monaco の削除後は利用箇所なし）
 
 29. ✅ **バンドル分割と軽量 cms エントリ**（2026年7月）
 
@@ -720,6 +720,13 @@ interface ImageData {
 - リンクの入力方式 `richText.link`（2026年10月）: `mode: 'free' | 'select' | 'both'`、候補は `source` で指定した `backendData` のパスの配列（`{ label, url, newTab? }`）。`select` では候補外のリンクを読み込み・貼り付け・保存時に外し、候補の `newTab` を適用。候補の取得前は制限せずリンクボタンを隠す。サーバー検証用に `findDisallowedRichTextLinks` を export。`getBackendDataValue`（template-utils）で backendData の生の値を取り出す
 - キーボード操作（ui-reviewer 指摘を反映）: ツールバーはロービング tabindex（Tab で止まるのは1つ、←→ / Home / End で移動）、選択範囲がなくてもボタン操作で本文末尾から開始、リンクボタンは `aria-expanded` / `aria-controls`、リンクフォーム内の Esc は外へ伝えない、Mac の修飾キーは Cmd のみ（Ctrl+B 等の標準カーソル操作を奪わない）、`readonly` / `disabled` フィールドは編集不可。`useModalA11y` のフォーカストラップに `[contenteditable="true"]` を追加
 - タッチ操作（2026年10月）: 本文にフォーカスがない状態でツールバーをタップしたときは、本文へフォーカスを移さずに操作する（iOS でキーボードが開いてページがスクロールするのを防ぐ）。このとき太字などの文字の装飾は、選ぶ文字がないため何もしない。リスト・見出し等は本文末尾のブロックに適用。リンクのフォームは開くだけで入力欄に自動でフォーカスしない（プログラムからのフォーカスでは iOS が入力欄をキーボードの上に出さないため、利用者のタップでキーボードを開く）
+
+34. ✅ **パーツ管理のコード編集を Monaco からテキストエリアに置き換え**（2026年10月）
+
+- パーツは手元のエディタ（プロダクトのリポジトリ）で書き、管理画面には貼り付けて登録する運用を前提に、管理画面のコード欄は登録と小さな修正用のテキストエリア（`CodeTextarea.vue`）にした
+- `@monaco-editor/loader` / `monaco-editor` を削除。CDN（jsdelivr）からの読み込み・版合わせ（`monaco-cdn.ts`）・監査（`scripts/audit-monaco.mjs`）・Shadow DOM へのスタイルの写し・CSP の追加条件（jsdelivr、`worker-src blob:`、`font-src data:`）が不要に。CDN に届かない環境でもパーツを編集できる
+- テンプレート記法の予測変換（`dev.enableTemplateSuggestions`）を削除。手元のエディタ向けの補完設定は別途用意する
+- 画像 ID 参照の「挿入」はテキストエリアのカーソル位置に入れる（`insertTextAtCursor`）
 
 ### 未実装（スコープ関連）
 

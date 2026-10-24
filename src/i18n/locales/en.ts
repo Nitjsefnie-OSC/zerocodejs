@@ -221,7 +221,6 @@ export default {
     defaultSlot: 'Default slot',
     codeEdit: 'Code editor',
     cssEditInfo: 'About CSS editing',
-    templateSuggestions: 'Template suggestions',
     preview: 'Preview:',
     cssEditWarning: 'About CSS editing',
     cssEditWarningMessageCommon:
@@ -244,8 +243,6 @@ export default {
       tag: 'Tag selection',
       slot: 'Slot (child insertion)',
       note: 'Note',
-      suggestionNote:
-        'When template suggestions are enabled, autocomplete will appear when typing <code>$</code>, <code>(</code>, or <code>z</code>',
       fieldNameNote: 'Field names can use alphanumeric characters and underscores',
       defaultValueNote: 'Default values are optional (will be empty string if omitted)'
     },
