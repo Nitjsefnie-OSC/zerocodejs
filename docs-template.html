@@ -700,6 +700,75 @@
           >、<code>zc-image</code>、<code>zc-radio</code>、<code>zc-for</code>）。
         </p>
         <pre><code>cp node_modules/zerocodejs/editor-support/vscode/zerocode.code-snippets .vscode/</code></pre>
+        <p>
+          上の2つは、<code>npx zerocodejs init-vscode</code> でまとめて設定できます（既存の
+          <code>settings.json</code>
+          に追記します。コメント付きで読めない場合は、追記する1行を表示します）。
+        </p>
+
+        <h3 id="parts-files">パーツをファイルで管理する</h3>
+        <p>
+          パーツはプロダクトのリポジトリでファイルとして書き、コマンドで zerocodejs のデータ（<code
+            >{ parts, css }</code
+          >）にまとめられます。管理画面のパーツ管理には、まとめた JSON
+          をホストが取り込むか、HTML・CSS
+          を貼り付けて登録します。どのカテゴリ（共通・個別・専用）をファイルで管理するかはプロダクトが決めます。
+        </p>
+        <h4 id="parts-files-structure">フォルダの構成</h4>
+        <pre><code>parts/
+├── common/                    カテゴリ（common / individual / special）
+│   ├── _category.css          カテゴリ全体の CSS（任意）
+│   ├── 01-heading/            タイプ（先頭の番号は並び順。ID には含めない）
+│   │   ├── _type.json         { "id": "type-heading", "type": "heading", "description": "見出し" }
+│   │   ├── 01-heading-h1.html 1パーツ＝1ファイル
+│   │   └── 01-heading-h1.css  そのパーツの CSS（任意。同じ名前で横に置く）
+│   └── 02-table/ …
+├── individual/ …
+└── special/ …</code></pre>
+        <h4 id="parts-files-format">パーツのファイル</h4>
+        <p>
+          先頭のコメントに、パーツの情報を JSON で書きます。<code>id</code>
+          は必須です。ページのデータから参照されるので、ファイル名を変えても ID
+          は変えないでください。<code>title</code>（省くと
+          ID）・<code>description</code>・<code>slots</code>・<code>slotOnly</code>
+          を書けます。
+        </p>
+        <pre><code>&lt;!--zerocode
+{
+  "id": "zcode-part-table",
+  "title": "table",
+  "description": "表",
+  "slots": { "rows": { "allowedParts": ["zcode-part-table-row"] } }
+}
+--&gt;
+&lt;div class="c-table" role="table"&gt;
+  &lt;div class="c-table__body" z-slot="rows"&gt;&lt;/div&gt;
+&lt;/div&gt;</code></pre>
+        <h4 id="parts-files-commands">コマンド</h4>
+        <p>Node 20 以上で動きます（依存パッケージはありません）。</p>
+        <pre><code># フォルダ → JSON（-o を省くと標準出力。--watch で保存のたびに作り直す）
+npx zerocodejs build-parts parts -o generated/zerocode-parts.json [--watch] [--category common]
+
+# 検査だけ（ID の重複、スロットの不一致、z-tag・z-for・記法の書き間違いを、ファイル名と行番号つきで表示）
+npx zerocodejs check-parts parts
+
+# 既存のデータ（getData() の JSON や { parts, css }）→ フォルダ（移行用）
+npx zerocodejs split-parts data.json -o parts</code></pre>
+        <ul>
+          <li>
+            出力する JSON は
+            <code>{ "parts": { "common": [...] }, "css": { "common": "..." } }</code
+            >。フォルダがあるカテゴリだけを含むので、ホストは取り込むカテゴリだけを置き換えてください。
+          </li>
+          <li>
+            パーツの CSS は、カテゴリ全体の CSS の後にパーツの順で連結し、それぞれの前に
+            <code>/* zerocode-part: パーツID */</code> の目印を入れます（<code>split-parts</code>
+            で元のファイルに分け直すため）。
+          </li>
+          <li>
+            エラーがあると、<code>build-parts</code> は JSON を書き出さずに終了コード 1 を返します。
+          </li>
+        </ul>
       </main>
     </div>
 

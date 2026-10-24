@@ -153,6 +153,17 @@ import { renderToHtml, renderCssToHtml } from 'zerocodejs/ssr';
 
 従来どおり **`zerocodejs`** 本体から同じ関数を import することもできます。
 
+## パーツをファイルで管理する
+
+パーツはプロダクトのリポジトリで HTML ファイルとして書き（1パーツ＝1ファイル。先頭に `<!--zerocode { "id": ... } -->`）、コマンドでデータにまとめられます（Node 20 以上、依存なし）。
+
+```bash
+npx zerocodejs build-parts parts -o generated/zerocode-parts.json --watch
+npx zerocodejs check-parts parts      # ID の重複、スロットの不一致、記法の書き間違い（ファイル名:行番号）
+npx zerocodejs split-parts data.json -o parts   # 既存のデータをファイルに移す
+npx zerocodejs init-vscode            # VS Code で z-* 属性とテンプレート記法を補完する
+```
+
 ## 既存データの読み込み
 
 既存データを読み込む場合は、JavaScriptで属性を設定します：

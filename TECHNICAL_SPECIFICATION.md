@@ -1333,6 +1333,23 @@ cms.addEventListener('save-request', async (event) => {
 - **`zerocodejs/style.css`（または `dist/zerocodejs.css`）は、強力なグローバルリセットの後に読み込む**ことを推奨します。
 - ライブラリ側では上記コントロールに対し `appearance: auto` などの補強を入れていますが、呼び出し側で **同じセレクタより後に** ゼロコードの CSS が当たる構成にすると確実です。
 
+## コマンド（`npx zerocodejs`）
+
+パーツをファイルで管理するためのコマンド。Node 20 以上、依存パッケージなし（`bin/zerocodejs.mjs` → `dist/cli.mjs`）。
+
+| コマンド                                                      | 内容                                                                                                                                                                           |
+| ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `build-parts <dir> [-o <file>] [--category ...] [--watch]`    | パーツのフォルダを `{ parts, css }` の JSON にまとめる。検査でエラーがあれば書き出さずに終了コード 1                                                                           |
+| `check-parts <dir> [--category ...]`                          | 検査だけを行う（パーツ ID の重複、情報の `slots` とテンプレートの `z-slot` の不一致、`z-tag` のタグ名、`z-for` の形、記法として読めない `{$` / `($`、`allowedParts` の参照先） |
+| `split-parts <data.json> -o <dir> [--category ...] [--force]` | `ZeroCodeData` か `{ parts, css }` をフォルダに書き出す（移行用。空でないフォルダには `--force` が必要）                                                                       |
+| `init-vscode [<projectDir>]`                                  | `.vscode/` にスニペットを置き、`settings.json` の `html.customData` に補完データを足す                                                                                         |
+
+フォルダの構成とパーツのファイルの形式は docs（テンプレート記法 →「パーツをファイルで管理する」）を参照。
+
+- パーツのファイル: 先頭の `<!--zerocode { JSON } -->` に `id`（必須）・`title`（省略時は id）・`description`・`slots`・`slotOnly`。知らない項目はエラー
+- 並び順: タイプのフォルダ・パーツのファイル名の先頭の番号（数値として比較。ID には含めない）
+- CSS: `<category>/_category.css` の後に、パーツの `.css` を `/* zerocode-part: <id> */` の目印付きで連結
+
 ## 依存関係
 
 ### 主要な依存関係
