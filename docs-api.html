@@ -506,7 +506,12 @@
           <code>true</code
           >の場合、バックエンドで画像のアップロード処理が必要です。通常、base64画像は<code
             >needsUpload: true</code
-          >として保存されます。
+          >として保存されます。要素の <code>hooks</code> に
+          <code>uploadImage</code> を渡した場合は、追加した時点でアップロードした URL が入り、<code
+            >needsUpload</code
+          >
+          は付きません（<a href="docs-backend.html#save-request-image-upload">画像のアップロード</a
+          >）。
         </p>
 
         <h3 id="image-selection-modal">画像選択モーダル</h3>

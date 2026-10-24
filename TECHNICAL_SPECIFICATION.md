@@ -292,7 +292,6 @@ interface ImageData {
 
 - `showSaveConfirm`: 保存時の確認ダイアログを表示する（デフォルト: `true`）
 - `sanitizePartTemplate`: パーツテンプレート保存時に DOMPurify ベースのサニタイズを実行する（デフォルト: `false`）
-- `beforeSavePart`: パーツテンプレート保存時に実行するフック関数。`(body: string) => string | Promise<string>`
 - `hiddenCategories`: 指定したカテゴリ（`'common' | 'individual' | 'special'` の配列）をパーツマネージャーから除外する。タブ・一覧に表示されず、追加・編集・削除・並べ替え関数もそのカテゴリに対しては何もしない（ガード済み）。ホストアプリ側で特定カテゴリのパーツ定義を別の手段（コード管理など）で行い、CMS上のGUI編集を禁止したい場合に使う
 
 **使用例**:
@@ -463,6 +462,19 @@ cmsElement.setAttribute('config', JSON.stringify(cmsConfig));
 
 **動作環境**: Shadow DOM 内の選択範囲の取得に `Selection.getComposedRanges` を使うため、リッチテキストの書式の編集には Chrome 137 以降 / Firefox 142 以降 / Safari 17 以降が必要です。それより古いブラウザでは、ツールバーの代わりに「このブラウザでは書式の編集に対応していません」という案内を表示し、文字の入力だけができます（書式のキー操作・貼り付け・元に戻すはブラウザ標準の動作になり、保存時に正規化されます）。Light DOM（`use-shadow-dom="false"`）では制限はありません。
 
+### 画像のファイルの条件（`images`）
+
+画像を追加・差し替えるときのファイルの条件。条件に合わないファイルは、アップロードする前に止めて理由を表示する。
+
+- **`accept`**（デフォルト: `"image/*"`）: input の `accept` と同じ書き方（`"image/png,image/jpeg"`、`".png,.jpg"` など）
+- **`maxSize`**: 最大サイズ（バイト）。未指定は制限なし
+
+```html
+<zcode-cms
+  config='{"images":{"accept":"image/png,image/jpeg,image/webp","maxSize":5000000}}'
+></zcode-cms>
+```
+
 ### 設定モーダル
 
 #### ツールバー用設定（ZeroCodeCMS）
@@ -510,6 +522,7 @@ interface CMSConfig {
   dev?: DevSettings;
   studio?: StudioSettings;
   richText?: RichTextSettings;
+  images?: { accept?: string; maxSize?: number };
   categoryOrder?: 'common' | 'individual' | 'special';
 }
 
@@ -1242,6 +1255,60 @@ cms.addEventListener('save-request', async (event) => {
 - 画像の編集（ID、名前、URL、alt）
 - 画像の削除
 - 共通画像と個別画像の管理
+
+### ホストとの連携（`hooks`）
+
+関数は属性（JSON 文字列）では渡せないため、要素の `hooks` プロパティで渡す（Vue のコンポーネントとして使う場合は `hooks` prop）。`zcode-cms` / `zcode-editor` / `zcode-studio` で共通。要素の定義より前に代入してもよく、あとから差し替えてもよい。
+
+```typescript
+interface ZeroCodeHooks {
+  uploadImage?: (
+    file: File,
+    context: ImageHookContext
+  ) => Promise<{ url: string; id?: string; name?: string }>;
+  listImages?: (
+    context: ImageHookContext
+  ) => Promise<Array<{ id: string; url: string; name?: string }>>;
+  beforeSavePart?: (body: string) => string | Promise<string>;
+}
+
+interface ImageHookContext {
+  category: 'common' | 'individual' | 'special'; // 追加・差し替えるカテゴリ
+  pageId?: string; // 要素の page-id 属性
+  source: 'cms' | 'editor' | 'studio'; // save-request の source と同じ
+  replacingId?: string; // 差し替えのとき、差し替える画像の ID
+}
+```
+
+```js
+const cms = document.querySelector('zcode-cms');
+cms.hooks = {
+  async uploadImage(file, context) {
+    const body = new FormData();
+    body.append('file', file);
+    body.append('category', context.category);
+    const res = await fetch('/api/media', { method: 'POST', body });
+    if (!res.ok) throw new Error('upload failed');
+    const { id, url } = await res.json();
+    return { id, url };
+  },
+  async listImages(context) {
+    return (await fetch('/api/media')).json(); // [{ id, url, name }]
+  }
+};
+```
+
+- **`uploadImage`**: 画像を追加・差し替えた時点で呼ぶ。返した `url` を画像のデータに入れる（`needsUpload` は付けない）。
+  - `id` を返すとその ID を使う。ほかの画像（どのカテゴリでも）と重なるときは末尾に `-2` などを付ける。省略時は自動で付ける。`name` の省略時はファイル名。
+  - 差し替えでは画像の ID は変えない（ページのデータの参照を保つ）。
+  - アップロード中は追加・差し替え・確定のボタンを無効にし、「アップロード中…」を表示する。
+  - 例外を投げると（または `url` を返さないと）、エラーを表示して画像を追加・差し替えしない。
+  - 追加して保存しなかった画像はサーバーに残る。どこからも参照されていない画像は、ホスト側で定期的に消す運用にする。
+  - **未指定のとき**は従来どおり、ブラウザで base64 にして `needsUpload: true` を付ける（保存時にホストがアップロードして URL に置き換える）。
+- **`listImages`**: 指定すると、画像管理と画像の選択画面に「メディアから選ぶ」を出す。選んだ画像は、今のカテゴリに `{ id, name, url }` として登録する（サーバーのファイルは複製しない）。同じ URL の画像がすでにあれば、それを使う。
+- **`beforeSavePart`**: パーツ管理でパーツを保存する前に、テンプレートを受け取って返す（`config.studio.sanitizePartTemplate` の後に実行）。例外を投げると保存しない。
+- 画像の一覧から削除しても、サーバーのファイルは消さない。
+- 返した URL も、表示するときは従来どおり URL の無害化（`sanitizeUrl`）を通る。`context.source` で、Studio からのアップロードだけ制限する、といった判断ができる。
 
 ### 画像選択モーダル
 
