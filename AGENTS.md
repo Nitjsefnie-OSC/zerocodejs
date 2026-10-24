@@ -560,6 +560,7 @@ interface ImageData {
 - `vite.config.ts`: ES ビルド（`index` + `cms-entry` のマルチエントリ、共有チャンク分割あり。`RichTextEditor` は遅延ロードで別チャンク）
 - `vite.umd.config.ts`: CDN 向け UMD 単一ファイル（`inlineDynamicImports` で遅延ロードをインライン化）
 - `package.json` の `size-limit` でエントリ別サイズ上限を管理（CI の `Bundle size check` で検証、`npm run size`）
+- **依存の置き場所**: `dependencies` は `dompurify` と `sortablejs` だけ。どちらもビルドで `dist` に取り込んでおり（外部扱いは `vue` と `jsdom` のみ）、利用者の環境では読み込まれないが、`dependencies` に残している。CI の `npm audit --omit=dev` と利用者側の `npm audit` で、取り込んでいるパッケージの脆弱性に気づけるようにするため。`devDependencies` に移すと監査から外れる。新しいパッケージを取り込む場合も、実行時のコードに入るものは `dependencies` に置く
 
 ### 検証用 HTML（ルート）
 
