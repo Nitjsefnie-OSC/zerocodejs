@@ -19,6 +19,7 @@
 - `sanitizeRichText` の許可リストに `h2` `h3` `h4` `blockquote` `sup` `sub` を追加
 - **リンク先を候補に限定**: config の `richText.link` で、リンクの入力方式を `free`（自由入力）/ `select`（`backendData` で渡した候補からプルダウンで選ぶのみ）/ `both` から選べる。`select` では候補にないリンクを保存時に外す。サーバー側の検証用に `findDisallowedRichTextLinks` を export
 - 機能 ID の一覧 `RICH_TEXT_FEATURES` とデフォルト `DEFAULT_RICH_TEXT_FEATURES`、型 `RichTextFeature` を export
+- **手元のエディタ（VS Code）向けの補完設定を同梱**: `editor-support/vscode/zerocode.html-data.json`（`z-if` などの属性の補完と説明）と `zerocode.code-snippets`（`zc-text` → `{$field:default}` などのスニペット）。使い方は docs の「エディタの補完（VS Code）」
 - **lucide-vue-next を削除**し、使っている39個のアイコンの SVG を `src/core/icons/` に手元で持つように（lucide-vue-next が非推奨になり `@lucide/vue` への乗り換えが必要になったため。描画される SVG は同じ。lucide の `class`（`lucide` など）は付かなくなった）
 - **動作環境**: リッチテキストの編集に Chrome 137 以降 / Firefox 142 以降 / Safari 17 以降が必要
 - リッチテキストのツールバーを矢印キーで移動できるように（Tab で止まるのはツールバー内の1か所）。ボタンの title にショートカットを表示。Mac では Cmd のショートカットのみを使い、Ctrl+B などの標準のカーソル操作を妨げない

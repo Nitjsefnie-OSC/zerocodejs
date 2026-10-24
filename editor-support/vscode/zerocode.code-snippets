@@ -1,0 +1,116 @@
+{
+  "ZeroCode テキスト": {
+    "scope": "html",
+    "prefix": "zc-text",
+    "body": "{\\$${1:field}:${2:default}}",
+    "description": "テキストフィールド: {$名前:初期値}"
+  },
+  "ZeroCode テキストエリア": {
+    "scope": "html",
+    "prefix": "zc-textarea",
+    "body": "{\\$${1:field}:${2:default}:textarea}",
+    "description": "テキストエリア: {$名前:初期値:textarea}"
+  },
+  "ZeroCode リッチテキスト": {
+    "scope": "html",
+    "prefix": "zc-rich",
+    "body": "{\\$${1:field}:${2:default}:rich}",
+    "description": "リッチテキスト: {$名前:初期値:rich}"
+  },
+  "ZeroCode 画像": {
+    "scope": "html",
+    "prefix": "zc-image",
+    "body": "{\\$${1:field}:${2:imageId}:image}",
+    "description": "画像: {$名前:画像ID:image}（画像 ID は管理画面の「画像ID参照」で確認できる）"
+  },
+  "ZeroCode オプショナル": {
+    "scope": "html",
+    "prefix": "zc-optional",
+    "body": "{\\$${1:field}?:${2:default}}",
+    "description": "オプショナルフィールド: {$名前?:初期値}（空のときは値なし。z-empty と組み合わせる）"
+  },
+  "ZeroCode グループ": {
+    "scope": "html",
+    "prefix": "zc-group",
+    "body": "{\\$${1:field}.${2:group}:${3:default}}",
+    "description": "グループ化: {$名前.グループ名:初期値}（編集パネルでまとめて表示）"
+  },
+  "ZeroCode 必須": {
+    "scope": "html",
+    "prefix": "zc-required",
+    "body": "{\\$${1:field}:${2:default}:required}",
+    "description": "必須: {$名前:初期値:required}"
+  },
+  "ZeroCode 最大文字数": {
+    "scope": "html",
+    "prefix": "zc-max",
+    "body": "{\\$${1:field}:${2:default}:max=${3:100}}",
+    "description": "最大文字数: {$名前:初期値:max=100}"
+  },
+  "ZeroCode ラジオボタン": {
+    "scope": "html",
+    "prefix": "zc-radio",
+    "body": "(\\$${1:field}:${2:option1}|${3:option2})",
+    "description": "ラジオボタン（単一選択）: ($名前:選択肢1|選択肢2)。選択肢は「表示名=保存値」とも書ける"
+  },
+  "ZeroCode チェックボックス": {
+    "scope": "html",
+    "prefix": "zc-checkbox",
+    "body": "(\\$${1:field}:${2:option1},${3:option2})",
+    "description": "チェックボックス（複数選択）: ($名前:選択肢1,選択肢2)"
+  },
+  "ZeroCode セレクト": {
+    "scope": "html",
+    "prefix": "zc-select",
+    "body": "(\\$${1:field}@:${2:option1}|${3:option2})",
+    "description": "セレクトボックス（単一選択）: ($名前@:選択肢1|選択肢2)"
+  },
+  "ZeroCode セレクト（複数）": {
+    "scope": "html",
+    "prefix": "zc-select-multiple",
+    "body": "(\\$${1:field}@:${2:option1},${3:option2})",
+    "description": "セレクトボックス（複数選択）: ($名前@:選択肢1,選択肢2)"
+  },
+  "ZeroCode バックエンドデータ": {
+    "scope": "html",
+    "prefix": "zc-data",
+    "body": "{@${1:path}}",
+    "description": "バックエンドデータの参照: {@パス}（例: {@user.name}、{@items[0].name}）"
+  },
+  "ZeroCode バックエンドデータ（初期値つき）": {
+    "scope": "html",
+    "prefix": "zc-data-default",
+    "body": "{@${1:path}:${2:default}}",
+    "description": "バックエンドデータの参照（値がないときの初期値つき）: {@パス:初期値}"
+  },
+  "ZeroCode z-if": {
+    "scope": "html",
+    "prefix": "zc-if",
+    "body": "z-if=\"${1:key}\"",
+    "description": "条件分岐: キーの値が偽のとき要素を削除"
+  },
+  "ZeroCode z-tag": {
+    "scope": "html",
+    "prefix": "zc-tag",
+    "body": "z-tag=\"\\$${1:tagName}:${2:h1|h2|h3}\"",
+    "description": "タグ名を選べるようにする: z-tag=\"$名前:h1|h2|h3\""
+  },
+  "ZeroCode z-empty": {
+    "scope": "html",
+    "prefix": "zc-empty",
+    "body": "z-empty=\"\\$${1:field}\"",
+    "description": "フィールドが空のとき要素を削除: z-empty=\"$名前\""
+  },
+  "ZeroCode z-for": {
+    "scope": "html",
+    "prefix": "zc-for",
+    "body": "z-for=\"${1:item} in {@${2:items}}\"",
+    "description": "バックエンドデータの配列を繰り返す: z-for=\"item in {@items}\""
+  },
+  "ZeroCode z-slot": {
+    "scope": "html",
+    "prefix": "zc-slot",
+    "body": "z-slot=\"${1:slotName}\"",
+    "description": "子パーツを入れる場所: z-slot=\"名前\""
+  }
+}

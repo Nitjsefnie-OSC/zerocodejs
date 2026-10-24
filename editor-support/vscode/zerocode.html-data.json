@@ -1,0 +1,70 @@
+{
+  "version": 1.1,
+  "globalAttributes": [
+    {
+      "name": "z-if",
+      "description": {
+        "kind": "markdown",
+        "value": "条件分岐。指定したキーの値が偽（`false`・`null`・空文字・`0`）のとき要素を削除する。キーがない（`undefined`）ときは表示する。\n\n```html\n<div z-if=\"showContent\">…</div>\n```"
+      },
+      "references": [
+        {
+          "name": "ZeroCode.js テンプレート記法",
+          "url": "https://atsumi-code.github.io/zerocodejs/docs-template.html#conditional-syntax"
+        }
+      ]
+    },
+    {
+      "name": "z-tag",
+      "description": {
+        "kind": "markdown",
+        "value": "タグ名を編集画面で選べるようにする。テンプレートに書いたタグ名が初期値。\n\n```html\n<h2 z-tag=\"$tagName:h1|h2|h3\">…</h2>\n```"
+      },
+      "references": [
+        {
+          "name": "ZeroCode.js テンプレート記法",
+          "url": "https://atsumi-code.github.io/zerocodejs/docs-template.html#z-tag-syntax"
+        }
+      ]
+    },
+    {
+      "name": "z-empty",
+      "description": {
+        "kind": "markdown",
+        "value": "指定したフィールドが空のとき、この要素ごと削除する（主にオプショナルフィールドと組み合わせる）。\n\n```html\n<p z-empty=\"$note\">{$note?:}</p>\n```"
+      },
+      "references": [
+        {
+          "name": "ZeroCode.js テンプレート記法",
+          "url": "https://atsumi-code.github.io/zerocodejs/docs-template.html#z-empty-syntax"
+        }
+      ]
+    },
+    {
+      "name": "z-for",
+      "description": {
+        "kind": "markdown",
+        "value": "バックエンドデータの配列を繰り返し表示する。\n\n```html\n<div z-for=\"shop in {@shops}\">{@shop.name}</div>\n```"
+      },
+      "references": [
+        {
+          "name": "ZeroCode.js テンプレート記法",
+          "url": "https://atsumi-code.github.io/zerocodejs/docs-template.html#z-for-loop"
+        }
+      ]
+    },
+    {
+      "name": "z-slot",
+      "description": {
+        "kind": "markdown",
+        "value": "子パーツを入れる場所（スロット）。入れられるパーツはパーツの `slots` の `allowedParts` で指定する。\n\n```html\n<div z-slot=\"contents\"></div>\n```"
+      },
+      "references": [
+        {
+          "name": "ZeroCode.js テンプレート記法",
+          "url": "https://atsumi-code.github.io/zerocodejs/docs-template.html#slot-syntax"
+        }
+      ]
+    }
+  ]
+}
