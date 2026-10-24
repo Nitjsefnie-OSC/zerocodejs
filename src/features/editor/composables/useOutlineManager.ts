@@ -88,6 +88,18 @@ export function findComponentElementsByZcodePath(root: HTMLElement, path: string
   ) as HTMLElement[];
 }
 
+/**
+ * スクロール先にする要素を返す。同じパスを持つ追加ボタン（非表示のときは高さ 0）より
+ * パーツ本体を優先する
+ */
+export function findScrollTargetByZcodePath(root: HTMLElement, path: string): HTMLElement | null {
+  return (
+    findComponentElementsByZcodePath(root, path)[0] ??
+    findElementsByZcodePath(root, path)[0] ??
+    null
+  );
+}
+
 export function setActiveOutlineForPath(root: HTMLElement, path: string, mode: string): void {
   findElementsByZcodePath(root, path).forEach((element) => setActiveOutline(element, mode));
 }
