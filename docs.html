@@ -41,6 +41,8 @@
               <a href="#about-design" class="docs-nav-link-sub">設計方針</a>
               <a href="#about-data" class="docs-nav-link-sub">データの扱い</a>
               <a href="#about-components" class="docs-nav-link-sub">コンポーネントと役割</a>
+              <a href="#about-operation" class="docs-nav-link-sub">運用の例</a>
+              <a href="#about-retrofit" class="docs-nav-link-sub">既存のサイトに後から組み込む</a>
               <a href="#roadmap" class="docs-nav-link-sub">編集体験改善ロードマップ</a>
             </div>
           </div>
@@ -433,11 +435,106 @@
             </tr>
             <tr>
               <td><code>&lt;zcode-studio&gt;</code></td>
-              <td>制作会社など信頼できるユーザー</td>
-              <td><code>zcode-editor</code> 同等 UI。専用パーツ・専用 CSS・専用画像の編集に限定</td>
+              <td>専用パーツを担当する人（社内・外部の制作会社のどちらも）</td>
+              <td>
+                専用パーツを編集する画面。<code>zcode-editor</code>
+                と同じ画面構成で、編集できるのは専用パーツ・専用 CSS・専用画像に限定
+              </td>
             </tr>
           </tbody>
         </table>
+
+        <h3 id="about-operation">運用の例</h3>
+        <p>
+          パーツ（テンプレートと
+          CSS）は、プロダクトのリポジトリの中で手元のエディタを使って書くことを前提にしています。管理画面のパーツ管理は、書いたパーツを貼り付けて登録することと、小さな修正のための画面です。ページの中身（文章・画像・並び順）は、運営者が
+          <code>&lt;zcode-cms&gt;</code> で編集します。
+        </p>
+        <p>
+          どのカテゴリを誰が担当するかは、プロダクトごとに決めてください。ZeroCode.js
+          は特定の分担を前提にしていません。たとえば次のような分け方があります。
+        </p>
+        <table class="docs-table">
+          <thead>
+            <tr>
+              <th>分け方</th>
+              <th>共通・個別のパーツ</th>
+              <th>専用のパーツ</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>すべて社内で作る</td>
+              <td>プロダクトの開発者（<code>zcode-editor</code>）</td>
+              <td>同じ開発者（<code>zcode-editor</code> または <code>zcode-studio</code>）</td>
+            </tr>
+            <tr>
+              <td>専用だけ外部に頼む</td>
+              <td>プロダクトの開発者（<code>zcode-editor</code>）</td>
+              <td>外部の制作会社（<code>zcode-studio</code>）</td>
+            </tr>
+            <tr>
+              <td>共通も外部に頼む</td>
+              <td>外部の制作会社がリポジトリで作り、開発者が登録する</td>
+              <td>外部の制作会社（<code>zcode-studio</code>）</td>
+            </tr>
+          </tbody>
+        </table>
+        <ul>
+          <li>
+            外部に頼むときは、プロダクトのリポジトリ（または同じ構成の作業用のリポジトリ）を渡し、その中でパーツを書いてもらうと、確認と登録の流れを社内と同じにできます。
+          </li>
+          <li>
+            パーツテンプレートは「信頼する入力」として扱います（無害化しません）。信頼できない主体に
+            <code>zcode-studio</code> を開放する場合は、<code>studio.sanitizePartTemplate</code>
+            とサーバー側での検査を組み合わせてください（<a href="docs-backend.html#security-model"
+              >セキュリティモデル</a
+            >）。
+          </li>
+        </ul>
+
+        <h3 id="about-retrofit">既存のサイトに後から組み込む</h3>
+        <p>
+          ZeroCode.js
+          が扱うのは、ページの中の「パーツを並べる領域」だけです。ヘッダー・フッター・ナビゲーションや、既存のページはそのまま残せます。組み込むときは次の点を確認してください。
+        </p>
+        <ul>
+          <li>
+            <strong>編集する画面</strong>: 既存の管理画面の中に <code>&lt;zcode-cms&gt;</code>
+            を置き、ホストの認証の内側で表示します。管理画面の UI は Shadow DOM
+            の中にあるため、既存の CSS の影響を受けません。
+          </li>
+          <li>
+            <strong>保存</strong>: <code>save-request</code> を受け取り、<code>getData()</code>
+            の内容を既存の API やデータベースに保存します（<a href="docs-backend.html#save-request"
+              >保存リクエスト</a
+            >）。
+          </li>
+          <li>
+            <strong>公開ページの表示</strong>: Node のサーバーがあれば
+            <code>zerocodejs/ssr</code> の <code>renderToHtml</code> で HTML
+            を作り、既存のテンプレートの中に入れます。Node がないサーバー（PHP など）では、HTML
+            を作る小さな Node のサーバーを別に置くか、ブラウザで表示します。
+          </li>
+          <li>
+            <strong>CSS</strong>: パーツの CSS
+            のクラス名の付け方は、既存のサイトのルールに合わせてください。サイト全体の CSS
+            を編集画面のプレビューにも当てるときは、<code>slot="css"</code> で読み込みます。
+          </li>
+          <li>
+            <strong>画像</strong>: 既存のメディア管理がある場合は、要素の <code>hooks</code> に
+            <code>uploadImage</code> と
+            <code>listImages</code> を渡すと、そこにアップロードし、そこから選べます（<a
+              href="docs-backend.html#save-request-image-upload"
+              >画像のアップロード</a
+            >）。
+          </li>
+          <li>
+            <strong>移行</strong>:
+            既存のページを一度にすべて移す必要はありません。新しく作るページや、更新の多いページから
+            ZeroCode.js の領域にしていけます。
+          </li>
+        </ul>
 
         <h3 id="about-not-provided">ZeroCode.js が提供しないもの</h3>
         <p>次は <strong>意図的に提供しません</strong>。ホストアプリ側で実装してください。</p>

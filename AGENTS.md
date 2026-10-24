@@ -487,7 +487,7 @@ interface ImageData {
 
 - `src/components/ZeroCodeCMS.vue`: ユーザー用管理画面
 - `src/components/ZeroCodeEditor.vue`: エンジニア用管理画面（ZeroCodeCMS + パーツ管理・画像管理・データビューア）
-- `src/components/ZeroCodeStudio.vue`: 制作会社向け管理画面（専用パーツ・専用CSS・専用画像のみ編集可、それ以外は読み取り専用プレビュー）
+- `src/components/ZeroCodeStudio.vue`: 専用パーツを編集する画面（専用パーツ・専用CSS・専用画像のみ編集可、それ以外は読み取り専用プレビュー）
 - `src/components/ZeroCodePreview.vue`: プレビュー表示用コンポーネント
 
 ### コアコンポーザブル
@@ -609,7 +609,7 @@ interface ImageData {
     - テンプレート編集時のプレビュー更新を 300ms debounce
     - 入力のたびに発生していた「Image not found」警告の連発を抑制
 
-19. ✅ **ZeroCodeStudio（制作会社向けコンポーネント）**（2026年3月）
+19. ✅ **ZeroCodeStudio（専用パーツを編集する画面）**（2026年3月）
     - `<zcode-studio>` Web Component（シェルは `zcode-editor` と同型、ページ管理は CMS 同等、パーツ/画像/データは専用系に限定）
     - `save-request` の `source: 'studio'` を追加（サーバー側での権限チェック用）
     - パーツテンプレート用サニタイズ関数 `sanitizePartTemplate` を追加（DOMPurify ベース、z-\* 属性許可）
