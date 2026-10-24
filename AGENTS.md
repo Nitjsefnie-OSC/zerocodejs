@@ -553,6 +553,7 @@ interface ImageData {
 
 - `src/index.ts`: メインエントリ `zerocodejs`（cms / editor / studio すべて登録。ES + UMD）
 - `src/cms-entry.ts`: `zerocodejs/cms` の軽量エントリ（`<zcode-cms>` のみ登録。パーツ管理・画像管理・データビューアを含まない）
+- `bin/zerocodejs.mjs` → `dist/cli.mjs`（`src/cli/`、`vite.cli.config.ts` で生成）: `npx zerocodejs` のコマンド（`build-parts` / `check-parts` / `split-parts` / `init-vscode`）。Node 標準のモジュールだけを使い、依存を増やさない。`part-file.ts`（1パーツのファイル形式）、`parts-dir.ts`（フォルダの読み書き）、`check.ts`（検査。記法は `field-syntax.ts` を使う）
 - `src/ssr-entry.ts`: `zerocodejs/ssr` の公開エントリ（`renderToHtml`、`renderCssToHtml`、`RenderError` のみ。`vite.ssr.config.ts` で `dist/zerocode-ssr.es.js` を生成）
 
 ### ビルド構成
@@ -731,6 +732,13 @@ interface ImageData {
 - `@monaco-editor/loader` / `monaco-editor` を削除。CDN（jsdelivr）からの読み込み・版合わせ（`monaco-cdn.ts`）・監査（`scripts/audit-monaco.mjs`）・Shadow DOM へのスタイルの写し・CSP の追加条件（jsdelivr、`worker-src blob:`、`font-src data:`）が不要に。CDN に届かない環境でもパーツを編集できる
 - テンプレート記法の予測変換（`dev.enableTemplateSuggestions`）を削除。手元のエディタ向けの補完設定は別途用意する
 - 画像 ID 参照の「挿入」はテキストエリアのカーソル位置に入れる（`insertTextAtCursor`）
+
+35. ✅ **パーツをファイルで管理するコマンド**（2026年10月）
+
+- `npx zerocodejs build-parts`（フォルダ → `{ parts, css }`、`--watch`）、`check-parts`（検査）、`split-parts`（既存データ → フォルダ）、`init-vscode`（VS Code の補完設定）
+- 形式: `<dir>/<category>/<NN-type>/_type.json` と `<NN-part>.html`（先頭の `<!--zerocode { JSON } -->` に `id` 必須）、パーツの `.css`、`<category>/_category.css`。並び順は名前の先頭の番号
+- CSS はパーツごとに `/* zerocode-part: <id> */` の目印付きで連結し、`split-parts` で分け直せる
+- 運用の前提: パーツはプロダクトのリポジトリで書き、管理画面にはまとめた JSON の取り込みか貼り付けで登録する。どのカテゴリをファイルで管理するかはプロダクトが決める
 
 36. ✅ **画像の連携（hooks）**（2026年10月）
 

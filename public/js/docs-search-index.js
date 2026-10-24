@@ -278,6 +278,30 @@ window.__DOCS_SEARCH_INDEX__ = [
     parent: 'テンプレート記法'
   },
   {
+    page: 'docs-template.html',
+    id: 'parts-files',
+    text: 'パーツをファイルで管理する',
+    parent: 'テンプレート記法'
+  },
+  {
+    page: 'docs-template.html',
+    id: 'parts-files-structure',
+    text: 'フォルダの構成',
+    parent: 'テンプレート記法'
+  },
+  {
+    page: 'docs-template.html',
+    id: 'parts-files-format',
+    text: 'パーツのファイル',
+    parent: 'テンプレート記法'
+  },
+  {
+    page: 'docs-template.html',
+    id: 'parts-files-commands',
+    text: 'コマンド',
+    parent: 'テンプレート記法'
+  },
+  {
     page: 'docs-api.html',
     id: 'editing-modes',
     text: '編集モード',

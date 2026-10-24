@@ -146,6 +146,17 @@ import { renderToHtml, renderCssToHtml } from 'zerocodejs/ssr';
 
 The main **`zerocodejs`** entry also exports these functions if you prefer one resolution from the full library.
 
+## Managing parts as files
+
+Write parts as HTML files in your product's repository (one file per part, with a `<!--zerocode { "id": ... } -->` header) and bundle them with the CLI (Node 20+, no dependencies):
+
+```bash
+npx zerocodejs build-parts parts -o generated/zerocode-parts.json --watch
+npx zerocodejs check-parts parts      # duplicate IDs, slot mismatches, syntax typos (file:line)
+npx zerocodejs split-parts data.json -o parts   # migrate existing data to files
+npx zerocodejs init-vscode            # VS Code completion for z-* attributes and template syntax
+```
+
 ## Loading Existing Data
 
 To load existing data, set attributes via JavaScript:
