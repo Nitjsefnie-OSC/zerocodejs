@@ -535,6 +535,7 @@ interface ImageData {
 - `src/core/utils/css-manager.ts`: CSS管理
 - `src/core/icons/`: UI のアイコン（Lucide の SVG を手元に持ったもの。`index.ts` は管理画面用、`rich-text.ts` はリッチテキストの遅延チャンク用、`create-icon.ts` に描画とライセンス）。アイコンを足すときは https://lucide.dev/icons/ の SVG の子要素を書き写す
 - `src/core/utils/validation.ts`: バリデーション処理
+- `editor-support/vscode/`: 手元のエディタ（VS Code）向けの補完設定。`zerocode.html-data.json`（`z-*` 属性の補完と説明。`html.customData` で読み込む）と `zerocode.code-snippets`（テンプレート記法のスニペット。`zc-` で始まる）。npm パッケージに同梱（`package.json` の `files`）。記法を変えたら更新し、`src/core/utils/editor-support.test.ts` で `field-syntax.ts` の解釈と一致することを確認する
 - `src/features/editor/rich-text/`: 自前のリッチテキストエディタのコア（Vue 非依存）
   - `features.ts`: 機能 ID・デフォルト・config の解決（`resolveRichTextFeatures`）
   - `dom.ts`: 編集操作（文字装飾・ブロック・リスト・リンク・水平線）。`execCommand` は使わない

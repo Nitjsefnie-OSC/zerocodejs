@@ -672,6 +672,34 @@
             >
           </p>
         </div>
+
+        <h3 id="editor-support">エディタの補完（VS Code）</h3>
+        <p>
+          パーツは手元のエディタで書くことを想定しています。VS Code では、zerocodejs
+          に同梱している設定ファイルで、テンプレート記法の補完と
+          <code>z-*</code> 属性の説明を表示できます（拡張機能は不要です）。
+        </p>
+        <h4 id="editor-support-attributes">z-* 属性の補完と説明</h4>
+        <p>
+          プロダクトのリポジトリの
+          <code>.vscode/settings.json</code>
+          に追加します。<code>z-if</code>・<code>z-tag</code>・<code>z-empty</code>・<code>z-for</code>・<code
+            >z-slot</code
+          >
+          が補完され、マウスを重ねると説明が出ます。
+        </p>
+        <pre><code>{
+  "html.customData": ["./node_modules/zerocodejs/editor-support/vscode/zerocode.html-data.json"]
+}</code></pre>
+        <h4 id="editor-support-snippets">テンプレート記法のスニペット</h4>
+        <p>
+          <code>node_modules/zerocodejs/editor-support/vscode/zerocode.code-snippets</code>
+          を、プロダクトのリポジトリの <code>.vscode/</code> にコピーします。HTML ファイルで
+          <code>zc-</code> と入力すると候補が出ます（例: <code>zc-text</code> →
+          <code>{$field:default}</code
+          >、<code>zc-image</code>、<code>zc-radio</code>、<code>zc-for</code>）。
+        </p>
+        <pre><code>cp node_modules/zerocodejs/editor-support/vscode/zerocode.code-snippets .vscode/</code></pre>
       </main>
     </div>
 

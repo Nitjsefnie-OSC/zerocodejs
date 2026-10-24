@@ -21,6 +21,7 @@
 - 機能 ID の一覧 `RICH_TEXT_FEATURES` とデフォルト `DEFAULT_RICH_TEXT_FEATURES`、型 `RichTextFeature` を export
 - **パーツ管理のコード編集を Monaco からテキストエリアに変更**（`@monaco-editor/loader` / `monaco-editor` を削除）: パーツは手元のエディタで書いて貼り付ける運用を前提に、管理画面のコード欄は登録と小さな修正用にした。CDN（jsdelivr）から Monaco を読み込まなくなり、CDN に届かない環境でもパーツを編集できる。CSP で `cdn.jsdelivr.net`・`worker-src blob:`・`font-src data:` を許可する必要もなくなった。設定 `dev.enableTemplateSuggestions`（テンプレート記法の予測変換）は削除
 - **peerDependencies の Vue を `^3.5.0` に修正**（従来は `^3.0.0` だったが、実際には Vue 3.5 で生成したコードと 3.4 以降の機能を使っており、古い Vue では動かなかった）。README・docs・examples の CDN の例を、開発用の `vue@3/dist/vue.global.js`（版の指定なし）から本番用の `vue@3.5/dist/vue.global.prod.js` に変更
+- **手元のエディタ（VS Code）向けの補完設定を同梱**: `editor-support/vscode/zerocode.html-data.json`（`z-if` などの属性の補完と説明）と `zerocode.code-snippets`（`zc-text` → `{$field:default}` などのスニペット）。使い方は docs の「エディタの補完（VS Code）」
 - **lucide-vue-next を削除**し、使っている39個のアイコンの SVG を `src/core/icons/` に手元で持つように（lucide-vue-next が非推奨になり `@lucide/vue` への乗り換えが必要になったため。描画される SVG は同じ。lucide の `class`（`lucide` など）は付かなくなった）
 - **動作環境**: リッチテキストの編集に Chrome 137 以降 / Firefox 142 以降 / Safari 17 以降が必要
 - リッチテキストのツールバーを矢印キーで移動できるように（Tab で止まるのはツールバー内の1か所）。ボタンの title にショートカットを表示。Mac では Cmd のショートカットのみを使い、Ctrl+B などの標準のカーソル操作を妨げない

@@ -248,6 +248,24 @@ window.__DOCS_SEARCH_INDEX__ = [
     parent: 'テンプレート記法'
   },
   {
+    page: 'docs-template.html',
+    id: 'editor-support',
+    text: 'エディタの補完（VS Code）',
+    parent: 'テンプレート記法'
+  },
+  {
+    page: 'docs-template.html',
+    id: 'editor-support-attributes',
+    text: 'z-* 属性の補完と説明',
+    parent: 'テンプレート記法'
+  },
+  {
+    page: 'docs-template.html',
+    id: 'editor-support-snippets',
+    text: 'テンプレート記法のスニペット',
+    parent: 'テンプレート記法'
+  },
+  {
     page: 'docs-api.html',
     id: 'editing-modes',
     text: '編集モード',

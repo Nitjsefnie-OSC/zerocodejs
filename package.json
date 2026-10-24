@@ -24,7 +24,8 @@
     "./zerocodejs.css": "./dist/zerocodejs.css"
   },
   "files": [
-    "dist"
+    "dist",
+    "editor-support"
   ],
   "scripts": {
     "prepare": "husky",
