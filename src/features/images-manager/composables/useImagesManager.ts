@@ -1,10 +1,49 @@
 import { ref, computed } from 'vue';
-import type { ZeroCodeData, ImageData } from '../../../types';
+import type { ZeroCodeData, ImageData, ImageHookContext, MediaImage } from '../../../types';
 import { findImageReferences } from '../../../core/utils/image-utils';
 import {
   filterSpecialImagesForPage,
   getSpecialImageAddDefaults
 } from '../../../core/utils/image-scope';
+import type { Translate } from '../../../i18n';
+import {
+  checkImageFile,
+  formatFileSize,
+  readFileAsDataUrl,
+  uniqueImageId,
+  type ImageFileProblem
+} from '../../../core/utils/image-files';
+import { useZeroCodeHost } from '../../../core/composables/useZeroCodeHost';
+
+/** 追加・差し替えできないファイル（種類・サイズ）。アップロードの失敗とは分けて表示する */
+export class ImageFileRejected extends Error {
+  constructor(readonly problem: ImageFileProblem) {
+    super(problem.code);
+  }
+}
+
+export class ImageUploadFailed extends Error {
+  constructor(readonly cause: unknown) {
+    super('uploadImage failed');
+  }
+}
+
+/** 画像の追加・差し替えに失敗したときに表示する文 */
+export function imageFileErrorMessage(error: unknown, t: Translate, accept: string): string {
+  if (error instanceof ImageFileRejected) {
+    return error.problem.code === 'size'
+      ? t('imagesManager.fileTooLarge', { max: formatFileSize(error.problem.maxSize) })
+      : t('imagesManager.fileTypeNotAllowed', { accept });
+  }
+  return t(
+    error instanceof ImageUploadFailed
+      ? 'imagesManager.uploadFailed'
+      : 'imagesManager.addImageFailed'
+  );
+}
+
+type ImageFileFields = Pick<ImageData, 'url' | 'mimeType' | 'needsUpload'> &
+  Partial<Pick<ImageData, 'id' | 'name'>>;
 
 export interface UseImagesManagerOptions {
   /** 指定時は専用画像を shared + 当該 pageId のみ表示し、追加時は page スコープにする */
@@ -12,6 +51,10 @@ export interface UseImagesManagerOptions {
 }
 
 export function useImagesManager(cmsData: ZeroCodeData, options: UseImagesManagerOptions = {}) {
+  const host = useZeroCodeHost();
+  const uploading = ref(false);
+  const canListMedia = computed(() => !!host.hooks.value.listImages);
+  const accept = computed(() => host.images.accept ?? 'image/*');
   // 状態管理
   const activeCategory = ref<'common' | 'individual' | 'special'>('common');
   const selectedImage = ref<ImageData | null>(null);
@@ -39,36 +82,88 @@ export function useImagesManager(cmsData: ZeroCodeData, options: UseImagesManage
     isCreatingNew.value = false;
   }
 
-  // 画像追加（base64形式）
-  function addImage(file: File): Promise<ImageData> {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const base64 = e.target?.result as string;
-        const scopeDefaults =
-          activeCategory.value === 'special' ? getSpecialImageAddDefaults(options.pageId) : {};
-        const newImage: ImageData = {
-          id: `img-${Date.now()}`,
-          name: file.name,
-          url: base64,
-          mimeType: file.type,
-          needsUpload: true,
-          ...scopeDefaults
-        };
+  function categoryImages(): ImageData[] {
+    return cmsData.images[activeCategory.value];
+  }
 
-        if (activeCategory.value === 'common') {
-          cmsData.images.common.push(newImage);
-        } else if (activeCategory.value === 'individual') {
-          cmsData.images.individual.push(newImage);
-        } else {
-          cmsData.images.special.push(newImage);
-        }
+  function hookContext(replacingId?: string): ImageHookContext {
+    return {
+      category: activeCategory.value,
+      pageId: options.pageId,
+      source: host.source,
+      ...(replacingId ? { replacingId } : {})
+    };
+  }
 
-        resolve(newImage);
-      };
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
+  /** uploadImage があればアップロードした URL、なければ base64（保存時にホストがアップロードする） */
+  async function readImageFile(file: File, replacingId?: string): Promise<ImageFileFields> {
+    const problem = checkImageFile(file, host.images);
+    if (problem) throw new ImageFileRejected(problem);
+    const upload = host.hooks.value.uploadImage;
+    if (!upload) {
+      return { url: await readFileAsDataUrl(file), mimeType: file.type, needsUpload: true };
+    }
+    uploading.value = true;
+    try {
+      const result = await upload(file, hookContext(replacingId));
+      if (typeof result?.url !== 'string' || !result.url) {
+        throw new Error('uploadImage did not return a url');
+      }
+      return { url: result.url, mimeType: file.type, id: result.id, name: result.name };
+    } catch (error) {
+      throw new ImageUploadFailed(error);
+    } finally {
+      uploading.value = false;
+    }
+  }
+
+  function scopeDefaults() {
+    return activeCategory.value === 'special' ? getSpecialImageAddDefaults(options.pageId) : {};
+  }
+
+  async function addImage(file: File): Promise<ImageData> {
+    const fields = await readImageFile(file);
+    const newImage: ImageData = {
+      id: uniqueImageId(fields.id || `img-${Date.now()}`, cmsData.images),
+      name: fields.name || file.name,
+      url: fields.url,
+      mimeType: fields.mimeType,
+      ...(fields.needsUpload ? { needsUpload: true } : {}),
+      ...scopeDefaults()
+    };
+    categoryImages().push(newImage);
+    return newImage;
+  }
+
+  /** 編集中の画像のファイルを差し替える（ID は変えない） */
+  async function replaceEditingImageFile(file: File): Promise<void> {
+    const target = editingImage.value;
+    if (!target) return;
+    const fields = await readImageFile(file, target.id);
+    target.url = fields.url;
+    target.mimeType = fields.mimeType;
+    if (fields.needsUpload) target.needsUpload = true;
+    else delete target.needsUpload;
+  }
+
+  function listMediaImages(): Promise<MediaImage[]> {
+    const list = host.hooks.value.listImages;
+    return list ? list(hookContext()) : Promise.resolve([]);
+  }
+
+  /** メディアの画像を、今のカテゴリに参照（URL）として登録する。登録済みならそれを返す */
+  function addMediaImage(media: MediaImage): ImageData {
+    const images = categoryImages();
+    const existing = images.find((image) => image.url === media.url);
+    if (existing) return existing;
+    const image: ImageData = {
+      id: uniqueImageId(media.id, cmsData.images),
+      name: media.name || media.id,
+      url: media.url,
+      ...scopeDefaults()
+    };
+    images.push(image);
+    return image;
   }
 
   // 画像削除
@@ -204,6 +299,12 @@ export function useImagesManager(cmsData: ZeroCodeData, options: UseImagesManage
     currentImages,
     selectImage,
     addImage,
+    replaceEditingImageFile,
+    uploading,
+    accept,
+    canListMedia,
+    listMediaImages,
+    addMediaImage,
     deleteImage,
     startEditing,
     saveImage,

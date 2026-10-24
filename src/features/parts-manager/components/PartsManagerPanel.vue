@@ -661,6 +661,7 @@
 import { ref, reactive, watch, computed, onBeforeUnmount, nextTick, inject, type Ref } from 'vue';
 import { useZcodeTeleportTo } from '../../../core/composables/useZcodeTeleportTo';
 import { useModalA11y } from '../../../core/composables/useModalA11y';
+import { useZeroCodeHost } from '../../../core/composables/useZeroCodeHost';
 import { zcodeTeleportTargetKey } from '../../../core/injectionKeys';
 import { useI18n } from '../../../i18n';
 import type { ZeroCodeData, TypeData, CMSConfig, ComponentData } from '../../../types';
@@ -853,6 +854,8 @@ watch(showPartOptionsPopover, (open) => {
 // タブの順序を制御
 const categoryOrder = computed(() => props.config?.categoryOrder || 'common');
 
+const host = useZeroCodeHost();
+
 const {
   // 非表示カテゴリ
   visibleCategories,
@@ -891,7 +894,7 @@ const {
   startReorderType,
   deletePartType
 } = usePartsManager(props.cmsData, {
-  beforeSavePart: props.config?.studio?.beforeSavePart,
+  beforeSavePart: (body) => host.hooks.value.beforeSavePart?.(body) ?? body,
   sanitize: props.config?.studio?.sanitizePartTemplate,
   hiddenCategories: props.config?.studio?.hiddenCategories
 });
