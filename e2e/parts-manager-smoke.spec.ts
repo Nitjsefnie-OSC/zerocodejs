@@ -1,33 +1,4 @@
-import { test, expect, type Page } from '@playwright/test';
-import { readFileSync } from 'fs';
-import { resolve, extname } from 'path';
-
-const MONACO_DIR = resolve(process.cwd(), 'node_modules/monaco-editor');
-const installedMonacoVersion = JSON.parse(readFileSync(resolve(MONACO_DIR, 'package.json'), 'utf8'))
-  .version as string;
-
-const CONTENT_TYPES: Record<string, string> = {
-  '.js': 'application/javascript',
-  '.css': 'text/css',
-  '.ttf': 'font/ttf'
-};
-
-/** CDN（jsdelivr）の Monaco をインストール済みの npm パッケージから返す。版が異なる場合は読み込ませない */
-async function serveMonacoFromNodeModules(page: Page) {
-  await page.route('https://cdn.jsdelivr.net/npm/monaco-editor@*/**', (route) => {
-    const match = new URL(route.request().url()).pathname.match(
-      /^\/npm\/monaco-editor@([^/]+)\/(.+)$/
-    );
-    if (!match || match[1] !== installedMonacoVersion) {
-      return route.abort();
-    }
-    const file = resolve(MONACO_DIR, match[2]);
-    return route.fulfill({
-      body: readFileSync(file),
-      contentType: CONTENT_TYPES[extname(file)] ?? 'application/octet-stream'
-    });
-  });
-}
+import { test, expect } from '@playwright/test';
 
 test.describe('zcode-editor パーツ管理スモークテスト', () => {
   test('パーツ管理タブ→一覧→編集モーダルの開閉ができる', async ({ page }) => {
@@ -53,8 +24,9 @@ test.describe('zcode-editor パーツ管理スモークテスト', () => {
     await expect(partItems.first()).toBeVisible();
   });
 
-  test('npm と同じ版の Monaco エディタが読み込まれ、テンプレートが表示される', async ({ page }) => {
-    await serveMonacoFromNodeModules(page);
+  test('テンプレートをテキストエリアで編集でき、プレビューと画像 ID の挿入に反映される', async ({
+    page
+  }) => {
     await page.goto('/test-dev.html');
     const editor = page.locator('#test-cms');
     await editor.locator('[data-zcode-id][data-zcode-path="page.0"]').waitFor();
@@ -63,7 +35,22 @@ test.describe('zcode-editor パーツ管理スモークテスト', () => {
     await editor.locator('.zcode-part-item').first().click();
 
     const modal = editor.locator('.zcode-part-modal');
-    await expect(modal.locator('.monaco-editor .view-lines')).toContainText('{$');
+    const code = modal.locator('.zcode-code-textarea');
+    await expect(code).toHaveValue(/\{\$/);
+
+    await code.fill('<p class="e2e-part">{$label:テキストエリアから編集}</p>');
+    await expect(modal.locator('.zcode-part-editor-preview-tab')).toContainText(
+      'テキストエリアから編集'
+    );
+
+    await code.focus();
+    await code.evaluate((el: HTMLTextAreaElement) => el.setSelectionRange(0, 0));
+    await modal.locator('.zcode-part-editor-side-tab', { hasText: '画像ID参照' }).click();
+    const firstImage = modal.locator('.zcode-image-id-item').first();
+    const imageId = (await firstImage.locator('.zcode-image-id-code').textContent())?.trim() ?? '';
+    expect(imageId).not.toBe('');
+    await firstImage.locator('.zcode-btn-small', { hasText: '挿入' }).click();
+    await expect(code).toHaveValue(new RegExp(`^${imageId}<p class="e2e-part">`));
   });
 
   test('Esc キーでモーダルが閉じ、重なったモーダルは最前面から閉じる', async ({ page }) => {

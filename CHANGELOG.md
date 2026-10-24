@@ -10,7 +10,7 @@
 
 - **DOMPurify を 3.4.17 に更新**（GHSA-cg2g-xh64-v4q7 ほか。いずれも `IN_PLACE` / `SAFE_FOR_TEMPLATES` / `PARSER_MEDIA_TYPE` を使う場合に成立し、ZeroCode の使い方では該当しないが、既知の脆弱性を含む版を使わないため更新）
 - 開発用の Vue を 3.5.44 に更新（`@vue/server-renderer` の GHSA-g2v6-rqmx-r4w6）、`source-map-js` を 1.2.2 に更新
-- Monaco 0.57.0 に同梱の DOMPurify 3.4.15 の脆弱性（上記と同種の5件）は、修正版の Monaco がまだないため、Monaco の使い方では成立しないことを確認したうえで CI の監査（`scripts/audit-monaco.mjs`）で Monaco 0.57.0 に限って例外にした。Monaco を更新すると例外は無効になる
+- Monaco 0.57.0 に同梱の DOMPurify 3.4.15 の脆弱性（上記と同種の5件）は、修正版の Monaco がまだないため、Monaco の使い方では成立しないことを確認したうえで CI の監査（`scripts/audit-monaco.mjs`）で Monaco 0.57.0 に限って例外にした。Monaco を更新すると例外は無効になる（その後 Monaco 自体を削除したため、この例外と監査スクリプトもなくなった）
 
 ### 変更
 
@@ -19,6 +19,7 @@
 - `sanitizeRichText` の許可リストに `h2` `h3` `h4` `blockquote` `sup` `sub` を追加
 - **リンク先を候補に限定**: config の `richText.link` で、リンクの入力方式を `free`（自由入力）/ `select`（`backendData` で渡した候補からプルダウンで選ぶのみ）/ `both` から選べる。`select` では候補にないリンクを保存時に外す。サーバー側の検証用に `findDisallowedRichTextLinks` を export
 - 機能 ID の一覧 `RICH_TEXT_FEATURES` とデフォルト `DEFAULT_RICH_TEXT_FEATURES`、型 `RichTextFeature` を export
+- **パーツ管理のコード編集を Monaco からテキストエリアに変更**（`@monaco-editor/loader` / `monaco-editor` を削除）: パーツは手元のエディタで書いて貼り付ける運用を前提に、管理画面のコード欄は登録と小さな修正用にした。CDN（jsdelivr）から Monaco を読み込まなくなり、CDN に届かない環境でもパーツを編集できる。CSP で `cdn.jsdelivr.net`・`worker-src blob:`・`font-src data:` を許可する必要もなくなった。設定 `dev.enableTemplateSuggestions`（テンプレート記法の予測変換）は削除
 - **peerDependencies の Vue を `^3.5.0` に修正**（従来は `^3.0.0` だったが、実際には Vue 3.5 で生成したコードと 3.4 以降の機能を使っており、古い Vue では動かなかった）。README・docs・examples の CDN の例を、開発用の `vue@3/dist/vue.global.js`（版の指定なし）から本番用の `vue@3.5/dist/vue.global.prod.js` に変更
 - **lucide-vue-next を削除**し、使っている39個のアイコンの SVG を `src/core/icons/` に手元で持つように（lucide-vue-next が非推奨になり `@lucide/vue` への乗り換えが必要になったため。描画される SVG は同じ。lucide の `class`（`lucide` など）は付かなくなった）
 - **動作環境**: リッチテキストの編集に Chrome 137 以降 / Firefox 142 以降 / Safari 17 以降が必要
