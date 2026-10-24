@@ -57,7 +57,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import { X, AlertTriangle } from 'lucide-vue-next';
+import { X, AlertTriangle } from '../../../core/icons';
 import { useZcodeTeleportTo } from '../../../core/composables/useZcodeTeleportTo';
 import { useModalA11y } from '../../../core/composables/useModalA11y';
 

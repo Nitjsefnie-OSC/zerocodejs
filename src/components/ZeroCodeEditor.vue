@@ -193,7 +193,7 @@ import ImagesManagerPanel from '../features/images-manager/components/ImagesMana
 import DataViewer from '../features/data-viewer/components/DataViewer.vue';
 import Toolbar from '../features/editor/components/Toolbar.vue';
 import SettingsPanel from '../features/editor/components/SettingsPanel.vue';
-import { Edit, Package, Image, Settings, Save, Database } from 'lucide-vue-next';
+import { Edit, Package, Image, Settings, Save, Database } from '../core/icons';
 import type { ZeroCodeData } from '../types';
 import { useZeroCodeData } from '../core/composables/useZeroCodeData';
 import { saveDevSettings, loadDevSettings, getCMSSetting } from '../core/utils/storage';

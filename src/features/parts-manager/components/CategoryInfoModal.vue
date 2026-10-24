@@ -31,7 +31,7 @@
 </template>
 
 <script setup lang="ts">
-import { X, Info } from 'lucide-vue-next';
+import { X, Info } from '../../../core/icons';
 import { ref } from 'vue';
 import { useZcodeTeleportTo } from '../../../core/composables/useZcodeTeleportTo';
 import { useModalA11y } from '../../../core/composables/useModalA11y';

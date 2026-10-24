@@ -58,7 +58,7 @@
 </template>
 
 <script setup lang="ts">
-import { ArrowUpDown, GripVertical } from 'lucide-vue-next';
+import { ArrowUpDown, GripVertical } from '../../../core/icons';
 import type { StructureTreeNode } from '../utils/page-reorder';
 import { getStructureEntryPreviewLabel } from '../utils/page-reorder';
 

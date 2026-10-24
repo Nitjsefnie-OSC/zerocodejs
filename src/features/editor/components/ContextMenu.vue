@@ -46,7 +46,7 @@
 </template>
 
 <script setup lang="ts">
-import { Pencil, Plus, ArrowUpDown, Trash2, X } from 'lucide-vue-next';
+import { Pencil, Plus, ArrowUpDown, Trash2, X } from '../../../core/icons';
 import type { EditorMode } from '../composables/useEditorMode';
 
 defineProps<{

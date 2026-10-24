@@ -703,7 +703,7 @@ import {
   HelpCircle,
   Info,
   SlidersHorizontal
-} from 'lucide-vue-next';
+} from '../../../core/icons';
 import MonacoEditor from './MonacoEditor.vue';
 import PartZoomPreviewModal from './PartZoomPreviewModal.vue';
 import CssWarningModal from './CssWarningModal.vue';

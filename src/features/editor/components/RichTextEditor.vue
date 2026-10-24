@@ -156,7 +156,7 @@ import {
   RemoveFormatting,
   Undo2,
   Redo2
-} from 'lucide-vue-next';
+} from '../../../core/icons/rich-text';
 import { zcodeRichTextConfigKey } from '../../../core/injectionKeys';
 import { sanitizeUrl } from '../../../core/utils/sanitize';
 import { getBackendDataValue } from '../../../core/utils/template-utils';

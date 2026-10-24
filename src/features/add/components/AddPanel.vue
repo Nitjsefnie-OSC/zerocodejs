@@ -268,7 +268,7 @@ import { useZcodeTeleportTo } from '../../../core/composables/useZcodeTeleportTo
 import { usePanelOptionsPopover } from '../../editor/composables/usePanelOptionsPopover';
 import { useModalA11y } from '../../../core/composables/useModalA11y';
 import type { TypeData, PartData, ComponentData, CMSConfig } from '../../../types';
-import { X, ChevronUp, ZoomIn, Settings } from 'lucide-vue-next';
+import { X, ChevronUp, ZoomIn, Settings } from '../../../core/icons';
 
 const props = defineProps<{
   addTargetPath: string | null;

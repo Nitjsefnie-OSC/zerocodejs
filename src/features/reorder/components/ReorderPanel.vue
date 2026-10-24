@@ -105,7 +105,7 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
-import { ChevronUp, Settings, X } from 'lucide-vue-next';
+import { ChevronUp, Settings, X } from '../../../core/icons';
 import type { ZeroCodeData } from '../../../types';
 import { usePanelOptionsPopover } from '../../editor/composables/usePanelOptionsPopover';
 import { buildStructureGroupViewByGroupId, buildStructureTreeKey } from '../utils/page-reorder';
