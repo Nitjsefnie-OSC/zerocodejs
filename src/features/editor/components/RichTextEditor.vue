@@ -876,8 +876,11 @@ function handlePaste(event: ClipboardEvent) {
 }
 
 function handleFocus() {
-  // 段落の区切りを <p> に揃える（execCommand の設定のみで、編集操作には使わない）
-  document.execCommand('defaultParagraphSeparator', false, 'p');
+  // 段落の区切りを <p> に揃える（execCommand の設定のみで、編集操作には使わない）。
+  // 未実装の環境（jsdom など）では、Enter で作られる段落は出力時の正規化で <p> になる
+  if (typeof document.execCommand === 'function') {
+    document.execCommand('defaultParagraphSeparator', false, 'p');
+  }
   if (linkForm.open) linkForm.open = false;
 }
 
