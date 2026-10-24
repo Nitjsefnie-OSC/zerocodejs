@@ -10,7 +10,7 @@ import { logger } from '../../../core/utils/logger';
 import {
   setActiveOutlineForPath,
   removeActiveOutlineForPath,
-  findElementsByZcodePath
+  findScrollTargetByZcodePath
 } from '../../editor/composables/useOutlineManager';
 import { scrollToElement } from '../../../core/utils/dom-utils';
 import {
@@ -50,7 +50,7 @@ export function useDeleteMode(
       if (previewArea.value && deleteConfirmPath.value === path) {
         setActiveOutlineForPath(previewArea.value, path, 'delete');
         if (unref(scrollIntoViewOnPartEdit)) {
-          const firstElement = findElementsByZcodePath(previewArea.value, path)[0];
+          const firstElement = findScrollTargetByZcodePath(previewArea.value, path);
           if (firstElement) {
             scrollToElement(firstElement);
           }
@@ -66,7 +66,7 @@ export function useDeleteMode(
     if (path && previewArea.value) {
       removeActiveOutlineForPath(previewArea.value, path);
       if (restoreScroll && unref(scrollIntoViewOnPartEdit)) {
-        const firstElement = findElementsByZcodePath(previewArea.value, path)[0];
+        const firstElement = findScrollTargetByZcodePath(previewArea.value, path);
         if (firstElement) {
           scrollToElement(firstElement);
         }

@@ -8,7 +8,7 @@ import {
 import {
   setActiveOutlineForPath,
   removeActiveOutlineForPath,
-  findElementsByZcodePath
+  findScrollTargetByZcodePath
 } from './useOutlineManager';
 import { scrollToElement } from '../../../core/utils/dom-utils';
 import { isEmptyForZEmpty } from '../../../core/utils/template-processor';
@@ -54,7 +54,7 @@ export function useEditMode(
       if (previewArea.value && editingComponentPath.value === path) {
         setActiveOutlineForPath(previewArea.value, path, 'edit');
         if (unref(scrollIntoViewOnPartEdit)) {
-          const firstElement = findElementsByZcodePath(previewArea.value, path)[0];
+          const firstElement = findScrollTargetByZcodePath(previewArea.value, path);
           if (firstElement) {
             scrollToElement(firstElement);
           }
@@ -100,7 +100,7 @@ export function useEditMode(
       const path = editingComponentPath.value;
       removeActiveOutlineForPath(previewArea.value, path);
       if (unref(scrollIntoViewOnPartEdit)) {
-        const firstElement = findElementsByZcodePath(previewArea.value, path)[0];
+        const firstElement = findScrollTargetByZcodePath(previewArea.value, path);
         if (firstElement) {
           scrollToElement(firstElement);
         }

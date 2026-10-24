@@ -16,7 +16,8 @@ import {
   removeActiveOutline,
   setActiveOutlineForPath,
   removeActiveOutlineForPath,
-  findElementsByZcodePath
+  findElementsByZcodePath,
+  findScrollTargetByZcodePath
 } from '../../editor/composables/useOutlineManager';
 import { scrollToElement } from '../../../core/utils/dom-utils';
 import { syncAddBetweenButtonCurrentState } from '../../../core/utils/page-add-buttons';
@@ -401,7 +402,7 @@ export function useAddMode(
         if (elements.length > 0) {
           setActiveOutlineForPath(previewArea.value, path, 'add');
           if (unref(scrollIntoViewOnPartEdit)) {
-            scrollToElement(elements[0]);
+            scrollToElement(findScrollTargetByZcodePath(previewArea.value, path) ?? elements[0]);
           }
         } else {
           const slotPath = getSlotPath(path);
@@ -808,7 +809,9 @@ export function useAddMode(
       if (newElements.length > 0) {
         setActiveOutlineForPath(previewArea.value, nextPath, 'add');
         if (unref(scrollIntoViewOnPartEdit)) {
-          scrollToElement(newElements[0]);
+          scrollToElement(
+            findScrollTargetByZcodePath(previewArea.value, nextPath) ?? newElements[0]
+          );
         }
         syncBetweenButtonHighlight();
         return;
@@ -833,7 +836,7 @@ export function useAddMode(
       const path = addTargetPath.value;
       removeActiveOutlineForPath(previewArea.value, path);
       if (scrollBack && unref(scrollIntoViewOnPartEdit)) {
-        const firstElement = findElementsByZcodePath(previewArea.value, path)[0];
+        const firstElement = findScrollTargetByZcodePath(previewArea.value, path);
         if (firstElement) {
           scrollToElement(firstElement);
         }
