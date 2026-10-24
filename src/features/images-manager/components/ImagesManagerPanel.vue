@@ -163,7 +163,7 @@ import type { ZeroCodeData, ImageData, CMSConfig } from '../../../types';
 import { useImagesManager } from '../composables/useImagesManager';
 import { useModalA11y } from '../../../core/composables/useModalA11y';
 import { logger } from '../../../core/utils/logger';
-import { Plus, Trash2, X, Check, ArrowUpDown, HelpCircle, Image } from 'lucide-vue-next';
+import { Plus, Trash2, X, Check, ArrowUpDown, HelpCircle, Image } from '../../../core/icons';
 import CategoryInfoModal from '../../parts-manager/components/CategoryInfoModal.vue';
 
 const { t } = useI18n();

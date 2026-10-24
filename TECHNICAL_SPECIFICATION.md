@@ -1349,7 +1349,7 @@ cms.addEventListener('save-request', async (event) => {
 - **Vue 3**: UIフレームワーク
 - **Monaco Editor**: コードエディター（Editor / Studio のパーツ管理のみ）。パッケージの容量を抑えるため、実行時に CDN（jsdelivr）から読み込む。npm の `monaco-editor` は版の管理と脆弱性監査のための devDependencies
 - **SortableJS**: 並べ替えパネル内 D&D
-- **lucide-vue-next**: アイコンライブラリ
+- **アイコン**: Lucide の SVG を `src/core/icons/` に手元で持つ（パッケージには依存しない。ライセンスは `create-icon.ts` に記載）
 
 ### 開発依存関係
 

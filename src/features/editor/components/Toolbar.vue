@@ -71,7 +71,7 @@
 </template>
 
 <script setup lang="ts">
-import { Pencil, Plus, ArrowUpDown, Trash2, Eye, Settings } from 'lucide-vue-next';
+import { Pencil, Plus, ArrowUpDown, Trash2, Eye, Settings } from '../../../core/icons';
 
 type ModeType = 'edit' | 'add' | 'reorder' | 'delete';
 type ViewModeType = 'preview' | 'manage';

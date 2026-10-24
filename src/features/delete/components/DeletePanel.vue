@@ -86,7 +86,7 @@
 import { ref } from 'vue';
 import type { ComponentData } from '../../../types';
 import { usePanelOptionsPopover } from '../../editor/composables/usePanelOptionsPopover';
-import { ChevronUp, AlertTriangle, Trash2, X, Settings } from 'lucide-vue-next';
+import { ChevronUp, AlertTriangle, Trash2, X, Settings } from '../../../core/icons';
 
 defineProps<{
   deleteConfirmComponent: ComponentData | null;

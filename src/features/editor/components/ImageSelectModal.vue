@@ -273,7 +273,7 @@ import {
   ArrowRight,
   Trash2,
   Image as ImageIcon
-} from 'lucide-vue-next';
+} from '../../../core/icons';
 
 type ImageCategory = 'common' | 'individual' | 'special';
 type ImageSelectTab = 'all' | ImageCategory;

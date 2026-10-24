@@ -220,7 +220,7 @@ import {
 } from 'vue';
 import { zcodeRichTextConfigKey, zcodeTeleportTargetKey } from '../core/injectionKeys';
 import { resolveRichTextConfig } from '../features/editor/rich-text/features';
-import { Save } from 'lucide-vue-next';
+import { Save } from '../core/icons';
 import ZeroCodePreview from './ZeroCodePreview.vue';
 import PreviewArea from '../features/preview/PreviewArea.vue';
 import Toolbar from '../features/editor/components/Toolbar.vue';

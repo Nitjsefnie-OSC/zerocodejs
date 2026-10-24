@@ -278,7 +278,7 @@ import type { ComponentData, ZeroCodeData } from '../../../types';
 // リッチテキスト未使用時は読み込まないよう遅延ロードする
 const RichTextEditor = defineAsyncComponent(() => import('./RichTextEditor.vue'));
 import ImageSelectModal from './ImageSelectModal.vue';
-import { X, ChevronUp, Image } from 'lucide-vue-next';
+import { X, ChevronUp, Image } from '../../../core/icons';
 import { isEmptyForZEmpty } from '../../../core/utils/template-processor';
 import type { EditPanelField } from '../../../core/utils/edit-panel-fields';
 

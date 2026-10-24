@@ -85,7 +85,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, toRef } from 'vue';
-import { Copy, Check } from 'lucide-vue-next';
+import { Copy, Check } from '../../../core/icons';
 import type { ZeroCodeData, CMSConfig } from '../../../types';
 import { useZeroCodeRenderer } from '../../../core/composables/useZeroCodeRenderer';
 import { logger } from '../../../core/utils/logger';
