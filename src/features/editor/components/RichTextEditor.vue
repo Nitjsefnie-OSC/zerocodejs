@@ -483,11 +483,10 @@ function openLinkForm() {
     existing: !!existing,
     error: ''
   });
-  nextTick(() =>
-    (config.linkMode === 'free' ? linkInputRef : linkSelectRef).value?.focus({
-      preventScroll: true
-    })
-  );
+  // タップで開いたときは自動でフォーカスしない。プログラムからのフォーカスでは iOS が
+  // 入力欄をキーボードの上に出さないため、利用者が入力欄をタップしてキーボードを開く
+  if (keepKeyboardClosed) return;
+  nextTick(() => (config.linkMode === 'free' ? linkInputRef : linkSelectRef).value?.focus());
 }
 
 function closeLinkForm(restoreSelection: boolean) {
