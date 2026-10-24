@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect } from 'vitest';
+import { nextTick } from 'vue';
 import { mount } from '@vue/test-utils';
 import RichTextEditor from './RichTextEditor.vue';
 import { createZeroCodeI18n } from '../../../i18n';
@@ -129,6 +130,28 @@ describe('RichTextEditor', () => {
     await tap('元に戻す');
     expect(content.element.innerHTML).toBe('<p>a</p>');
     expect(document.activeElement).not.toBe(content.element);
+    wrapper.unmount();
+  });
+
+  it('リンクのフォームはクリックで開くと入力欄にフォーカスし、キーボードが閉じた状態のタップではフォーカスしない', async () => {
+    const wrapper = mountEditor('<p>a</p>');
+    const linkButton = wrapper.find('button[aria-label="リンク"]');
+    const input = () => wrapper.find('.zcode-rich-text-link-input').element;
+
+    await linkButton.trigger('click');
+    await nextTick();
+    expect(document.activeElement).toBe(input());
+    await wrapper.find('.zcode-rich-text-link-input').trigger('keydown', { key: 'Escape' });
+
+    (document.activeElement as HTMLElement | null)?.blur();
+    await linkButton.trigger('pointerdown', { pointerType: 'touch' });
+    await linkButton.trigger('click');
+    await nextTick();
+    expect(wrapper.find('.zcode-rich-text-link-form').exists()).toBe(true);
+    expect(document.activeElement).not.toBe(input());
+    expect(document.activeElement).not.toBe(
+      wrapper.find('.zcode-rich-text-editor-content').element
+    );
     wrapper.unmount();
   });
 
