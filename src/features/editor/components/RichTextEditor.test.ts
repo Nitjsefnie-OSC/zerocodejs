@@ -107,6 +107,43 @@ describe('RichTextEditor', () => {
     wrapper.unmount();
   });
 
+  it('キーボードが閉じた状態でタップしたときは本文にフォーカスを移さずに操作する', async () => {
+    const wrapper = mountEditor('<p>a</p>');
+    const content = wrapper.find('.zcode-rich-text-editor-content');
+    const tap = async (label: string) => {
+      const button = wrapper.find(`button[aria-label="${label}"]`);
+      await button.trigger('pointerdown', { pointerType: 'touch' });
+      await button.trigger('click');
+    };
+    document.getSelection()?.removeAllRanges();
+
+    await tap('箇条書き');
+    expect(content.element.innerHTML).toBe('<ul><li>a</li></ul>');
+    expect(document.activeElement).not.toBe(content.element);
+    expect(wrapper.find('button[aria-label="箇条書き"]').attributes('aria-pressed')).toBe('true');
+
+    await tap('太字');
+    expect(content.element.innerHTML).toBe('<ul><li>a</li></ul>');
+    expect(document.activeElement).not.toBe(content.element);
+
+    await tap('元に戻す');
+    expect(content.element.innerHTML).toBe('<p>a</p>');
+    expect(document.activeElement).not.toBe(content.element);
+    wrapper.unmount();
+  });
+
+  it('本文にフォーカスがある状態でのタップは従来どおり本文で操作を続ける', async () => {
+    const wrapper = mountEditor('<p>a</p>');
+    const content = wrapper.find('.zcode-rich-text-editor-content');
+    (content.element as HTMLElement).focus();
+    const button = wrapper.find('button[aria-label="箇条書き"]');
+    await button.trigger('pointerdown', { pointerType: 'touch' });
+    await button.trigger('click');
+    expect(content.element.innerHTML).toBe('<ul><li>a</li></ul>');
+    expect(document.activeElement).toBe(content.element);
+    wrapper.unmount();
+  });
+
   it('読み取り専用では編集できず、ツールバーも無効にする', () => {
     const wrapper = mountEditor('<p>a</p>', undefined, { readonly: true });
     const content = wrapper.find('.zcode-rich-text-editor-content');

@@ -718,6 +718,7 @@ interface ImageData {
 - 非対応ブラウザ（`getComposedRanges` も `ShadowRoot.getSelection` もない環境）ではツールバーの代わりに案内を表示し、標準の入力に任せる（`isSelectionSupported`）。ランダムな入力・操作列による性質テストを追加し、正規化の不具合を修正。自作を見直す基準を TODO.md に記載
 - リンクの入力方式 `richText.link`（2026年10月）: `mode: 'free' | 'select' | 'both'`、候補は `source` で指定した `backendData` のパスの配列（`{ label, url, newTab? }`）。`select` では候補外のリンクを読み込み・貼り付け・保存時に外し、候補の `newTab` を適用。候補の取得前は制限せずリンクボタンを隠す。サーバー検証用に `findDisallowedRichTextLinks` を export。`getBackendDataValue`（template-utils）で backendData の生の値を取り出す
 - キーボード操作（ui-reviewer 指摘を反映）: ツールバーはロービング tabindex（Tab で止まるのは1つ、←→ / Home / End で移動）、選択範囲がなくてもボタン操作で本文末尾から開始、リンクボタンは `aria-expanded` / `aria-controls`、リンクフォーム内の Esc は外へ伝えない、Mac の修飾キーは Cmd のみ（Ctrl+B 等の標準カーソル操作を奪わない）、`readonly` / `disabled` フィールドは編集不可。`useModalA11y` のフォーカストラップに `[contenteditable="true"]` を追加
+- タッチ操作（2026年10月）: 本文にフォーカスがない状態でツールバーをタップしたときは、本文へフォーカスを移さずに操作する（iOS でキーボードが開いてページがスクロールするのを防ぐ）。このとき太字などの文字の装飾は、選ぶ文字がないため何もしない。リスト・見出し等は本文末尾のブロックに適用
 
 ### 未実装（スコープ関連）
 

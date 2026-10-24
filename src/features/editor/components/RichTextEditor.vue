@@ -9,6 +9,7 @@
       role="toolbar"
       :aria-label="label ? `${label} - ${t('richText.toolbar')}` : t('richText.toolbar')"
       @keydown="handleToolbarKeydown"
+      @pointerdown="handleToolbarPointerdown"
     >
       <template v-for="(group, groupIndex) in toolbarGroups" :key="groupIndex">
         <div v-if="groupIndex > 0" class="zcode-toolbar-divider" aria-hidden="true" />
@@ -30,7 +31,7 @@
           :tabindex="item.index === tabStopIndex ? 0 : -1"
           @mousedown.prevent
           @focus="rovingIndex = item.index ?? 0"
-          @click="item.run"
+          @click="runToolbarItem(item)"
         >
           <component :is="item.icon" :size="16" aria-hidden="true" />
         </button>
@@ -268,6 +269,11 @@ const history = new RichTextHistory();
 let lastEmitted: string | null = null;
 let recordTimer: ReturnType<typeof setTimeout> | null = null;
 let linkRange: Range | null = null;
+/**
+ * キーボードが閉じた状態でツールバーをタップしたとき。本文にフォーカスを移すと
+ * iOS がキーボードを開いてページをスクロールするため、フォーカスと選択範囲を変えずに操作する
+ */
+let keepKeyboardClosed = false;
 
 const RECORD_DELAY_MS = 400;
 
@@ -335,9 +341,11 @@ function restore(entry: { html: string; selection: Parameters<typeof deserialize
   const root = contentRef.value;
   if (!root) return;
   root.innerHTML = entry.html;
-  root.focus({ preventScroll: true });
-  const points = deserializeSelection(root, entry.selection);
-  if (points) setEditorSelection(root, points);
+  if (!keepKeyboardClosed) {
+    root.focus({ preventScroll: true });
+    const points = deserializeSelection(root, entry.selection);
+    if (points) setEditorSelection(root, points);
+  }
   canUndo.value = history.canUndo;
   canRedo.value = history.canRedo;
   emitChange();
@@ -374,11 +382,16 @@ function isUsableRange(root: HTMLElement, range: Range | null): range is Range {
 function rangeOrCaretAtEnd(root: HTMLElement): Range | null {
   const range = getEditorRange(root);
   if (range) return range;
-  root.focus({ preventScroll: true });
   let target: Node = root.lastElementChild ?? root;
   if (isList(target) && target.lastElementChild) target = target.lastElementChild;
   let offset = target.childNodes.length;
   if (target.lastChild?.nodeName === 'BR') offset -= 1;
+  if (keepKeyboardClosed) {
+    const caret = root.ownerDocument.createRange();
+    caret.setStart(target, offset);
+    return caret;
+  }
+  root.focus({ preventScroll: true });
   setEditorSelection(root, {
     startNode: target,
     startOffset: offset,
@@ -401,14 +414,29 @@ function runCommand(
   if (!range) return;
   const points = command(root, range);
   ensureBlocks(root);
-  root.focus({ preventScroll: true });
-  if (points) setEditorSelection(root, points);
+  if (!keepKeyboardClosed) {
+    root.focus({ preventScroll: true });
+    if (points) setEditorSelection(root, points);
+  }
   record();
   emitChange();
-  refreshState();
+  refreshState(points ? rangeFromPoints(root, points) : null);
+}
+
+function rangeFromPoints(root: HTMLElement, points: SelectionPoints): Range | null {
+  try {
+    const range = root.ownerDocument.createRange();
+    range.setStart(points.startNode, points.startOffset);
+    range.setEnd(points.endNode, points.endOffset);
+    return range;
+  } catch {
+    return null;
+  }
 }
 
 const toggleMarkCommand = (tag: MarkTag) => {
+  // キーボードを閉じたまま文字を選ぶ手段はないため、カーソル位置への装飾の予約はしない
+  if (keepKeyboardClosed && contentRef.value && !getEditorRange(contentRef.value)) return;
   const exclusive: MarkTag[] = tag === 'sup' ? ['sub'] : tag === 'sub' ? ['sup'] : [];
   runCommand((root, range) => toggleMark(root, range, tag, exclusive));
 };
@@ -416,10 +444,10 @@ const blockCommand = (tag: TextBlockTag) =>
   runCommand((root, range) => setBlockType(root, range, tag));
 const listCommand = (tag: ListTag) => runCommand((root, range) => toggleList(root, range, tag));
 
-function refreshState() {
+function refreshState(rangeOverride?: Range | null) {
   const root = contentRef.value;
   if (!root) return;
-  const range = getEditorRange(root);
+  const range = getEditorRange(root) ?? rangeOverride;
   if (!range) return;
   activeMarks.clear();
   for (const tag of ['strong', 'em', 's', 'u', 'sup', 'sub'] as MarkTag[]) {
@@ -455,13 +483,19 @@ function openLinkForm() {
     existing: !!existing,
     error: ''
   });
-  nextTick(() => (config.linkMode === 'free' ? linkInputRef : linkSelectRef).value?.focus());
+  nextTick(() =>
+    (config.linkMode === 'free' ? linkInputRef : linkSelectRef).value?.focus({
+      preventScroll: true
+    })
+  );
 }
 
 function closeLinkForm(restoreSelection: boolean) {
   linkForm.open = false;
   const root = contentRef.value;
-  if (!restoreSelection || !root) return;
+  const keepClosed = keepKeyboardClosed;
+  keepKeyboardClosed = false;
+  if (!restoreSelection || !root || keepClosed) return;
   root.focus({ preventScroll: true });
   if (!isUsableRange(root, linkRange)) return;
   setEditorSelection(root, {
@@ -491,11 +525,13 @@ function applyLink() {
   }
   linkForm.open = false;
   runCommand((root, range) => setLink(root, range, link), linkRange);
+  keepKeyboardClosed = false;
 }
 
 function unlink() {
   linkForm.open = false;
   runCommand((root, range) => removeLink(root, range), linkRange);
+  keepKeyboardClosed = false;
 }
 
 // ---------------------------------------------------------------------------
@@ -664,6 +700,21 @@ const NEXT_POSITION: Record<string, (position: number, length: number) => number
   Home: () => 0,
   End: (_position, length) => length - 1
 };
+
+function isEditorFocused(root: HTMLElement): boolean {
+  return (root.getRootNode() as Document | ShadowRoot).activeElement === root;
+}
+
+function handleToolbarPointerdown(event: PointerEvent) {
+  const root = contentRef.value;
+  keepKeyboardClosed = event.pointerType !== 'mouse' && !!root && !isEditorFocused(root);
+}
+
+/** リンクのフォームを開いた場合は、フォームを閉じるまで keepKeyboardClosed を保つ */
+function runToolbarItem(item: ToolbarItem) {
+  item.run();
+  if (!linkForm.open) keepKeyboardClosed = false;
+}
 
 function handleToolbarKeydown(event: KeyboardEvent) {
   const move = NEXT_POSITION[event.key];
@@ -881,6 +932,7 @@ function handleFocus() {
   if (typeof document.execCommand === 'function') {
     document.execCommand('defaultParagraphSeparator', false, 'p');
   }
+  keepKeyboardClosed = false;
   if (linkForm.open) linkForm.open = false;
 }
 
