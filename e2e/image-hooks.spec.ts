@@ -8,6 +8,8 @@ test.describe('画像の連携（hooks）', () => {
   }) => {
     await page.goto('/test-dev.html');
     const editor = page.locator(`#${EDITOR_ID}`);
+    // デモはサンプルデータを入れるときに作り直すため、入ってから操作する
+    await expect(editor.locator('[data-zcode-id][data-zcode-path="page.0"]')).toBeVisible();
     await editor.getByRole('button', { name: '画像管理' }).click();
 
     await page.evaluate((id) => {
@@ -45,6 +47,8 @@ test.describe('画像の連携（hooks）', () => {
   test('listImages を渡すと「メディアから選ぶ」から画像を登録できる', async ({ page }) => {
     await page.goto('/test-dev.html');
     const editor = page.locator(`#${EDITOR_ID}`);
+    // デモはサンプルデータを入れるときに作り直すため、入ってから操作する
+    await expect(editor.locator('[data-zcode-id][data-zcode-path="page.0"]')).toBeVisible();
     await editor.getByRole('button', { name: '画像管理' }).click();
 
     await editor.getByRole('button', { name: 'メディアから選ぶ' }).click();

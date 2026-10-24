@@ -5318,7 +5318,8 @@
   pointer-events: auto;
 }
 
-.zcode-image-item:hover .zcode-image-item-actions {
+.zcode-image-item:hover .zcode-image-item-actions,
+.zcode-image-item:focus-within .zcode-image-item-actions {
   opacity: 1;
 }
 
