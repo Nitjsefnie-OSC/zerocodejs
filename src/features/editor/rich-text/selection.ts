@@ -29,6 +29,20 @@ function readBoundaries(root: HTMLElement): StaticRange | Range | null {
   return shadowSelection && shadowSelection.rangeCount ? shadowSelection.getRangeAt(0) : null;
 }
 
+/**
+ * Shadow DOM 内の選択範囲を読み取れるか。`getComposedRanges`（Chrome 137+ / Firefox 142+ /
+ * Safari 17+）も `ShadowRoot.getSelection`（Chromium 独自）もない環境では読み取れない。
+ */
+export function isSelectionSupported(root: HTMLElement): boolean {
+  const host = root.getRootNode();
+  if (!(host instanceof ShadowRoot)) return true;
+  const selection = root.ownerDocument.getSelection() as ComposedRangesSelection | null;
+  return (
+    typeof selection?.getComposedRanges === 'function' ||
+    typeof (host as SelectableShadowRoot).getSelection === 'function'
+  );
+}
+
 function within(root: HTMLElement, node: Node): boolean {
   return node === root || root.contains(node);
 }

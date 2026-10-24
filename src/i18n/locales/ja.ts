@@ -127,7 +127,9 @@ export default {
     linkTarget: 'リンク先',
     linkSelectPlaceholder: 'リンク先を選択',
     linkCustom: 'URL を直接入力',
-    linkSelectRequired: 'リンク先を選択してください'
+    linkSelectRequired: 'リンク先を選択してください',
+    unsupportedBrowser:
+      'このブラウザでは書式の編集に対応していません。文字の入力はできます。書式を付けるには最新のブラウザをご利用ください。'
   },
   deletePanel: {
     title: '削除パネル',

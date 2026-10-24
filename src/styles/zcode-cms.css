@@ -2832,6 +2832,15 @@
   line-height: 0;
 }
 
+.zcode-rich-text-unsupported {
+  padding: 8px 12px;
+  border-bottom: 1px solid #d1d5db;
+  background: #fffbeb;
+  color: #92400e;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
 .zcode-rich-text-link-form {
   display: flex;
   flex-wrap: wrap;

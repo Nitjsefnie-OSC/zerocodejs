@@ -159,6 +159,8 @@ function cleanElements(parent: Node): void {
     }
     if (el.nodeName === 'A') {
       cleanAnchor(el);
+      // ブロックを含むリンク（他サイトの HTML など）は構造を崩すため外す
+      if (el.parentNode && hasBlockDescendant(el)) unwrap(el);
       continue;
     }
     for (const attr of Array.from(el.attributes)) el.removeAttribute(attr.name);
@@ -214,7 +216,7 @@ function flattenInline(el: Element): Node[] {
       result.push(child);
     } else if (child.nodeType === Node.ELEMENT_NODE && !isList(child)) {
       const inner = flattenInline(child as Element);
-      if (inner.length && result.length) result.push(doc.createElement('br'));
+      if (hasVisible(inner) && result.length) result.push(doc.createElement('br'));
       result.push(...inner);
     }
   }
@@ -225,7 +227,13 @@ function normalizeList(list: HTMLElement): HTMLElement {
   const doc = list.ownerDocument;
   const normalized = doc.createElement(list.nodeName.toLowerCase());
   const appendItem = (content: Node[]) => {
-    if (!hasVisible(content)) return;
+    // 改行だけの項目は出力で中身が消えるため、どの段階でも空として扱う
+    const text = content
+      .map((n) => n.textContent ?? '')
+      .join('')
+      .split(ZWSP)
+      .join('');
+    if (!text.trim()) return;
     const li = doc.createElement('li');
     li.append(...content);
     normalized.append(li);
@@ -233,8 +241,11 @@ function normalizeList(list: HTMLElement): HTMLElement {
   for (const child of Array.from(list.childNodes)) {
     if (child.nodeName === 'LI') {
       appendItem(flattenInline(child as Element));
-      // 入れ子のリストは平坦化して後続の項目にする
-      for (const nested of Array.from((child as Element).querySelectorAll('ul, ol'))) {
+      // 入れ子のリストは平坦化して後続の項目にする（より深いリストは再帰の中で扱う）
+      const directNested = Array.from((child as Element).querySelectorAll('ul, ol')).filter(
+        (nested) => nested.parentElement?.closest('li') === child
+      );
+      for (const nested of directNested) {
         for (const item of Array.from(normalizeList(nested as HTMLElement).childNodes)) {
           normalized.append(item);
         }
@@ -385,7 +396,18 @@ export function toOutputHtml(
   const container = inertDocument().importNode(root, true) as HTMLElement;
   normalizeTree(container, features, links);
   for (const block of Array.from(container.querySelectorAll(BLOCKS_WITH_TEXT))) {
-    while (block.lastChild && block.lastChild.nodeName === 'BR') block.lastChild.remove();
+    // 末尾の改行は表示されないため除く（ZWSP を除いて空になったテキストも飛ばす）
+    let last = block.lastChild;
+    while (
+      last &&
+      (last.nodeName === 'BR' || (last.nodeType === Node.TEXT_NODE && !last.textContent))
+    ) {
+      const previous = last.previousSibling;
+      last.remove();
+      last = previous;
+    }
+    // 空白だけの段落は、読み込み直すと空の段落になるため最初から空にする
+    if (!hasVisible(Array.from(block.childNodes))) block.replaceChildren();
   }
   const html = container.innerHTML;
   return html === '' ? '<p></p>' : html;

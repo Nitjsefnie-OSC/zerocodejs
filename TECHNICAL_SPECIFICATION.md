@@ -466,7 +466,7 @@ cmsElement.setAttribute('config', JSON.stringify(cmsConfig));
 
 **注意**: `features` はエディタの UI を制限するもので、サニタイズ（`sanitizeRichText`）の許可リストには連動しません。公開表示・SSR では config を参照しないため、許可リストは常に上の表のタグ全体です。
 
-**動作環境**: Shadow DOM 内の選択範囲の取得に `Selection.getComposedRanges` を使うため、リッチテキストの編集には Chrome 137 以降 / Firefox 142 以降 / Safari 17 以降が必要です。
+**動作環境**: Shadow DOM 内の選択範囲の取得に `Selection.getComposedRanges` を使うため、リッチテキストの書式の編集には Chrome 137 以降 / Firefox 142 以降 / Safari 17 以降が必要です。それより古いブラウザでは、ツールバーの代わりに「このブラウザでは書式の編集に対応していません」という案内を表示し、文字の入力だけができます（書式のキー操作・貼り付け・元に戻すはブラウザ標準の動作になり、保存時に正規化されます）。Light DOM（`use-shadow-dom="false"`）では制限はありません。
 
 ### 設定モーダル
 

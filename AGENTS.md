@@ -715,6 +715,7 @@ interface ImageData {
 - 見出し・リスト等のブロック要素で始まるリッチテキストの値を `<p>` で包まないよう修正（包むと HTML の解析で空の `<p>` が生まれていた）
 - 動作環境: Chrome 137+ / Firefox 142+ / Safari 17+（`getComposedRanges`）
 - E2E を chromium / webkit / firefox で実行（CI の `e2e` ジョブで3ブラウザをインストール）
+- 非対応ブラウザ（`getComposedRanges` も `ShadowRoot.getSelection` もない環境）ではツールバーの代わりに案内を表示し、標準の入力に任せる（`isSelectionSupported`）。ランダムな入力・操作列による性質テストを追加し、正規化の不具合を修正。自作を見直す基準を TODO.md に記載
 - リンクの入力方式 `richText.link`（2026年10月）: `mode: 'free' | 'select' | 'both'`、候補は `source` で指定した `backendData` のパスの配列（`{ label, url, newTab? }`）。`select` では候補外のリンクを読み込み・貼り付け・保存時に外し、候補の `newTab` を適用。候補の取得前は制限せずリンクボタンを隠す。サーバー検証用に `findDisallowedRichTextLinks` を export。`getBackendDataValue`（template-utils）で backendData の生の値を取り出す
 - キーボード操作（ui-reviewer 指摘を反映）: ツールバーはロービング tabindex（Tab で止まるのは1つ、←→ / Home / End で移動）、選択範囲がなくてもボタン操作で本文末尾から開始、リンクボタンは `aria-expanded` / `aria-controls`、リンクフォーム内の Esc は外へ伝えない、Mac の修飾キーは Cmd のみ（Ctrl+B 等の標準カーソル操作を奪わない）、`readonly` / `disabled` フィールドは編集不可。`useModalA11y` のフォーカストラップに `[contenteditable="true"]` を追加
 
@@ -783,6 +784,8 @@ interface ImageData {
 - **CSP**: `unsafe-eval` を必要としない状態を保つ（`eval` / `new Function` を使わない。vue-i18n は各 vite 設定の `__INTLIFY_JIT_COMPILATION__: true` で JIT コンパイル）。回帰テストは `e2e/csp.spec.ts`
 - **DOMPurify のテスト**: happy-dom 上では DOMPurify 3.4 の無害化が機能しないため、無害化を検証するテストは `// @vitest-environment jsdom` を付ける
 - **リッチテキストエディタ**: `document.execCommand` で編集操作をしない（文字装飾は計算済みスタイルで判定されて見出し内で `font-weight: normal` の span が入る、WebKit では Shadow DOM 内のリスト操作がホスト要素を壊す）。操作は `src/features/editor/rich-text/dom.ts` にタグ基準で実装し、Undo も自前の履歴で扱う。選択範囲は `selection.ts` 経由で読み書きする（WebKit では `getSelection().getRangeAt()` / `addRange()` が shadow 内で使えない）
+- **リッチテキストの性質テスト**: `src/features/editor/rich-text/rich-text.property.test.ts` がランダムな入力・操作列で正規化と編集操作の性質を検証する。失敗時のメッセージの seed は `RICH_TEXT_PROPERTY_FROM=<seed> RICH_TEXT_PROPERTY_RUNS=1` で再現できる。jsdom は1プロセスで大量に DOM を作るほど遅くなるため、多く回すときは `FROM` をずらして分割する
+- **リッチテキストの機能を増やす前に**: TODO.md の「自作を見直す基準」を確認する（表・埋め込み・入れ子リスト・共同編集などは自作を広げず、ProseMirror 系への回帰を含めて再検討する）
 - **リッチテキストの機能**: 機能を追加する場合は `features.ts`（ID）、`dom.ts`（操作）、`normalize.ts`（許可タグ・機能制限）、`sanitize.ts` の `sanitizeRichText` の許可リスト、`RichTextEditor.vue`（ツールバー）、i18n の `richText` を更新する
 - **オプショナルフィールド**: `undefined`のまま残す（初期化しない）
 

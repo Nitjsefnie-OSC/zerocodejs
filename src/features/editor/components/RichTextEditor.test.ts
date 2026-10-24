@@ -244,4 +244,31 @@ describe('RichTextEditor', () => {
       wrapper.unmount();
     });
   });
+
+  describe('Shadow DOM の選択範囲を読めないブラウザ', () => {
+    it('ツールバーの代わりに案内を表示し、書式のキー操作は横取りしない', async () => {
+      // jsdom は getComposedRanges も ShadowRoot.getSelection も持たないため、非対応ブラウザと同じ状態になる
+      const host = document.createElement('div');
+      document.body.append(host);
+      const mountPoint = document.createElement('div');
+      host.attachShadow({ mode: 'open' }).append(mountPoint);
+      const wrapper = mount(RichTextEditor, {
+        props: { modelValue: '<p>a</p>' },
+        attachTo: mountPoint,
+        global: { plugins: [createZeroCodeI18n('ja')] }
+      });
+      await wrapper.vm.$nextTick();
+      const root = host.shadowRoot!;
+      expect(root.querySelector('.zcode-rich-text-unsupported')?.getAttribute('role')).toBe(
+        'status'
+      );
+      expect(root.querySelector('.zcode-rich-text-toolbar')).toBeNull();
+
+      const event = new KeyboardEvent('keydown', { key: 'b', ctrlKey: true, cancelable: true });
+      root.querySelector('.zcode-rich-text-editor-content')!.dispatchEvent(event);
+      expect(event.defaultPrevented).toBe(false);
+      wrapper.unmount();
+      host.remove();
+    });
+  });
 });

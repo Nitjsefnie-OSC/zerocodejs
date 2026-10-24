@@ -147,6 +147,26 @@ export function ensureBlocks(root: HTMLElement): void {
 // 文字装飾（マーク）
 // ---------------------------------------------------------------------------
 
+const isEditableBlock = (el: HTMLElement) =>
+  TEXT_BLOCK_NAMES.has(el.nodeName) || el.nodeName === 'LI';
+
+/**
+ * キャレットが段落・リスト項目の外（例: (ol, 0)）にあれば、その位置の段落・項目の先頭へ移す。
+ * 移せる段落がなければ false
+ */
+function moveCaretIntoBlock(root: HTMLElement, range: Range): boolean {
+  if (closestWithin(range.startContainer, root, isEditableBlock)) return true;
+  const node = boundaryNode(range.startContainer, range.startOffset, false);
+  if (node.nodeType !== Node.ELEMENT_NODE) return false;
+  const block = isEditableBlock(node as HTMLElement)
+    ? node
+    : (node as Element).querySelector('p, h2, h3, h4, blockquote, li');
+  if (!block) return false;
+  range.setStart(block, 0);
+  range.collapse(true);
+  return true;
+}
+
 /** 範囲の境界をテキストノードの切れ目に揃える（文字単位の装飾をテキストノード単位で扱うため） */
 function splitRangeBoundaries(range: Range): void {
   let { startContainer: sc, startOffset: so, endContainer: ec, endOffset: eo } = range;
@@ -225,23 +245,35 @@ function sameAttributes(a: Element, b: Element): boolean {
 
 /** 隣り合う同種のマークを結合し、空のマークを取り除く */
 export function tidyMarks(container: ParentNode): void {
-  for (const el of Array.from(container.querySelectorAll('strong, em, s, u, sup, sub, a'))) {
-    if (!el.isConnected && !container.contains(el)) continue;
-    if (!hasVisibleContent(el)) {
-      el.remove();
-      continue;
-    }
-    let next = el.nextSibling;
-    while (
-      next &&
-      next.nodeType === Node.ELEMENT_NODE &&
-      next.nodeName === el.nodeName &&
-      sameAttributes(el, next as Element)
-    ) {
-      el.append(...Array.from(next.childNodes));
-      const following = next.nextSibling;
-      next.parentNode?.removeChild(next);
-      next = following;
+  // 外側のマークを結合すると内側に隣り合うマークができるため、変化がなくなるまで繰り返す
+  let changed = true;
+  while (changed) {
+    changed = false;
+    for (const el of Array.from(container.querySelectorAll('strong, em, s, u, sup, sub, a'))) {
+      if (!container.contains(el)) continue;
+      if (!hasVisibleContent(el)) {
+        el.remove();
+        changed = true;
+        continue;
+      }
+      let next = el.nextSibling;
+      while (next && next.nodeType === Node.TEXT_NODE && !next.textContent) {
+        const following = next.nextSibling;
+        next.parentNode?.removeChild(next);
+        next = following;
+      }
+      while (
+        next &&
+        next.nodeType === Node.ELEMENT_NODE &&
+        next.nodeName === el.nodeName &&
+        sameAttributes(el, next as Element)
+      ) {
+        el.append(...Array.from(next.childNodes));
+        const following = next.nextSibling;
+        next.parentNode?.removeChild(next);
+        next = following;
+        changed = true;
+      }
     }
   }
 }
@@ -269,8 +301,7 @@ export function toggleMark(
   const match = byName(tag);
 
   if (range.collapsed) {
-    const inBlock = (el: HTMLElement) => TEXT_BLOCK_NAMES.has(el.nodeName) || el.nodeName === 'LI';
-    if (!closestWithin(range.startContainer, root, inBlock)) return null;
+    if (!moveCaretIntoBlock(root, range)) return null;
     const placeholder = doc.createTextNode(ZWSP);
     range.insertNode(placeholder);
     if (closestWithin(placeholder, root, match)) {
@@ -370,6 +401,7 @@ export function setLink(root: HTMLElement, range: Range, link: LinkState): Selec
   const isAnchor = byName('a');
 
   if (range.collapsed) {
+    if (!moveCaretIntoBlock(root, range)) return null;
     const existing = closestWithin(range.startContainer, root, isAnchor);
     if (existing) {
       applyLinkAttributes(existing, link);

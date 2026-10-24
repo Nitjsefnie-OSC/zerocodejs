@@ -1,7 +1,10 @@
 <template>
   <div class="zcode-rich-text-editor">
+    <div v-if="!selectionSupported" class="zcode-rich-text-unsupported" role="status">
+      {{ t('richText.unsupportedBrowser') }}
+    </div>
     <div
-      v-if="toolbarGroups.length"
+      v-else-if="toolbarGroups.length"
       class="zcode-rich-text-toolbar"
       role="toolbar"
       :aria-label="label ? `${label} - ${t('richText.toolbar')}` : t('richText.toolbar')"
@@ -189,6 +192,7 @@ import { RichTextHistory } from '../rich-text/history';
 import {
   deserializeSelection,
   getEditorRange,
+  isSelectionSupported,
   serializeSelection,
   setEditorSelection
 } from '../rich-text/selection';
@@ -242,6 +246,8 @@ const modAria = isMac ? 'Meta' : 'Control';
 const placeholderText = computed(() => props.placeholder || t('richText.placeholder'));
 
 const composing = ref(false);
+/** 選択範囲を読めない古いブラウザでは、書式の操作をやめてブラウザ標準の入力だけにする */
+const selectionSupported = ref(true);
 const isEmpty = ref(false);
 const activeMarks = reactive(new Set<MarkTag>());
 const blockTag = ref<string | null>(null);
@@ -685,15 +691,16 @@ const FORMAT_INPUT_TYPES: Record<string, [RichTextFeature, MarkTag]> = {
 
 function handleBeforeInput(event: InputEvent) {
   const type = event.inputType;
+  if (type === 'insertFromDrop') {
+    // ドロップされた HTML は正規化を経ないため受け付けない
+    event.preventDefault();
+    return;
+  }
+  if (!selectionSupported.value) return;
   if (type === 'historyUndo' || type === 'historyRedo') {
     event.preventDefault();
     if (type === 'historyUndo') undo();
     else redo();
-    return;
-  }
-  if (type === 'insertFromDrop') {
-    // ドロップされた HTML は正規化を経ないため受け付けない
-    event.preventDefault();
     return;
   }
   if (type.startsWith('format')) {
@@ -762,6 +769,7 @@ function exitEmptyListItem(): boolean {
 }
 
 function handleKeydown(event: KeyboardEvent) {
+  if (!selectionSupported.value) return;
   // IME 変換中（Safari は keyCode 229）のキー操作は変換に任せる
   if (event.isComposing || event.keyCode === 229) return;
 
@@ -853,6 +861,8 @@ function insertPastedHtml(root: HTMLElement, range: Range, html: string): Select
 }
 
 function handlePaste(event: ClipboardEvent) {
+  // 非対応ブラウザでは挿入位置を扱えないため、標準の貼り付けに任せる（出力時に正規化される）
+  if (!selectionSupported.value) return;
   event.preventDefault();
   const data = event.clipboardData;
   if (!data) return;
@@ -896,6 +906,7 @@ watch(
 );
 
 onMounted(() => {
+  if (contentRef.value) selectionSupported.value = isSelectionSupported(contentRef.value);
   load(props.modelValue ?? '');
   document.addEventListener('selectionchange', handleSelectionChange);
 });

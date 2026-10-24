@@ -127,7 +127,9 @@ export default {
     linkTarget: 'Link destination',
     linkSelectPlaceholder: 'Select a destination',
     linkCustom: 'Enter a URL',
-    linkSelectRequired: 'Select a link destination'
+    linkSelectRequired: 'Select a link destination',
+    unsupportedBrowser:
+      'Formatting is not supported in this browser. You can still enter text. Use an up-to-date browser to apply formatting.'
   },
   deletePanel: {
     title: 'Delete panel',
