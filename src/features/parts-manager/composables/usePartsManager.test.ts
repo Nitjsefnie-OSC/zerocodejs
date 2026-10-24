@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { usePartsManager } from './usePartsManager';
 import type { ZeroCodeData, TypeData } from '../../../types';
 
-vi.mock('vue-i18n', () => ({
+vi.mock('../../../i18n', () => ({
   useI18n: () => ({
     t: (key: string) => key
   })

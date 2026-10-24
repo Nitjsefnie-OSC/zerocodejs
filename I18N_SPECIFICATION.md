@@ -14,7 +14,8 @@ ZeroCode.jsの多言語対応機能の仕様を定義します。日本語と英
 
 ### 使用ライブラリ
 
-- `vue-i18n` (v9.x系) を使用
+- 外部ライブラリは使わず、自前の小さな実装（`src/i18n/index.ts`）を使う（2026年10月に vue-i18n から置き換え。メジャーバージョンの移行に付き合わないため）
+- 対応する機能は、キーによる文言の取得・`{name}` の差し込み・ja へのフォールバック・ロケールの切り替えのみ（複数形・リンク・日付や数値の書式は扱わない）
 - Vue 3のComposition APIに対応
 
 ### 言語切り替えUIの配置
@@ -114,7 +115,7 @@ export default {
 #### 言語切り替えの処理
 
 1. ユーザーが言語を選択
-2. `vue-i18n`の`locale.value`を更新
+2. `useI18n()` の `locale.value` を更新
 3. ローカルストレージに保存
 4. UIが即座に切り替わる
 
@@ -159,25 +160,14 @@ this.app.use(i18n);
 ### i18n初期化モジュール
 
 ```typescript
-// src/i18n/index.ts
-import { createI18n } from 'vue-i18n';
-import ja from './locales/ja';
-import en from './locales/en';
-
+// src/i18n/index.ts（抜粋）
 export type SupportedLocale = 'ja' | 'en';
 
-export function createZeroCodeI18n(locale: SupportedLocale = 'ja') {
-  return createI18n({
-    locale,
-    fallbackLocale: 'ja',
-    messages: {
-      ja,
-      en
-    },
-    legacy: false,
-    globalInjection: true
-  });
-}
+// Vue プラグイン。install で useI18n 用の provide と、テンプレート用の $t を登録する
+export function createZeroCodeI18n(initialLocale: SupportedLocale = 'ja'): ZeroCodeI18n;
+
+// コンポーネント・コンポーザブルの setup 内で使う
+export function useI18n(): { locale: Ref<SupportedLocale>; t: Translate };
 ```
 
 ### コンポーネントでの使用
@@ -194,7 +184,7 @@ export function createZeroCodeI18n(locale: SupportedLocale = 'ja') {
 #### スクリプト内
 
 ```typescript
-import { useI18n } from 'vue-i18n';
+import { useI18n } from '../i18n';
 
 const { t } = useI18n();
 const message = t('common.save');
@@ -252,7 +242,7 @@ const message = t('common.save');
 
 1. `src/i18n/locales/zh.ts`を作成
 2. `src/i18n/index.ts`の`SupportedLocale`型に`'zh'`を追加
-3. `createZeroCodeI18n`関数で`zh`を`messages`に追加
+3. `src/i18n/index.ts` の `MESSAGES` に `zh` を追加
 4. 設定パネルのセレクトボックスに`<option value="zh">`を追加
 
 #### その他の言語
@@ -260,11 +250,6 @@ const message = t('common.save');
 同様の手順で追加可能。
 
 ### 注意事項
-
-#### Shadow DOMでの動作
-
-- Shadow DOM内でvue-i18nを使用する場合、DevToolsプラグインが正しく動作しない可能性がある
-- 必要に応じてDevToolsを無効化する設定を追加
 
 #### パフォーマンス
 
@@ -278,15 +263,14 @@ const message = t('common.save');
 
 ## 実装ステップ（参考）
 
-1. `vue-i18n`をインストール
-2. 翻訳ファイル構造を作成（`ja.ts`、`en.ts`）
-3. i18n初期化モジュールを作成
-4. Web Componentでi18nを統合
-5. 主要コンポーネントに翻訳を適用
-6. 言語切り替えUIを追加（設定パネル）
-7. ローカルストレージへの保存機能を実装
+1. 翻訳ファイル構造を作成（`ja.ts`、`en.ts`）
+2. i18n初期化モジュールを作成
+3. Web Componentでi18nを統合
+4. 主要コンポーネントに翻訳を適用
+5. 言語切り替えUIを追加（設定パネル）
+6. ローカルストレージへの保存機能を実装
 
 ## 参考
 
-- [vue-i18n公式ドキュメント](https://vue-i18n.intlify.dev/)
-- [vue-i18n Composition API](https://vue-i18n.intlify.dev/guide/advanced/composition.html)
+- `src/i18n/index.ts`（実装）
+- `src/i18n/index.test.ts`（差し込み・フォールバック・ja と en のキーの一致・ロケール切り替え）
