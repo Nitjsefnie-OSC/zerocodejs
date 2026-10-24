@@ -1,3 +1,5 @@
+import type { RichTextFeature, RichTextLinkMode } from '../features/editor/rich-text/features';
+
 // データ型定義
 export interface ZeroCodeData {
   version?: number; // データ形式のバージョン（未指定は 1 とみなす）
@@ -100,10 +102,22 @@ export interface StudioSettings {
   hiddenCategories?: Array<'common' | 'individual' | 'special'>;
 }
 
+export interface RichTextSettings {
+  /** リッチテキストエディタで使える機能。未指定時は DEFAULT_RICH_TEXT_FEATURES */
+  features?: RichTextFeature[];
+  link?: {
+    /** リンクの入力方式（未指定時は free） */
+    mode?: RichTextLinkMode;
+    /** リンク候補（{ label, url, newTab? } の配列）を指す backendData のパス */
+    source?: string;
+  };
+}
+
 export interface CMSConfig {
   cms?: CMSSettings;
   dev?: DevSettings;
   studio?: StudioSettings;
+  richText?: RichTextSettings;
   categoryOrder?: 'common' | 'individual' | 'special';
 }
 

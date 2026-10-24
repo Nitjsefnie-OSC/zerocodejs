@@ -83,8 +83,12 @@ export function resolveBackendDataWithDefault(
   return resolved === '' ? defaultValue : resolved;
 }
 
-export function resolveBackendDataPath(backendData: Record<string, unknown>, path: string): string {
-  if (!backendData || !path) return '';
+/** backendData から path（`a.b[0].c` 形式）の値を取り出す。見つからなければ undefined */
+export function getBackendDataValue(
+  backendData: Record<string, unknown> | undefined,
+  path: string
+): unknown {
+  if (!backendData || !path) return undefined;
 
   try {
     const parts: string[] = [];
@@ -92,17 +96,7 @@ export function resolveBackendDataPath(backendData: Record<string, unknown>, pat
 
     for (let i = 0; i < path.length; i++) {
       const char = path[i];
-      if (char === '[') {
-        if (currentPart) {
-          parts.push(currentPart);
-          currentPart = '';
-        }
-      } else if (char === ']') {
-        if (currentPart) {
-          parts.push(currentPart);
-          currentPart = '';
-        }
-      } else if (char === '.') {
+      if (char === '[' || char === ']' || char === '.') {
         if (currentPart) {
           parts.push(currentPart);
           currentPart = '';
@@ -117,35 +111,26 @@ export function resolveBackendDataPath(backendData: Record<string, unknown>, pat
     }
 
     let current: unknown = backendData;
-
-    for (let i = 0; i < parts.length; i++) {
-      const part = parts[i];
-
+    for (const part of parts) {
       if (part.match(/^\d+$/)) {
         const index = parseInt(part, 10);
-        if (Array.isArray(current) && index >= 0 && index < current.length) {
-          current = current[index];
-        } else {
-          return '';
-        }
+        if (!Array.isArray(current) || index < 0 || index >= current.length) return undefined;
+        current = current[index];
       } else {
-        if (isRecord(current) && part in current) {
-          current = current[part];
-        } else {
-          return '';
-        }
+        if (!isRecord(current) || !(part in current)) return undefined;
+        current = current[part];
       }
     }
-
-    if (current === null || current === undefined) {
-      return '';
-    }
-
-    return String(current);
+    return current;
   } catch (error) {
     logger.warn(`Failed to resolve backend data path: ${path}`, error);
-    return '';
+    return undefined;
   }
+}
+
+export function resolveBackendDataPath(backendData: Record<string, unknown>, path: string): string {
+  const value = getBackendDataValue(backendData, path);
+  return value === null || value === undefined ? '' : String(value);
 }
 
 export function expandUrlPlaceholders(url: string, backendData: Record<string, unknown>): string {

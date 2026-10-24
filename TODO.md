@@ -603,6 +603,78 @@ ZC-3（並行可）
 
 ---
 
+### リッチテキストエディタの自作化（Tiptap 依存の削除）＋機能選択【完了】
+
+- **複雑度**: 中〜高
+- **背景**: Tiptap は13パッケージ＋ProseMirror 一式（遅延チャンク約115KB、UMD には常時同梱）だが、実際に使うのは文字装飾・リスト・リンクのみ。出力の整形は既に `sanitizeRichText`（DOMPurify）が担っている。依存削減と保守コスト削減のため、`contenteditable` + `execCommand` で自作する
+- **原則**: 出力は意味を持つタグのみ。`style` / `class` 属性は出さない（見た目はサイト CSS の責務）
+- **機能の上限リスト**:
+
+  | 機能ID                        | 出力タグ                   | デフォルト |
+  | ----------------------------- | -------------------------- | ---------- |
+  | （常時）段落・改行            | `p` `br`                   | 常時       |
+  | `bold`                        | `strong`                   | ✅         |
+  | `italic`                      | `em`                       | ✅         |
+  | `strike`                      | `s`                        | ✅         |
+  | `underline`                   | `u`                        | ✅         |
+  | `link`（新しいタブ切替可）    | `a`（href / target / rel） | ✅         |
+  | `bulletList`                  | `ul` `li`                  | ✅         |
+  | `orderedList`                 | `ol` `li`                  | ✅         |
+  | `horizontalRule`              | `hr`                       | ✅         |
+  | `heading`（h2〜h4）           | `h2` `h3` `h4`             | オプトイン |
+  | `blockquote`                  | `blockquote`               | オプトイン |
+  | `superscript` / `subscript`   | `sup` `sub`                | オプトイン |
+  | （常時）書式クリア・Undo/Redo | —                          | 常時       |
+  - 対象外: 文字色・サイズ・配置・フォント（`style` 属性が必要）、表・画像・埋め込み・コードブロック（パーツ／画像フィールドの領域）
+
+- **実装方針**:
+  - config に `richText: { features: [...] }` を追加（未指定時はデフォルト列）。フィールド単位の上書き（例: `{$body::rich=bold,link}`）は必要になってから
+  - 機能制限はエディタ側（ツールバー表示・貼り付け時の正規化）で行う。`sanitizeRichText` の許可リストは config に連動させず、上限リスト全体を常に許可する（公開側・SSR は config を知らないため）
+  - `sanitize.ts` の `ALLOWED_TAGS` に `h2` `h3` `h4` `blockquote` `sup` `sub` を追加
+  - `b`/`i`/`strike`/`div` 等ブラウザ固有の出力は DOMPurify フックで `strong`/`em`/`s`/`p` に正規化
+  - `target="_blank"` のリンクには `rel="noopener noreferrer"` を自動付与
+  - 見出しレベルの個別指定（`heading: { levels: [3, 4] }`）は将来検討
+- **進め方**:
+  1. ✅ 未使用の `@tiptap/starter-kit` を削除（2026年10月10日）
+  2. ✅ Shadow DOM 内の `contenteditable` で Chrome / Safari(WebKit) / Firefox の動作検証（選択範囲・execCommand・アクティブ状態判定・IME）
+  3. ✅ 本実装（正規化の単体テスト含む）
+  4. ✅ `e2e/rich-text-editor.spec.ts` を追加し、リッチテキストの E2E を webkit / firefox でも実行
+  5. ✅ Tiptap 依存を削除、size-limit の上限を見直し（遅延チャンク 15KB / UMD 130KB）
+- **撤退基準**: 検証で Safari の Shadow DOM 対応が実用に耐えない場合は Tiptap を維持し、依存パッケージの整理のみ行う
+- **検証結果（2026年10月10日、Playwright: Chromium 149 / WebKit 26.5 / Firefox 151、Shadow DOM 内 contenteditable）**:
+  - 文字装飾（bold / italic / underline / strikeThrough / superscript / subscript / createLink / removeFormat）と `formatBlock`（h2〜h4 / blockquote）は3ブラウザで動作
+  - **WebKit で `insertUnorderedList` / `insertOrderedList` が壊れる**: 選択範囲がホスト要素に再ターゲットされ、エディタ内に `<zc-host>` と編集領域の複製が挿入される → リストは execCommand を使わず自前の DOM 操作で実装する
+  - WebKit では `document.getSelection().addRange()` で shadow 内の Range を設定できず、`anchorNode` / `getRangeAt()` もホスト側に再ターゲットされる → 選択範囲の読み取りは `getComposedRanges`、設定は `setBaseAndExtent` に統一（`shadowRoot.getSelection()` は Chromium のみ）
+  - `queryCommandState` は文字装飾では3ブラウザとも機能。ブロック（見出し・引用・リスト）は取れないため、選択範囲の祖先要素から判定する
+  - ブラウザ固有の出力: `b` / `i` / `strike`（全ブラウザ）、Chromium のリストが `<p><ul>…</ul></p>` になる、`insertHorizontalRule` が `id="null"` を付ける（Chromium / WebKit）→ 正規化で吸収
+  - Cmd/Ctrl+B 等のショートカットは WebKit / Firefox で効かないため keydown で自前処理
+  - Enter での段落区切りは `defaultParagraphSeparator=p` で3ブラウザとも `<p>`
+  - リストを自前 DOM 操作にするとブラウザ標準の Undo 履歴と混在して壊れるため、Undo/Redo は自前のスナップショット履歴で実装する
+  - 見出し・引用も `formatBlock` だと Chromium / WebKit で複数段落が1つの見出しに結合されるため、ブロック操作（リスト・見出し・引用）はすべて自前の DOM 操作に統一する。execCommand は文字装飾・リンク・水平線・書式クリアのみ
+  - 上記設計の試作で、3ブラウザともリスト作成/解除・見出し/引用・ショートカット・自前 Undo/Redo が同一結果になり、ホスト要素の破損もないことを確認
+  - 最低動作環境: Chrome 137+ / Firefox 142+ / Safari 17+（`getComposedRanges` のため。2026年10月10日合意）
+  - **execCommand の文字装飾は、タグではなく計算済みスタイルで状態を判定する**（3ブラウザ共通）: 見出し内（既定で太字）で bold を実行すると `<span style="font-weight: normal;">` が挿入される。逆に CSS で `font-weight: normal` にした見出しでは Chromium / WebKit は何も起きない。編集画面の CSS と公開サイトの CSS は異なるため、出力が CSS に左右されるのは不可 → 文字装飾も自前のラップ/アンラップ（祖先タグで状態判定）で実装し、execCommand は使わない方針に変更
+  - アプリ内ブラウザ（Chrome 152 ベース）でも、リスト・見出し・自前 Undo/Redo の動作を確認
+  - 日本語 IME の手動確認: OK（2026年10月10日）
+- **実装済み**: 2026年10月10日
+  - `src/features/editor/rich-text/`（features / dom / normalize / selection / history）＋ `RichTextEditor.vue`
+  - config `richText.features`、`zcodeRichTextFeaturesKey` で CMS / Editor / Studio から provide
+  - リンクは window.prompt をやめ、ツールバー下のフォーム（URL・新しいタブ・解除）に変更
+  - ブロック要素で始まるリッチテキスト値を `<p>` で包まないよう `template-processor.ts` を修正
+  - 初期設定を最小化（2026年10月24日）: 太字・取り消し線・リンク・2種のリスト＋`history`（元に戻す/やり直すボタン）。斜体・下線・水平線・`clearFormat`（「文字の装飾を解除」に改名）はオプトインへ。斜体は日本語フォントで見栄えが悪く、下線はリンクと誤認されやすいため
+  - リンクの入力方式 `richText.link`（2026年10月24日）: free / select / both。候補は backendData のパス（`source`）で受け取り、`newTab` は候補のデータで決める。サーバー検証用に `findDisallowedRichTextLinks` を export
+  - 将来検討: 見出しレベルの個別指定、フィールド単位の機能指定（`{$body::rich=bold,link}`）
+  - 非対応ブラウザの扱い（2026年10月24日）: Shadow DOM 内の選択範囲を読めない環境（Safari 16 以前など）では、ツールバーの代わりに案内（`role="status"`）を表示し、書式のキー操作・貼り付け・Undo はブラウザ標準に任せる（文字の入力はでき、出力は保存時に正規化される）
+  - 性質テスト（2026年10月24日）: `rich-text.property.test.ts` でランダムな入力・操作列に対し「正規化の冪等性」「読み込み直しで出力が変わらない」「危険な要素・属性を出力しない」「構造の約束（ブロックの入れ子なし等）」「操作で文字を失わない」を検証。導入時に不具合を7件発見・修正（正規化: ブロックを含むリンク、入れ子リストの重複、空のリスト項目、末尾の改行、空白だけの段落、隣接マークの結合漏れ。編集操作: キャレットがリスト要素そのものを指すときにリンク・装飾をリスト直下へ挿入していた）
+- **自作を見直す基準**: 次のいずれかが必要になったら、自作の拡張ではなく ProseMirror 系（Tiptap 等）への回帰を含めて再検討する
+  - 表、画像・動画の埋め込み、独自ブロック（カード等）、コードブロック
+  - 入れ子のリスト（インデント）、段落の配置（左右中央）
+  - 共同編集・変更履歴・コメント
+  - モバイル（iOS Safari / Android Chrome の IME・予測変換）の不具合で、自前では原因を特定できないもの、または同種の修正が続くもの
+  - 現在の範囲: 文字の装飾（太字・斜体・下線・取り消し線・上付き・下付き）、リンク、2種のリスト（入れ子なし）、見出し h2〜h4、引用、水平線
+
+---
+
 ### 本 Phase の対象外（ホスト側）
 
 以下は ZeroCode.js では対応しない。埋め込み先（ホスト）で別管理する。

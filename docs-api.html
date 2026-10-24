@@ -538,6 +538,9 @@
     "showDataViewer": false,
     "enableTemplateSuggestions": false
   },
+  "richText": {
+    "features": ["bold", "strike", "link", "bulletList", "orderedList", "history"]
+  },
   "categoryOrder": "common"
 }</code></pre>
 
@@ -605,6 +608,168 @@
           <li>データビューアタブ（<code>zcode-editor</code>のみ、パーツ/画像表示時）</li>
           <li>追加パネル（<code>zcode-cms</code>と<code>zcode-editor</code>の両方）</li>
         </ul>
+
+        <h3 id="rich-text-settings">リッチテキスト設定（richText）</h3>
+        <p>
+          <code>zcode-cms</code>・<code>zcode-editor</code>・<code>zcode-studio</code>
+          共通の設定です。リッチテキストエディタのツールバーで使える機能を、プロダクトごとに選択できます。初期設定は、お知らせや紹介文でよく使う機能だけに絞っています。ユーザーが変更することはできません。
+        </p>
+
+        <h4>features</h4>
+        <p>
+          デフォルト:
+          <code>["bold", "strike", "link", "bulletList", "orderedList", "history"]</code>
+        </p>
+        <p>
+          有効にする機能 ID
+          の配列です。書式の機能を無効にすると、その書式は貼り付けたときや保存するときに取り除かれます（文字は残ります。見出しや引用は段落になります）。「ボタンのみ」の機能は出力に影響しません。
+        </p>
+        <table class="docs-table">
+          <thead>
+            <tr>
+              <th>機能 ID</th>
+              <th>内容</th>
+              <th>出力タグ</th>
+              <th>デフォルト</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>bold</code></td>
+              <td>太字</td>
+              <td><code>strong</code></td>
+              <td>有効</td>
+            </tr>
+            <tr>
+              <td><code>strike</code></td>
+              <td>取り消し線</td>
+              <td><code>s</code></td>
+              <td>有効</td>
+            </tr>
+            <tr>
+              <td><code>link</code></td>
+              <td>リンク（新しいタブで開く指定も可）</td>
+              <td><code>a</code></td>
+              <td>有効</td>
+            </tr>
+            <tr>
+              <td><code>bulletList</code></td>
+              <td>箇条書き</td>
+              <td><code>ul</code> <code>li</code></td>
+              <td>有効</td>
+            </tr>
+            <tr>
+              <td><code>orderedList</code></td>
+              <td>番号付きリスト</td>
+              <td><code>ol</code> <code>li</code></td>
+              <td>有効</td>
+            </tr>
+            <tr>
+              <td><code>italic</code></td>
+              <td>斜体</td>
+              <td><code>em</code></td>
+              <td>無効</td>
+            </tr>
+            <tr>
+              <td><code>underline</code></td>
+              <td>下線</td>
+              <td><code>u</code></td>
+              <td>無効</td>
+            </tr>
+            <tr>
+              <td><code>horizontalRule</code></td>
+              <td>水平線</td>
+              <td><code>hr</code></td>
+              <td>無効</td>
+            </tr>
+            <tr>
+              <td><code>heading</code></td>
+              <td>見出し（h2〜h4）</td>
+              <td><code>h2</code> <code>h3</code> <code>h4</code></td>
+              <td>無効</td>
+            </tr>
+            <tr>
+              <td><code>blockquote</code></td>
+              <td>引用</td>
+              <td><code>blockquote</code></td>
+              <td>無効</td>
+            </tr>
+            <tr>
+              <td><code>superscript</code></td>
+              <td>上付き</td>
+              <td><code>sup</code></td>
+              <td>無効</td>
+            </tr>
+            <tr>
+              <td><code>subscript</code></td>
+              <td>下付き</td>
+              <td><code>sub</code></td>
+              <td>無効</td>
+            </tr>
+            <tr>
+              <td><code>history</code></td>
+              <td>元に戻す・やり直すのボタン（ボタンのみ）</td>
+              <td>—</td>
+              <td>有効</td>
+            </tr>
+            <tr>
+              <td><code>clearFormat</code></td>
+              <td>文字の装飾を解除するボタン（ボタンのみ）</td>
+              <td>—</td>
+              <td>無効</td>
+            </tr>
+          </tbody>
+        </table>
+        <p>
+          段落・改行は常に使えます。元に戻す・やり直すのショートカット（Cmd/Ctrl+Z、Cmd/Ctrl+Shift+Z）は
+          <code>history</code> を無効にしても使えます。出力には <code>style</code> /
+          <code>class</code>
+          属性を含めません（見た目はサイトの CSS で決めます）。
+        </p>
+        <pre><code>&lt;zcode-cms
+  config='{"richText": {"features": ["bold", "italic", "link", "bulletList", "heading", "history"]}}'
+&gt;&lt;/zcode-cms&gt;</code></pre>
+        <h4 id="rich-text-link-settings">link（リンクの入力方式）</h4>
+        <p>
+          リンク先を、<code>backendData</code>
+          で渡す候補に限定できます。どんな URL でも設定できる状態を避けたい場合に使います。
+        </p>
+        <ul>
+          <li>
+            <code>mode</code>（デフォルト: <code>"free"</code>）: <code>"free"</code> は URL
+            を自由に入力、<code>"select"</code> は候補からプルダウンで選ぶのみ、<code>"both"</code>
+            は候補から選ぶか URL を直接入力
+          </li>
+          <li>
+            <code>source</code>: 候補の配列を指す <code>backendData</code> のパス（例:
+            <code>"site.links"</code>）。<code>select</code> / <code>both</code> のときに必須
+          </li>
+        </ul>
+        <p>
+          候補の各項目は
+          <code>{ "label": "表示名", "url": "/about", "newTab": false }</code>
+          の形式です。「新しいタブで開く」は候補の <code>newTab</code> で決まります。
+        </p>
+        <pre><code>&lt;zcode-cms
+  config='{"richText": {"link": {"mode": "select", "source": "site.links"}}}'
+  backend-data='{"site": {"links": [{"label": "会社概要", "url": "/about"}, {"label": "公式 SNS", "url": "https://sns.example.com/", "newTab": true}]}}'
+&gt;&lt;/zcode-cms&gt;</code></pre>
+        <p>
+          <code>select</code>
+          では、候補にない URL
+          のリンクは読み込み・貼り付け・保存時に外れます（文字は残ります）。候補を後から受け取る場合、受け取るまではリンクボタンを表示しません。
+          これは画面上の制限なので、リンク先を確実に制限するにはサーバー側でも
+          <code>findDisallowedRichTextLinks</code> で検証してください（<a
+            href="docs-backend.html#security-model"
+            >セキュリティモデル</a
+          >）。
+        </p>
+        <p>
+          この設定はエディタの UI
+          を制限するもので、公開表示の無害化（<code>sanitizeRichText</code>）の許可リストには連動しません。
+          リッチテキストの書式の編集には Chrome 137 以降 / Firefox 142 以降 / Safari 17
+          以降が必要です。それより古いブラウザでは、ツールバーの代わりに案内を表示し、文字の入力だけができます。
+        </p>
 
         <h3 id="config-examples">設定の使用例</h3>
         <pre><code>&lt;zcode-cms

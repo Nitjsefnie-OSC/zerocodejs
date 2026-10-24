@@ -6,7 +6,8 @@ const FOCUSABLE_SELECTOR = [
   'input:not([disabled])',
   'select:not([disabled])',
   'textarea:not([disabled])',
-  '[tabindex]:not([tabindex="-1"])'
+  '[tabindex]:not([tabindex="-1"])',
+  '[contenteditable="true"]'
 ].join(', ');
 
 // 重なったモーダルで最前面だけが Esc / Tab を処理するためのスタック

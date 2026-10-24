@@ -17,6 +17,17 @@ export default defineConfig({
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] }
+    },
+    // リッチテキストは Shadow DOM 内の contenteditable のブラウザ差が大きいため3ブラウザで検証する
+    {
+      name: 'webkit',
+      use: { ...devices['Desktop Safari'] },
+      testMatch: /rich-text-.*\.spec\.ts/
+    },
+    {
+      name: 'firefox',
+      use: { ...devices['Desktop Firefox'] },
+      testMatch: /rich-text-.*\.spec\.ts/
     }
   ],
   webServer: {

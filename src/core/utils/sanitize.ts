@@ -43,14 +43,53 @@ function getPurify(): Purify {
   return cachedPurify;
 }
 
+const RICH_TEXT_PURIFY_CONFIG = {
+  ALLOWED_TAGS: [
+    'p',
+    'br',
+    'strong',
+    'em',
+    's',
+    'u',
+    'sup',
+    'sub',
+    'h2',
+    'h3',
+    'h4',
+    'blockquote',
+    'ul',
+    'ol',
+    'li',
+    'a',
+    'hr'
+  ],
+  ALLOWED_ATTR: ['href', 'target', 'rel'],
+  ALLOW_DATA_ATTR: false,
+  FORBID_TAGS: ['script', 'iframe', 'object', 'embed', 'form', 'input', 'button', 'style'],
+  FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover', 'onfocus', 'onblur']
+};
+
 export function sanitizeRichText(html: string): string {
-  return getPurify().sanitize(html, {
-    ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 's', 'u', 'ul', 'ol', 'li', 'a', 'hr'],
-    ALLOWED_ATTR: ['href', 'target', 'rel'],
-    ALLOW_DATA_ATTR: false,
-    FORBID_TAGS: ['script', 'iframe', 'object', 'embed', 'form', 'input', 'button', 'style'],
-    FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover', 'onfocus', 'onblur']
+  return getPurify().sanitize(html, RICH_TEXT_PURIFY_CONFIG);
+}
+
+/**
+ * リッチテキストのリンクのうち、許可した URL 以外のものを返す（重複なし）。
+ * リンク先を候補に限定する運用（config の richText.link.mode: 'select'）で、
+ * 保存を受け付けるサーバー側の検証に使う。比較は sanitizeUrl 後の文字列の完全一致。
+ */
+export function findDisallowedRichTextLinks(html: string, allowedUrls: string[]): string[] {
+  const fragment = getPurify().sanitize(html, {
+    ...RICH_TEXT_PURIFY_CONFIG,
+    RETURN_DOM_FRAGMENT: true
   });
+  const allowed = new Set(allowedUrls.map((url) => sanitizeUrl(url)).filter(Boolean));
+  const disallowed = new Set<string>();
+  for (const anchor of Array.from(fragment.querySelectorAll('a[href]'))) {
+    const href = anchor.getAttribute('href') ?? '';
+    if (!allowed.has(href)) disallowed.add(href);
+  }
+  return [...disallowed];
 }
 
 /**

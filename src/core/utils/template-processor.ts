@@ -147,6 +147,7 @@ function isUrlAttribute(attrName: string | null): boolean {
   );
 }
 
+const RICH_TEXT_BLOCK_START = /^<(p|h[2-4]|ul|ol|blockquote|hr)[\s>/]/i;
 const URL_CHECK_MARKER = 'data-zcode-url-check';
 const TEMPLATE_SYNTAX_IN_ATTR = /\{[$@\w]|\(\$/;
 
@@ -303,7 +304,8 @@ export function processTemplateWithDOM(
       // 従来仕様: optional は何も挿入せず、通常は空の <p></p> を挿入
       return token.optional ? '' : '<p></p>';
     }
-    if (!richTextValue.trim().startsWith('<p')) {
+    // 段落で始まらないプレーンなテキストだけを <p> で包む（見出しやリストを包むと <p> が分割される）
+    if (!RICH_TEXT_BLOCK_START.test(richTextValue.trim())) {
       richTextValue = `<p>${richTextValue}</p>`;
     }
     return richTextValue;

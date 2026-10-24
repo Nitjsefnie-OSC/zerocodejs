@@ -60,20 +60,7 @@
   },
   "dependencies": {
     "@monaco-editor/loader": "^1.6.1",
-    "@tiptap/extension-bold": "^3.31.3",
-    "@tiptap/extension-bullet-list": "^3.31.3",
-    "@tiptap/extension-document": "^3.31.3",
-    "@tiptap/extension-hard-break": "^3.31.3",
-    "@tiptap/extension-italic": "^3.31.3",
-    "@tiptap/extension-link": "^3.31.3",
-    "@tiptap/extension-list-item": "^3.31.3",
-    "@tiptap/extension-ordered-list": "^3.31.3",
-    "@tiptap/extension-paragraph": "^3.31.3",
-    "@tiptap/extension-strike": "^3.31.3",
-    "@tiptap/extension-text": "^3.31.3",
-    "@tiptap/starter-kit": "^3.31.3",
-    "@tiptap/vue-3": "^3.31.3",
-    "dompurify": "^3.4.16",
+    "dompurify": "^3.4.17",
     "lucide-vue-next": "^0.553.0",
     "sortablejs": "^1.15.7",
     "vue-i18n": "^9.14.5"
@@ -112,7 +99,7 @@
     "vite": "^7.3.1",
     "vite-plugin-dts": "^4.5.4",
     "vitest": "^4.0.17",
-    "vue": "^3.4.0",
+    "vue": "^3.5.44",
     "vue-tsc": "^3.1.0"
   },
   "keywords": [
@@ -149,18 +136,18 @@
       "limit": "140 KB"
     },
     {
-      "name": "リッチテキスト遅延チャンク（Tiptap）",
+      "name": "リッチテキスト遅延チャンク",
       "path": [
         "dist/chunks/RichTextEditor-*.js"
       ],
-      "limit": "130 KB"
+      "limit": "15 KB"
     },
     {
       "name": "UMD（CDN 用単一ファイル）",
       "path": [
         "dist/zerocode.umd.js"
       ],
-      "limit": "215 KB"
+      "limit": "130 KB"
     }
   ]
 }
