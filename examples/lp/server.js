@@ -10,6 +10,16 @@ const SEED_PATH = path.join(DATA_DIR, 'default-store.json');
 const COMMON_PATH = path.join(DATA_DIR, 'common.json');
 const PAGES_DIR = path.join(DATA_DIR, 'pages');
 const PUBLIC_DIR = path.join(__dirname, 'public');
+const BUILT_DIR = path.join(DATA_DIR, 'built');
+const UPLOADS_DIR = path.join(PUBLIC_DIR, 'uploads');
+const UPLOAD_EXTENSIONS = {
+  'image/png': '.png',
+  'image/jpeg': '.jpg',
+  'image/gif': '.gif',
+  'image/webp': '.webp',
+  'image/avif': '.avif'
+};
+const UPLOAD_MAX_BYTES = 5 * 1024 * 1024;
 const DIST_DIR = path.join(__dirname, '../../dist');
 
 const ALLOWED_TARGETS = [
@@ -158,20 +168,32 @@ function listPageNames() {
   return names;
 }
 
+/**
+ * parts/ のファイルからまとめたパーツ（scripts/parts.mjs が書き出す）。
+ * あるカテゴリは、管理画面で保存したパーツより優先する（パーツの正本はファイル）
+ */
+function readBuiltParts(pageName) {
+  return {
+    site: readJson(path.join(BUILT_DIR, 'site.json')),
+    page: readJson(path.join(BUILT_DIR, 'pages', `${normalizePageName(pageName)}.json`))
+  };
+}
+
 function buildMergedData(pageName) {
   const common = loadOrInitCommon();
   const page = loadOrInitPage(pageName);
+  const built = readBuiltParts(pageName);
 
   return {
     page: page.page || [],
     css: {
-      common: common?.css?.common ?? '',
-      individual: page?.css?.individual ?? '',
+      common: built.site?.css?.common ?? common?.css?.common ?? '',
+      individual: built.page?.css?.individual ?? page?.css?.individual ?? '',
       special: page?.css?.special ?? ''
     },
     parts: {
-      common: common?.parts?.common ?? [],
-      individual: page?.parts?.individual ?? [],
+      common: built.site?.parts?.common ?? common?.parts?.common ?? [],
+      individual: built.page?.parts?.individual ?? page?.parts?.individual ?? [],
       special: page?.parts?.special ?? []
     },
     images: {
@@ -216,7 +238,9 @@ function basicAuthEdit(req, res, next) {
     req.path === '/api/pages' ||
     req.path === '/api/data' ||
     req.path === '/api/save' ||
-    req.path === '/api/reset';
+    req.path === '/api/reset' ||
+    req.path === '/api/upload' ||
+    req.path === '/api/media';
   if (!needAuth) return next();
   const auth = req.headers.authorization;
   if (!auth || !auth.startsWith('Basic ')) {
@@ -282,6 +306,22 @@ app.post('/api/save', (req, res) => {
     return res.status(400).json({ ok: false, error: 'CSS data must be a string' });
   }
 
+  const built = readBuiltParts(page);
+  const fileManaged =
+    (built.site && (target === 'parts-common' || target === 'parts-common-css')) ||
+    (built.page && (target === 'parts-individual' || target === 'parts-individual-css'));
+  if (fileManaged) {
+    return res.status(409).json({
+      ok: false,
+      errors: [
+        {
+          message:
+            'このカテゴリのパーツは parts/ のファイルで管理しています。ファイルを編集してください'
+        }
+      ]
+    });
+  }
+
   try {
     if (!pageExists(page) && page !== 'default') {
       initEmptyPageFile(page);
@@ -336,6 +376,61 @@ app.post('/api/reset', (req, res) => {
   } catch (err) {
     console.error('[reset] Error:', err);
     res.status(500).json({ ok: false, error: 'Failed to reset data' });
+  }
+});
+
+// 画像のアップロード（管理画面の hooks.uploadImage から呼ぶ）。本文はファイルそのもの
+app.post(
+  '/api/upload',
+  express.raw({ type: Object.keys(UPLOAD_EXTENSIONS), limit: UPLOAD_MAX_BYTES }),
+  (req, res) => {
+    const ext = UPLOAD_EXTENSIONS[req.headers['content-type']];
+    if (!ext || !Buffer.isBuffer(req.body) || req.body.length === 0) {
+      return res
+        .status(400)
+        .json({ ok: false, error: 'PNG / JPEG / GIF / WebP / AVIF の画像を送ってください' });
+    }
+    const original = decodeURIComponent(req.headers['x-file-name'] || 'image');
+    const base =
+      path
+        .basename(original, path.extname(original))
+        .replace(/[^\w-]+/g, '-')
+        .slice(0, 40) || 'image';
+    const fileName = `${Date.now()}-${base}${ext}`;
+    try {
+      ensureDir(UPLOADS_DIR);
+      fs.writeFileSync(path.join(UPLOADS_DIR, fileName), req.body);
+      console.log('[upload]', fileName);
+      res.json({
+        ok: true,
+        id: `upload-${path.basename(fileName, ext)}`,
+        name: original,
+        url: `/uploads/${fileName}`
+      });
+    } catch (err) {
+      console.error('[upload] Error:', err);
+      res.status(500).json({ ok: false, error: 'Failed to save the image' });
+    }
+  }
+);
+
+// メディアの一覧（管理画面の hooks.listImages から呼ぶ）
+app.get('/api/media', (_req, res) => {
+  try {
+    const files = fs.existsSync(UPLOADS_DIR) ? fs.readdirSync(UPLOADS_DIR) : [];
+    const images = files
+      .filter((file) => Object.values(UPLOAD_EXTENSIONS).includes(path.extname(file).toLowerCase()))
+      .sort()
+      .reverse()
+      .map((file) => ({
+        id: `upload-${path.basename(file, path.extname(file))}`,
+        name: file,
+        url: `/uploads/${file}`
+      }));
+    res.json(images);
+  } catch (err) {
+    console.error('[media] Error:', err);
+    res.status(500).json({ ok: false, error: 'Failed to list media' });
   }
 });
 

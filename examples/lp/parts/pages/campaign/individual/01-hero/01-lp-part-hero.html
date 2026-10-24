@@ -1,0 +1,19 @@
+<!--zerocode
+{
+  "id": "lp-part-hero",
+  "title": "hero",
+  "description": "ヒーロー（キャンペーン）"
+}
+-->
+<section class="hero">
+  <div class="hero__bg" style="background-image: url({$bg_image:campaign-hero-bg:image})"></div>
+  <div class="hero__inner">
+    <div class="hero__label" z-if="show_label">{$label:Campaign}</div>
+    <div class="hero__title" z-tag="$tag:h1|h2|div">{$title:キャンペーンタイトル}</div>
+    <div class="hero__divider"></div>
+    <div class="hero__desc">{$desc:説明文:textarea}</div>
+    <div class="hero__actions">
+      <a href="{$link_btn:#contact}" class="btn btn--white btn--lg">{$btn_text:申し込む}</a>
+    </div>
+  </div>
+</section>

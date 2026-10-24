@@ -1,0 +1,25 @@
+<!--zerocode
+{
+  "id": "lp-part-pricing",
+  "title": "pricing_card",
+  "description": "料金カード",
+  "slotOnly": true
+}
+-->
+<div class="price-card">
+  <div class="price-card__img-wrap"><img src="{$img:img-pricing-1:image}" alt="" loading="lazy"></div>
+  <div class="price-card__badge" z-if="show_badge">{$badge:おすすめ}</div>
+  <div class="price-card__header">
+    <div class="price-card__name">{$name:プラン名}</div>
+    <div class="price-card__price"><span>{$price:¥0}</span><small>{$price_note: / 月}</small></div>
+  </div>
+  <div class="price-card__features">
+    <div>{$feat1:機能1}</div>
+    <div>{$feat2:機能2}</div>
+    <div>{$feat3:機能3}</div>
+    <div z-empty="$feat4">{$feat4?: }</div>
+    <div z-empty="$feat5">{$feat5?: }</div>
+    <div z-empty="$feat6">{$feat6?: }</div>
+  </div>
+  <a href="#contact" class="btn btn--outline">お問い合わせ</a>
+</div>

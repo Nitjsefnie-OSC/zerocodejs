@@ -5,8 +5,11 @@
   "private": true,
   "type": "commonjs",
   "scripts": {
-    "start": "NODE_ENV=production node server.js",
-    "dev": "node server.js"
+    "start": "node scripts/parts.mjs && NODE_ENV=production node server.js",
+    "dev": "node scripts/dev.mjs",
+    "parts:build": "node scripts/parts.mjs",
+    "parts:watch": "node scripts/parts.mjs --watch",
+    "parts:check": "node scripts/parts.mjs --check"
   },
   "dependencies": {
     "express": "^4.21.0",
