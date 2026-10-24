@@ -8,7 +8,7 @@ const { setActiveOutlineForPath, removeActiveOutlineForPath } = vi.hoisted(() =>
   removeActiveOutlineForPath: vi.fn()
 }));
 
-vi.mock('vue-i18n', () => ({
+vi.mock('../../../i18n', () => ({
   useI18n: () => ({
     t: (key: string) => key
   })

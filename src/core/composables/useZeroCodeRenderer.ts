@@ -1,5 +1,5 @@
 import { computed, toValue, type MaybeRefOrGetter } from 'vue';
-import { useI18n } from 'vue-i18n';
+import { useI18n } from '../../i18n';
 import type { ZeroCodeData, ComponentData, PartData } from '../../types';
 import {
   renderComponentCore,

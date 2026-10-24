@@ -3,7 +3,7 @@ import { ref } from 'vue';
 import { useReorderMode } from './useReorderMode';
 import type { ZeroCodeData } from '../../../types';
 
-vi.mock('vue-i18n', () => ({
+vi.mock('../../../i18n', () => ({
   useI18n: () => ({
     t: (key: string) => key
   })
