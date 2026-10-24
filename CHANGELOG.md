@@ -6,6 +6,12 @@
 
 ## [未リリース]
 
+### セキュリティ
+
+- **DOMPurify を 3.4.17 に更新**（GHSA-cg2g-xh64-v4q7 ほか。いずれも `IN_PLACE` / `SAFE_FOR_TEMPLATES` / `PARSER_MEDIA_TYPE` を使う場合に成立し、ZeroCode の使い方では該当しないが、既知の脆弱性を含む版を使わないため更新）
+- 開発用の Vue を 3.5.44 に更新（`@vue/server-renderer` の GHSA-g2v6-rqmx-r4w6）、`source-map-js` を 1.2.2 に更新
+- Monaco 0.57.0 に同梱の DOMPurify 3.4.15 の脆弱性（上記と同種の5件）は、修正版の Monaco がまだないため、Monaco の使い方では成立しないことを確認したうえで CI の監査（`scripts/audit-monaco.mjs`）で Monaco 0.57.0 に限って例外にした。Monaco を更新すると例外は無効になる
+
 ### 変更
 
 - **リッチテキストエディタを自前の実装に置き換え**（Tiptap への依存を削除）: 依存パッケージが13個減り、リッチテキストの遅延チャンクは約115KB→約10KB、CDN 用 UMD は約118KB（brotli）に。編集操作は Shadow DOM 内でも Chrome / Safari / Firefox で同じ結果になる。書式はタグで判定するため、見出しの中の太字が「太字の解除」になる等、表示中の CSS に出力が左右されることはない
