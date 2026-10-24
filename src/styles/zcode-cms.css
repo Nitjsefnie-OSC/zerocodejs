@@ -2879,6 +2879,15 @@
   border-color: #ef4444;
 }
 
+/* iOS Safari は 16px 未満の入力欄にフォーカスすると画面を拡大する */
+@media (max-width: 768px), (pointer: coarse) {
+  .zcode-rich-text-link-input,
+  .zcode-rich-text-link-select {
+    height: 36px;
+    font-size: 16px;
+  }
+}
+
 .zcode-rich-text-editor-content[contenteditable='false'] {
   background: #f9fafb;
   color: #6b7280;
