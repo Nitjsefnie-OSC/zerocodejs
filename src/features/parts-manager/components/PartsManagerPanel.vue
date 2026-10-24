@@ -399,17 +399,6 @@
                           <HelpCircle :size="14" />
                         </button>
                       </div>
-                      <label
-                        v-if="codeTab === 'html'"
-                        class="zcode-checkbox-label zcode-checkbox-label-inline"
-                      >
-                        <input
-                          v-model="enableTemplateSuggestions"
-                          type="checkbox"
-                          class="zcode-checkbox-input"
-                        />
-                        <span>{{ $t('partsManager.templateSuggestions') }}</span>
-                      </label>
                       <button
                         v-if="codeTab === 'html'"
                         class="zcode-help-btn"
@@ -495,27 +484,13 @@
                         </div>
                       </div>
                     </template>
-                    <MonacoEditor
+                    <CodeTextarea
                       v-else-if="codeTab === 'html'"
-                      ref="monacoEditorRef"
+                      ref="htmlTextareaRef"
                       v-model="editingPart.part.body"
-                      language="html"
-                      theme="vs-dark"
-                      :minimap="false"
-                      :auto-height="false"
-                      :enable-suggestions="enableTemplateSuggestions"
-                      class="zcode-monaco-editor"
+                      label="HTML"
                     />
-                    <MonacoEditor
-                      v-else
-                      v-model="cssDraft"
-                      language="css"
-                      theme="vs-dark"
-                      :minimap="false"
-                      :auto-height="false"
-                      :enable-suggestions="true"
-                      class="zcode-monaco-editor"
-                    />
+                    <CodeTextarea v-else v-model="cssDraft" label="CSS" />
                   </div>
                 </div>
 
@@ -704,17 +679,12 @@ import {
   Info,
   SlidersHorizontal
 } from '../../../core/icons';
-import MonacoEditor from './MonacoEditor.vue';
+import CodeTextarea from './CodeTextarea.vue';
 import PartZoomPreviewModal from './PartZoomPreviewModal.vue';
 import CssWarningModal from './CssWarningModal.vue';
 import CategoryInfoModal from './CategoryInfoModal.vue';
 import TemplateHelpModal from './TemplateHelpModal.vue';
-import {
-  getDevSetting,
-  saveDevSettings,
-  getCssWarningPartsSetting,
-  setCssWarningPartsSetting
-} from '../../../core/utils/storage';
+import { getCssWarningPartsSetting, setCssWarningPartsSetting } from '../../../core/utils/storage';
 
 const { t } = useI18n();
 
@@ -730,14 +700,13 @@ const props = defineProps<{
 const showPreviewModal = ref(false);
 const showPartOptionsPopover = ref(false);
 const partOptionsRef = ref<HTMLElement | null>(null);
-const enableTemplateSuggestions = ref(getDevSetting('enableTemplateSuggestions', false));
 const showTemplateHelp = ref(false);
 const showCssWarningModal = ref(false);
 const showCategoryInfoModal = ref(false);
 const dontShowCssWarningAgainParts = ref(getCssWarningPartsSetting());
 const codeTab = ref<'html' | 'css' | 'slots'>('html');
 const sidePaneTab = ref<'preview' | 'editPanel' | 'imageRef'>('preview');
-const monacoEditorRef = ref<InstanceType<typeof MonacoEditor> | null>(null);
+const htmlTextareaRef = ref<InstanceType<typeof CodeTextarea> | null>(null);
 const cssDraft = ref('');
 const cssDraftInitial = ref('');
 
@@ -839,7 +808,7 @@ async function copyImageId(id: string) {
 }
 
 function insertImageIdAtCursor(id: string) {
-  monacoEditorRef.value?.insertTextAtCursor(id);
+  htmlTextareaRef.value?.insertTextAtCursor(id);
 }
 
 function openCssWarningModal() {
@@ -862,11 +831,6 @@ watch(codeTab, (newTab) => {
   if (newTab !== 'html' && sidePaneTab.value === 'imageRef') {
     sidePaneTab.value = 'preview';
   }
-});
-
-// 設定変更時にローカルストレージに保存
-watch(enableTemplateSuggestions, (value) => {
-  saveDevSettings({ enableTemplateSuggestions: value });
 });
 
 function closePartOptionsPopoverOnClickOutside(e: MouseEvent) {
@@ -1068,14 +1032,7 @@ useModalA11y(
     }
     handleCancelPart();
   },
-  partEditModalRef,
-  {
-    // Monaco エディタ内の Esc は編集操作（ウィジェットを閉じる等）なのでモーダルを閉じない
-    shouldIgnoreEscape: (event) =>
-      event
-        .composedPath()
-        .some((el) => el instanceof HTMLElement && el.classList.contains('monaco-editor'))
-  }
+  partEditModalRef
 );
 
 watch(

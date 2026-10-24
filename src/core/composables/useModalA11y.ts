@@ -24,7 +24,7 @@ const modalStack: symbol[] = [];
  * @param containerRef - モーダルのコンテンツ要素（フォーカストラップの範囲）
  */
 export interface ModalA11yOptions {
-  /** true を返すキーイベントでは Esc を無視する（例: Monaco エディタ内） */
+  /** true を返すキーイベントでは Esc を無視する（例: 独自のポップアップを持つ入力欄の中） */
   shouldIgnoreEscape?: (event: KeyboardEvent) => boolean;
 }
 
@@ -57,7 +57,7 @@ export function useModalA11y(
 
   const handleKeydown = (event: KeyboardEvent) => {
     if (!isTopModal()) return;
-    // Monaco 等が処理済みの Esc（補完ウィジェットを閉じる等）ではモーダルを閉じない
+    // 他の要素が処理済みの Esc（ポップオーバーを閉じる等）ではモーダルを閉じない
     if (event.defaultPrevented) return;
     // IME の変換取消の Esc でモーダルを閉じない（keyCode 229 は Safari 対策）
     if (event.isComposing || event.keyCode === 229) return;

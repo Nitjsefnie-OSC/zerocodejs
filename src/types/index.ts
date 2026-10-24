@@ -79,7 +79,6 @@ export interface CMSSettings {
 
 export interface DevSettings {
   showDataViewer?: boolean;
-  enableTemplateSuggestions?: boolean;
   dontShowCssWarningAgainCommon?: boolean;
   showSaveConfirm?: boolean; // 保存時の確認ダイアログを表示する（デフォルト: true）
 }

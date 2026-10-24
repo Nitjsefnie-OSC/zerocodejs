@@ -80,11 +80,6 @@
               {{ $t('partsManager.templateHelp.note') }}
             </div>
             <div role="list" class="zcode-help-section-list">
-              <div
-                role="listitem"
-                class="zcode-help-section-item"
-                v-html="$t('partsManager.templateHelp.suggestionNote')"
-              />
               <div role="listitem" class="zcode-help-section-item">
                 {{ $t('partsManager.templateHelp.fieldNameNote') }}
               </div>

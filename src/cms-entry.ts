@@ -1,5 +1,5 @@
 // zerocodejs/cms: エンドユーザー向け <zcode-cms> のみを含む軽量エントリ
-// （パーツ管理・画像管理・データビューア・Monaco を含まない）
+// （パーツ管理・画像管理・データビューアを含まない）
 import './web-components/zcode-cms';
 
 import './styles/zcode-cms.css';
