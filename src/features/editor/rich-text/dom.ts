@@ -24,6 +24,8 @@ export interface SelectionPoints {
 export interface LinkState {
   href: string;
   newTab: boolean;
+  /** キャレットのみでリンクを挿入するときの文字（省略時は href） */
+  text?: string;
 }
 
 export function isTextBlock(node: Node | null): node is HTMLElement {
@@ -375,7 +377,7 @@ export function setLink(root: HTMLElement, range: Range, link: LinkState): Selec
     }
     const anchor = doc.createElement('a');
     applyLinkAttributes(anchor, link);
-    anchor.textContent = link.href;
+    anchor.textContent = link.text || link.href;
     range.insertNode(anchor);
     const text = anchor.firstChild as Text;
     return { startNode: text, startOffset: 0, endNode: text, endOffset: text.length };

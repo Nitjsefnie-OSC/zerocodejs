@@ -729,6 +729,41 @@
         <pre><code>&lt;zcode-cms
   config='{"richText": {"features": ["bold", "italic", "link", "bulletList", "heading", "history"]}}'
 &gt;&lt;/zcode-cms&gt;</code></pre>
+        <h4 id="rich-text-link-settings">link（リンクの入力方式）</h4>
+        <p>
+          リンク先を、<code>backendData</code>
+          で渡す候補に限定できます。どんな URL でも設定できる状態を避けたい場合に使います。
+        </p>
+        <ul>
+          <li>
+            <code>mode</code>（デフォルト: <code>"free"</code>）: <code>"free"</code> は URL
+            を自由に入力、<code>"select"</code> は候補からプルダウンで選ぶのみ、<code>"both"</code>
+            は候補から選ぶか URL を直接入力
+          </li>
+          <li>
+            <code>source</code>: 候補の配列を指す <code>backendData</code> のパス（例:
+            <code>"site.links"</code>）。<code>select</code> / <code>both</code> のときに必須
+          </li>
+        </ul>
+        <p>
+          候補の各項目は
+          <code>{ "label": "表示名", "url": "/about", "newTab": false }</code>
+          の形式です。「新しいタブで開く」は候補の <code>newTab</code> で決まります。
+        </p>
+        <pre><code>&lt;zcode-cms
+  config='{"richText": {"link": {"mode": "select", "source": "site.links"}}}'
+  backend-data='{"site": {"links": [{"label": "会社概要", "url": "/about"}, {"label": "公式 SNS", "url": "https://sns.example.com/", "newTab": true}]}}'
+&gt;&lt;/zcode-cms&gt;</code></pre>
+        <p>
+          <code>select</code>
+          では、候補にない URL
+          のリンクは読み込み・貼り付け・保存時に外れます（文字は残ります）。候補を後から受け取る場合、受け取るまではリンクボタンを表示しません。
+          これは画面上の制限なので、リンク先を確実に制限するにはサーバー側でも
+          <code>findDisallowedRichTextLinks</code> で検証してください（<a
+            href="docs-backend.html#security-model"
+            >セキュリティモデル</a
+          >）。
+        </p>
         <p>
           この設定はエディタの UI
           を制限するもので、公開表示の無害化（<code>sanitizeRichText</code>）の許可リストには連動しません。

@@ -101,6 +101,7 @@
               :label="field.label"
               :readonly="field.readonly"
               :disabled="field.disabled"
+              :backend-data="cmsData.backendData"
               @update:model-value="handleRichTextUpdate(field, $event)"
             />
             <div v-if="getFieldError(field.fieldName)" class="zcode-field-error-message">

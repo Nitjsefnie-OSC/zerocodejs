@@ -715,6 +715,7 @@ interface ImageData {
 - 見出し・リスト等のブロック要素で始まるリッチテキストの値を `<p>` で包まないよう修正（包むと HTML の解析で空の `<p>` が生まれていた）
 - 動作環境: Chrome 137+ / Firefox 142+ / Safari 17+（`getComposedRanges`）
 - E2E を chromium / webkit / firefox で実行（CI の `e2e` ジョブで3ブラウザをインストール）
+- リンクの入力方式 `richText.link`（2026年10月）: `mode: 'free' | 'select' | 'both'`、候補は `source` で指定した `backendData` のパスの配列（`{ label, url, newTab? }`）。`select` では候補外のリンクを読み込み・貼り付け・保存時に外し、候補の `newTab` を適用。候補の取得前は制限せずリンクボタンを隠す。サーバー検証用に `findDisallowedRichTextLinks` を export。`getBackendDataValue`（template-utils）で backendData の生の値を取り出す
 - キーボード操作（ui-reviewer 指摘を反映）: ツールバーはロービング tabindex（Tab で止まるのは1つ、←→ / Home / End で移動）、選択範囲がなくてもボタン操作で本文末尾から開始、リンクボタンは `aria-expanded` / `aria-controls`、リンクフォーム内の Esc は外へ伝えない、Mac の修飾キーは Cmd のみ（Ctrl+B 等の標準カーソル操作を奪わない）、`readonly` / `disabled` フィールドは編集不可。`useModalA11y` のフォーカストラップに `[contenteditable="true"]` を追加
 
 ### 未実装（スコープ関連）

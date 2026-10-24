@@ -3,19 +3,25 @@ import { describe, it, expect } from 'vitest';
 import {
   DEFAULT_RICH_TEXT_FEATURES,
   RICH_TEXT_FEATURES,
+  resolveLinkOptions,
+  resolveRichTextConfig,
   resolveRichTextFeatures
 } from './features';
-import type { RichTextFeature } from './features';
+import type { RichTextFeature, RichTextLinkPolicy } from './features';
 import { toEditorHtml, toOutputHtml, toPastedHtml } from './normalize';
 import { ZWSP } from './dom';
 
 const all = new Set<RichTextFeature>(RICH_TEXT_FEATURES);
 const defaults = new Set<RichTextFeature>(DEFAULT_RICH_TEXT_FEATURES);
 
-function output(html: string, features: ReadonlySet<RichTextFeature> = all): string {
+function output(
+  html: string,
+  features: ReadonlySet<RichTextFeature> = all,
+  links?: RichTextLinkPolicy
+): string {
   const root = document.createElement('div');
   root.innerHTML = html;
-  return toOutputHtml(root, features);
+  return toOutputHtml(root, features, links);
 }
 
 describe('toOutputHtml', () => {
@@ -127,5 +133,69 @@ describe('toPastedHtml', () => {
 
   it('プレーンテキストは行ごとの段落にする', () => {
     expect(toPastedHtml({ text: 'a\r\nb' }, all)).toBe('<p>a</p><p>b</p>');
+  });
+});
+
+describe('リンク候補による制限', () => {
+  const options = [
+    { label: 'About', url: '/about', newTab: false },
+    { label: 'SNS', url: 'https://sns.example.com/', newTab: true }
+  ];
+  const html =
+    '<p><a href="/about" target="_blank">a</a><a href="https://sns.example.com/">s</a><a href="https://evil.example/">e</a></p>';
+
+  it('select モードでは候補にないリンクを外し、候補の newTab を適用する', () => {
+    expect(output(html, all, { mode: 'select', options })).toBe(
+      '<p><a href="/about">a</a><a href="https://sns.example.com/" target="_blank" rel="noopener noreferrer">s</a>e</p>'
+    );
+  });
+
+  it('both モードでは自由入力のリンクを残す', () => {
+    expect(output(html, all, { mode: 'both', options })).toContain(
+      '<a href="https://evil.example/">e</a>'
+    );
+  });
+
+  it('候補が未取得（null）の間は制限しない', () => {
+    expect(output(html, all, { mode: 'select', options: null })).toContain(
+      '<a href="https://evil.example/">e</a>'
+    );
+  });
+
+  it('貼り付けでも候補にないリンクを外す', () => {
+    expect(
+      toPastedHtml({ html: '<a href="https://evil.example/">e</a>' }, all, {
+        mode: 'select',
+        options
+      })
+    ).toBe('<p>e</p>');
+  });
+});
+
+describe('resolveRichTextConfig / resolveLinkOptions', () => {
+  it('リンクの入力方式と候補のパスを解決する（未指定は free）', () => {
+    expect(resolveRichTextConfig(undefined).linkMode).toBe('free');
+    const config = resolveRichTextConfig({ link: { mode: 'select', source: 'links' } });
+    expect(config.linkMode).toBe('select');
+    expect(config.linkSource).toBe('links');
+  });
+
+  it('未知の入力方式は警告して free にする', () => {
+    expect(resolveRichTextConfig({ link: { mode: 'any' } }).linkMode).toBe('free');
+  });
+
+  it('候補は label と url が文字列の項目のみ、危険な URL は除く', () => {
+    expect(
+      resolveLinkOptions([
+        { label: 'A', url: '/a', newTab: true },
+        { label: 'B' },
+        { label: 'C', url: 'javascript:alert(1)' },
+        'x'
+      ])
+    ).toEqual([{ label: 'A', url: '/a', newTab: true }]);
+  });
+
+  it('配列でなければ null（未取得）を返す', () => {
+    expect(resolveLinkOptions(undefined)).toBeNull();
   });
 });

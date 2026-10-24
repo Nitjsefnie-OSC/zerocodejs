@@ -1,5 +1,5 @@
 import { sanitizeRichText, sanitizeUrl } from '../../../core/utils/sanitize';
-import type { RichTextFeature } from './features';
+import type { RichTextFeature, RichTextLinkPolicy } from './features';
 import { MARK_FEATURES } from './features';
 import { ZWSP, isList, isMarkElement, isTextBlock, tidyMarks } from './dom';
 
@@ -293,13 +293,38 @@ function stripPlaceholders(container: HTMLElement): void {
   }
 }
 
+/**
+ * リンク候補に合わせる。候補にある URL は候補の newTab を適用し、
+ * select モードでは候補にないリンクを外す（候補が未取得の間は制限しない）
+ */
+function applyLinkPolicy(container: HTMLElement, policy: RichTextLinkPolicy | undefined): void {
+  if (!policy || !policy.options) return;
+  const byUrl = new Map(policy.options.map((option) => [option.url, option]));
+  for (const anchor of Array.from(container.querySelectorAll('a'))) {
+    const option = byUrl.get(anchor.getAttribute('href') ?? '');
+    if (!option) {
+      if (policy.mode === 'select') unwrap(anchor);
+      continue;
+    }
+    if (option.newTab) {
+      anchor.setAttribute('target', '_blank');
+      anchor.setAttribute('rel', 'noopener noreferrer');
+    } else {
+      anchor.removeAttribute('target');
+      anchor.removeAttribute('rel');
+    }
+  }
+}
+
 /** container の中身を出力仕様に揃える */
 export function normalizeTree(
   container: HTMLElement,
-  features: ReadonlySet<RichTextFeature>
+  features: ReadonlySet<RichTextFeature>,
+  links?: RichTextLinkPolicy
 ): void {
   cleanElements(container);
   applyFeatures(container, features);
+  applyLinkPolicy(container, links);
   stripPlaceholders(container);
   const blocks: HTMLElement[] = [];
   blockify(container, 'p', blocks);
@@ -310,9 +335,13 @@ export function normalizeTree(
 const BLOCKS_WITH_TEXT = 'p, h2, h3, h4, blockquote, li';
 
 /** 外部から受け取った HTML をエディタに表示できる形にする */
-export function toEditorHtml(html: string, features: ReadonlySet<RichTextFeature>): string {
+export function toEditorHtml(
+  html: string,
+  features: ReadonlySet<RichTextFeature>,
+  links?: RichTextLinkPolicy
+): string {
   const container = parse(sanitizeRichText(html ?? ''));
-  normalizeTree(container, features);
+  normalizeTree(container, features, links);
   const doc = container.ownerDocument;
   for (const block of Array.from(container.querySelectorAll(BLOCKS_WITH_TEXT))) {
     if (!hasVisible(Array.from(block.childNodes))) block.replaceChildren(doc.createElement('br'));
@@ -328,7 +357,8 @@ export function toEditorHtml(html: string, features: ReadonlySet<RichTextFeature
 /** 貼り付けられた HTML / テキストを、挿入するブロックの HTML にする */
 export function toPastedHtml(
   data: { html?: string; text?: string },
-  features: ReadonlySet<RichTextFeature>
+  features: ReadonlySet<RichTextFeature>,
+  links?: RichTextLinkPolicy
 ): string {
   let container: HTMLElement;
   if (data.html) {
@@ -341,15 +371,19 @@ export function toPastedHtml(
       container.append(p);
     }
   }
-  normalizeTree(container, features);
+  normalizeTree(container, features, links);
   return sanitizeRichText(container.innerHTML);
 }
 
 /** エディタの DOM から保存用の HTML を作る（内容が空なら `<p></p>`） */
-export function toOutputHtml(root: HTMLElement, features: ReadonlySet<RichTextFeature>): string {
+export function toOutputHtml(
+  root: HTMLElement,
+  features: ReadonlySet<RichTextFeature>,
+  links?: RichTextLinkPolicy
+): string {
   // HTML として再解析すると <p> 内の <ul> などが分割されるため、DOM のまま複製する
   const container = inertDocument().importNode(root, true) as HTMLElement;
-  normalizeTree(container, features);
+  normalizeTree(container, features, links);
   for (const block of Array.from(container.querySelectorAll(BLOCKS_WITH_TEXT))) {
     while (block.lastChild && block.lastChild.nodeName === 'BR') block.lastChild.remove();
   }

@@ -439,6 +439,31 @@ cmsElement.setAttribute('config', JSON.stringify(cmsConfig));
 
 機能 ID の一覧は `RICH_TEXT_FEATURES`、デフォルトは `DEFAULT_RICH_TEXT_FEATURES` として export しています。
 
+#### リンクの入力方式（`richText.link`）
+
+リンク先を、ホストが `backendData` で渡す候補に限定できます。どんな URL でも設定できる状態を避けたい場合に使います。
+
+- **`mode`** (デフォルト: `"free"`)
+  - `"free"`: URL を自由に入力する
+  - `"select"`: 候補からプルダウンで選ぶのみ。URL は入力できない
+  - `"both"`: 候補から選ぶか、「URL を直接入力」を選んで自由に入力する
+- **`source`**: 候補の配列を指す `backendData` のパス（`{@...}` と同じ書き方。例: `"site.links"`）。`mode` が `select` / `both` のときに必須
+
+候補の各項目は `{ "label": "表示名", "url": "/about", "newTab": false }` の形式です。`label` と `url` が文字列でない項目と、`sanitizeUrl` で拒否される URL は無視します。「新しいタブで開く」は候補の `newTab` で決まり、利用者は変更できません（`both` の自由入力時のみ選べる）。キャレットだけの状態で候補を選ぶと、`label` をリンクの文字として挿入します。
+
+```html
+<zcode-cms
+  config='{"richText": {"link": {"mode": "select", "source": "site.links"}}}'
+  backend-data='{"site": {"links": [{"label": "会社概要", "url": "/about"}, {"label": "公式 SNS", "url": "https://sns.example.com/", "newTab": true}]}}'
+></zcode-cms>
+```
+
+- `select` では、候補にない URL のリンクを、読み込み・貼り付け・保存時に外す（文字は残す）。候補にある URL のリンクには、候補の `newTab` を適用する（`both` でも同様）
+- `backendData` を `endpoints` などで後から渡す場合、候補を受け取るまでは制限せず、`select` ではリンクボタンを表示しない（読み込み前の編集でリンクが消えないようにするため）
+- `select` で候補が空配列のときは、リンクボタンを表示せず、既存のリンクはすべて外す
+
+**サーバー側の検証**: この制限はエディタの UI による制限です。開発者ツール等で保存データを直接書き換えることはできるため、リンク先を確実に制限するには、保存を受け付けるサーバー側で `findDisallowedRichTextLinks`（「サニタイズ関数」を参照）を使い、同じ候補で検証してください。
+
 **注意**: `features` はエディタの UI を制限するもので、サニタイズ（`sanitizeRichText`）の許可リストには連動しません。公開表示・SSR では config を参照しないため、許可リストは常に上の表のタグ全体です。
 
 **動作環境**: Shadow DOM 内の選択範囲の取得に `Selection.getComposedRanges` を使うため、リッチテキストの編集には Chrome 137 以降 / Firefox 142 以降 / Safari 17 以降が必要です。
@@ -480,6 +505,10 @@ interface DevSettings {
 
 interface RichTextSettings {
   features?: RichTextFeature[];
+  link?: {
+    mode?: 'free' | 'select' | 'both';
+    source?: string; // backendData のパス
+  };
 }
 
 interface CMSConfig {
@@ -987,9 +1016,21 @@ const styles = renderCssToHtml(data.css);
 - `sanitizeRichText(html: string): string`: リッチテキストフィールドのサニタイズ（DOMPurify）
 - `sanitizeUrl(url: string, context?: 'navigation' | 'embed'): string`: URL の検証・サニタイズ（`javascript:` / `vbscript:` / `file:` と制御文字によるスキーム偽装を拒否）。data URL はラスター画像のみ許可し、SVG の data URL は `context: 'embed'`（`img` の `src` / `poster` 等の埋め込み先）でのみ許可。省略時は安全側の `'navigation'`（`href` / `action` 等の遷移先）として扱う
 - `sanitizePartTemplate(html: string): string`: パーツテンプレート HTML のサニタイズ（DOMPurify ベース、ZeroCode テンプレート記法 `z-*` 属性を許可、`<script>` / `<iframe>` 等の危険タグとイベントハンドラ属性を除去）
+- `findDisallowedRichTextLinks(html: string, allowedUrls: string[]): string[]`: リッチテキスト内のリンクのうち、`allowedUrls` にない URL を重複なしで返す。リンク先を候補に限定する運用（`richText.link.mode: "select"`）で、サーバー側の検証に使う。比較は `sanitizeUrl` 後の文字列の完全一致。`sanitizeRichText` で除去される危険なリンクは対象にしない
 
 ```javascript
 import { sanitizePartTemplate, sanitizeRichText, sanitizeUrl } from 'zerocodejs';
+```
+
+```javascript
+// 保存リクエストの検証例: リッチテキストのリンクが候補内か確認する
+import { findDisallowedRichTextLinks } from 'zerocodejs';
+
+const allowedUrls = siteLinks.map((link) => link.url); // backendData で渡した候補と同じもの
+const disallowed = findDisallowedRichTextLinks(component.body, allowedUrls);
+if (disallowed.length > 0) {
+  // save-result で ok: false を返す、または保存を拒否する
+}
 ```
 
 ## セキュリティ
@@ -1375,7 +1416,7 @@ npm run lint
 - **設定**: `config` 属性で受け付ける設定オプション（「設定オプション」の節）
 - **データ形式**: `ZeroCodeData`（`version` を含む）。形式を変える場合は `version` を上げ、`migrateZeroCodeData()` で旧形式から自動で移行できるようにする
 - **テンプレート記法**: フィールド・選択肢・バリデーション・バックエンドデータ参照・`z-if` / `z-tag` / `z-empty` / `z-for` / `z-slot`
-- **npm エントリと export**: `zerocodejs`・`zerocodejs/cms`・`zerocodejs/ssr` と、そこから export する関数・型（`renderToHtml`、`renderCssToHtml`、`RenderError`、`sanitizeRichText`、`sanitizeUrl`、`sanitizePartTemplate`、`ZERO_CODE_DATA_VERSION`、`migrateZeroCodeData`、`RICH_TEXT_FEATURES`、`DEFAULT_RICH_TEXT_FEATURES`、型定義）
+- **npm エントリと export**: `zerocodejs`・`zerocodejs/cms`・`zerocodejs/ssr` と、そこから export する関数・型（`renderToHtml`、`renderCssToHtml`、`RenderError`、`sanitizeRichText`、`sanitizeUrl`、`sanitizePartTemplate`、`findDisallowedRichTextLinks`、`ZERO_CODE_DATA_VERSION`、`migrateZeroCodeData`、`RICH_TEXT_FEATURES`、`DEFAULT_RICH_TEXT_FEATURES`、型定義）
 - **公開 HTML**: 公開表示（`enableEditorAttributes: false`）の出力に、編集用の `data-zcode-*` 属性やラッパー要素を含めないこと
 
 ### 安定させない対象（予告なく変わりうる）

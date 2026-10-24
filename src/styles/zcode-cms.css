@@ -2842,7 +2842,8 @@
   background: #f9fafb;
 }
 
-.zcode-rich-text-link-input {
+.zcode-rich-text-link-input,
+.zcode-rich-text-link-select {
   flex: 1 1 200px;
   min-width: 0;
   height: 32px;
@@ -2853,13 +2854,19 @@
   box-sizing: border-box;
 }
 
-.zcode-rich-text-link-input:focus {
+.zcode-rich-text-link-select {
+  background: white;
+}
+
+.zcode-rich-text-link-input:focus,
+.zcode-rich-text-link-select:focus {
   outline: none;
   border-color: var(--zcode-color-edit);
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-.zcode-rich-text-link-input[aria-invalid='true'] {
+.zcode-rich-text-link-input[aria-invalid='true'],
+.zcode-rich-text-link-select[aria-invalid='true'] {
   border-color: #ef4444;
 }
 

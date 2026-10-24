@@ -805,7 +805,20 @@ cms.dispatchEvent(
             >
             に加えて、サーバー側でも <code>sanitizePartTemplate</code> を再実行してください
           </li>
+          <li>
+            リッチテキストのリンク先を候補に限定する場合（<code>richText.link.mode: "select"</code
+            >）は、保存を受け付けるサーバー側でも
+            <code>findDisallowedRichTextLinks(html, allowedUrls)</code>
+            で候補外のリンクがないか検証してください。エディタの制限は画面上のものなので、保存データを直接書き換えられると回避できます
+          </li>
         </ul>
+        <pre><code>import { findDisallowedRichTextLinks } from 'zerocodejs';
+
+const allowedUrls = siteLinks.map((link) =&gt; link.url); // backendData で渡した候補と同じもの
+const disallowed = findDisallowedRichTextLinks(component.body, allowedUrls);
+if (disallowed.length &gt; 0) {
+  // save-result で ok: false を返す、または保存を拒否する
+}</code></pre>
 
         <h3 id="csp">CSP（Content Security Policy）</h3>
         <p>

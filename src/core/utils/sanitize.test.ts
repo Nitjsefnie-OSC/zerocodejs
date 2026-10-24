@@ -1,6 +1,11 @@
 // @vitest-environment jsdom
 import { describe, it, expect } from 'vitest';
-import { sanitizeUrl, sanitizePartTemplate, sanitizeRichText } from './sanitize';
+import {
+  findDisallowedRichTextLinks,
+  sanitizeUrl,
+  sanitizePartTemplate,
+  sanitizeRichText
+} from './sanitize';
 
 describe('sanitizeUrl', () => {
   it('通常のURLはそのまま返す', () => {
@@ -100,5 +105,25 @@ describe('sanitizeRichText', () => {
     const clean = sanitizeRichText('<p>本文</p><script>alert(1)</script>');
     expect(clean).toContain('<p>本文</p>');
     expect(clean).not.toContain('<script>');
+  });
+});
+
+describe('findDisallowedRichTextLinks', () => {
+  it('許可した URL 以外のリンクを重複なしで返す', () => {
+    const html =
+      '<p><a href="/about">a</a><a href="https://evil.example/">b</a><a href="https://evil.example/">c</a></p>';
+    expect(findDisallowedRichTextLinks(html, ['/about'])).toEqual(['https://evil.example/']);
+  });
+
+  it('すべて許可した URL なら空配列を返す', () => {
+    expect(findDisallowedRichTextLinks('<p><a href="/about">a</a>text</p>', ['/about'])).toEqual(
+      []
+    );
+  });
+
+  it('無害化で外れる危険なリンクは対象にしない（公開表示でも描画されないため）', () => {
+    expect(findDisallowedRichTextLinks('<p><a href="javascript:alert(1)">x</a></p>', [])).toEqual(
+      []
+    );
   });
 });

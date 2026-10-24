@@ -393,6 +393,12 @@ window.__DOCS_SEARCH_INDEX__ = [
   },
   {
     page: 'docs-api.html',
+    id: 'rich-text-link-settings',
+    text: 'link（リンクの入力方式）',
+    parent: '設定オプション'
+  },
+  {
+    page: 'docs-api.html',
     id: 'config-examples',
     text: '設定の使用例',
     parent: '設定オプション'

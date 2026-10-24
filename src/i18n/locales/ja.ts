@@ -123,7 +123,11 @@ export default {
     linkNewTab: '新しいタブで開く',
     linkApply: '適用',
     linkRemove: 'リンクを解除',
-    linkInvalid: 'この URL は使用できません'
+    linkInvalid: 'この URL は使用できません',
+    linkTarget: 'リンク先',
+    linkSelectPlaceholder: 'リンク先を選択',
+    linkCustom: 'URL を直接入力',
+    linkSelectRequired: 'リンク先を選択してください'
   },
   deletePanel: {
     title: '削除パネル',

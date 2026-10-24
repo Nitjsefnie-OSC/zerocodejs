@@ -11,6 +11,7 @@
 - **リッチテキストエディタを自前の実装に置き換え**（Tiptap への依存を削除）: 依存パッケージが13個減り、リッチテキストの遅延チャンクは約115KB→約10KB、CDN 用 UMD は約118KB（brotli）に。編集操作は Shadow DOM 内でも Chrome / Safari / Firefox で同じ結果になる。書式はタグで判定するため、見出しの中の太字が「太字の解除」になる等、表示中の CSS に出力が左右されることはない
 - **リッチテキストの機能をプロダクトごとに選択**: config の `richText.features` で使える機能を指定できる。初期設定のツールバーは太字・取り消し線・リンク・箇条書き・番号付きリスト・元に戻す/やり直すに絞り、斜体・下線・水平線・見出し（h2〜h4）・引用・上付き・下付き・文字の装飾を解除するボタンは設定で追加する。初期設定にない書式（斜体・下線など）は、編集して保存したときに取り除かれる。リンクは「新しいタブで開く」を指定でき、`rel="noopener noreferrer"` を自動で付ける
 - `sanitizeRichText` の許可リストに `h2` `h3` `h4` `blockquote` `sup` `sub` を追加
+- **リンク先を候補に限定**: config の `richText.link` で、リンクの入力方式を `free`（自由入力）/ `select`（`backendData` で渡した候補からプルダウンで選ぶのみ）/ `both` から選べる。`select` では候補にないリンクを保存時に外す。サーバー側の検証用に `findDisallowedRichTextLinks` を export
 - 機能 ID の一覧 `RICH_TEXT_FEATURES` とデフォルト `DEFAULT_RICH_TEXT_FEATURES`、型 `RichTextFeature` を export
 - **動作環境**: リッチテキストの編集に Chrome 137 以降 / Firefox 142 以降 / Safari 17 以降が必要
 - リッチテキストのツールバーを矢印キーで移動できるように（Tab で止まるのはツールバー内の1か所）。ボタンの title にショートカットを表示。Mac では Cmd のショートカットのみを使い、Ctrl+B などの標準のカーソル操作を妨げない

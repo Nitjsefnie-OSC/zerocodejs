@@ -180,8 +180,8 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, provide, nextTick, type Ref } from 'vue';
-import { zcodeRichTextFeaturesKey, zcodeTeleportTargetKey } from '../core/injectionKeys';
-import { resolveRichTextFeatures } from '../features/editor/rich-text/features';
+import { zcodeRichTextConfigKey, zcodeTeleportTargetKey } from '../core/injectionKeys';
+import { resolveRichTextConfig } from '../features/editor/rich-text/features';
 import { useI18n } from 'vue-i18n';
 import ZeroCodeCMS from './ZeroCodeCMS.vue';
 import ZeroCodePreview from './ZeroCodePreview.vue';
@@ -242,7 +242,7 @@ const parseConfig = (configString?: string): Partial<CMSConfig> => {
 };
 
 const config = parseConfig(props.config);
-provide(zcodeRichTextFeaturesKey, resolveRichTextFeatures(config.richText?.features));
+provide(zcodeRichTextConfigKey, resolveRichTextConfig(config.richText));
 
 const showSaveConfirm = ref(config.studio?.showSaveConfirm !== false);
 

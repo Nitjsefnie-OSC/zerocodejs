@@ -13,14 +13,23 @@ export * from './types';
 export { renderToHtml, renderCssToHtml, RenderError } from './core/renderer/renderer';
 
 // サニタイズ関数のエクスポート（サーバーサイドとルール共有用）
-export { sanitizeRichText, sanitizeUrl, sanitizePartTemplate } from './core/utils/sanitize';
+export {
+  sanitizeRichText,
+  sanitizeUrl,
+  sanitizePartTemplate,
+  findDisallowedRichTextLinks
+} from './core/utils/sanitize';
 export type { UrlContext } from './core/utils/sanitize';
 
 export {
   RICH_TEXT_FEATURES,
   DEFAULT_RICH_TEXT_FEATURES
 } from './features/editor/rich-text/features';
-export type { RichTextFeature } from './features/editor/rich-text/features';
+export type {
+  RichTextFeature,
+  RichTextLinkMode,
+  RichTextLinkOption
+} from './features/editor/rich-text/features';
 
 export { ZERO_CODE_DATA_VERSION, migrateZeroCodeData } from './core/utils/data-version';
 

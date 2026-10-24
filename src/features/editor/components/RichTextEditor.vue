@@ -42,21 +42,41 @@
       :aria-label="t('richText.link')"
       @keydown.esc.prevent.stop="closeLinkForm(true)"
     >
-      <input
-        ref="linkInputRef"
-        v-model="linkForm.href"
-        type="url"
-        class="zcode-rich-text-link-input"
-        placeholder="https://"
-        :aria-label="t('richText.linkUrl')"
-        :aria-invalid="linkForm.error ? 'true' : undefined"
+      <select
+        v-if="config.linkMode !== 'free'"
+        ref="linkSelectRef"
+        v-model="linkForm.choice"
+        class="zcode-rich-text-link-select"
+        :aria-label="t('richText.linkTarget')"
+        :aria-invalid="linkForm.error && !isCustomLink ? 'true' : undefined"
         :aria-describedby="linkForm.error ? `${linkFormId}-error` : undefined"
         @keydown.enter.prevent="applyLink"
-      />
-      <label class="zcode-rich-text-link-newtab">
-        <input v-model="linkForm.newTab" type="checkbox" />
-        {{ t('richText.linkNewTab') }}
-      </label>
+      >
+        <option value="" disabled>{{ t('richText.linkSelectPlaceholder') }}</option>
+        <option v-for="(option, index) in linkOptions ?? []" :key="index" :value="String(index)">
+          {{ option.label }}
+        </option>
+        <option v-if="config.linkMode === 'both'" :value="CUSTOM_LINK">
+          {{ t('richText.linkCustom') }}
+        </option>
+      </select>
+      <template v-if="isCustomLink">
+        <input
+          ref="linkInputRef"
+          v-model="linkForm.href"
+          type="url"
+          class="zcode-rich-text-link-input"
+          placeholder="https://"
+          :aria-label="t('richText.linkUrl')"
+          :aria-invalid="linkForm.error ? 'true' : undefined"
+          :aria-describedby="linkForm.error ? `${linkFormId}-error` : undefined"
+          @keydown.enter.prevent="applyLink"
+        />
+        <label class="zcode-rich-text-link-newtab">
+          <input v-model="linkForm.newTab" type="checkbox" />
+          {{ t('richText.linkNewTab') }}
+        </label>
+      </template>
       <div class="zcode-rich-text-link-actions">
         <button type="button" class="zcode-rich-text-link-btn is-primary" @click="applyLink">
           {{ t('richText.linkApply') }}
@@ -133,10 +153,13 @@ import {
   Undo2,
   Redo2
 } from 'lucide-vue-next';
-import { zcodeRichTextFeaturesKey } from '../../../core/injectionKeys';
+import { zcodeRichTextConfigKey } from '../../../core/injectionKeys';
 import { sanitizeUrl } from '../../../core/utils/sanitize';
+import { getBackendDataValue } from '../../../core/utils/template-utils';
 import {
-  resolveRichTextFeatures,
+  resolveLinkOptions,
+  resolveRichTextConfig,
+  type RichTextLinkPolicy,
   type ListTag,
   type MarkTag,
   type RichTextFeature,
@@ -176,6 +199,8 @@ const props = defineProps<{
   label?: string;
   readonly?: boolean;
   disabled?: boolean;
+  /** リンク候補（config の richText.link.source）を参照する */
+  backendData?: Record<string, unknown>;
 }>();
 
 const emit = defineEmits<{
@@ -183,11 +208,28 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useI18n();
-const features = inject(zcodeRichTextFeaturesKey, resolveRichTextFeatures(undefined));
+const config = inject(zcodeRichTextConfigKey, resolveRichTextConfig(undefined));
+const features = config.features;
 const has = (feature: RichTextFeature) => features.has(feature);
+
+const CUSTOM_LINK = '__custom__';
+const linkOptions = computed(() =>
+  config.linkSource
+    ? resolveLinkOptions(getBackendDataValue(props.backendData, config.linkSource))
+    : null
+);
+const linkPolicy = computed<RichTextLinkPolicy>(() => ({
+  mode: config.linkMode,
+  options: linkOptions.value
+}));
+/** select モードで候補がない（未取得を含む）ときはリンクを付けられない */
+const canLink = computed(
+  () => has('link') && (config.linkMode !== 'select' || !!linkOptions.value?.length)
+);
 
 const contentRef = ref<HTMLElement | null>(null);
 const linkInputRef = ref<HTMLInputElement | null>(null);
+const linkSelectRef = ref<HTMLSelectElement | null>(null);
 const toolbarButtonRefs = ref<HTMLButtonElement[]>([]);
 const editable = computed(() => !props.readonly && !props.disabled);
 const linkFormId = `zcode-rich-text-link-${++instanceCount}`;
@@ -206,7 +248,15 @@ const blockTag = ref<string | null>(null);
 const linkActive = ref(false);
 const canUndo = ref(false);
 const canRedo = ref(false);
-const linkForm = reactive({ open: false, href: '', newTab: false, existing: false, error: '' });
+const linkForm = reactive({
+  open: false,
+  choice: '',
+  href: '',
+  newTab: false,
+  existing: false,
+  error: ''
+});
+const isCustomLink = computed(() => config.linkMode === 'free' || linkForm.choice === CUSTOM_LINK);
 
 const history = new RichTextHistory();
 let lastEmitted: string | null = null;
@@ -231,7 +281,7 @@ function updateEmpty(root: HTMLElement) {
 function load(value: string) {
   const root = contentRef.value;
   if (!root) return;
-  root.innerHTML = toEditorHtml(value, features);
+  root.innerHTML = toEditorHtml(value, features, linkPolicy.value);
   lastEmitted = value;
   history.reset(snapshot(root));
   updateEmpty(root);
@@ -242,7 +292,7 @@ function emitChange() {
   const root = contentRef.value;
   if (!root) return;
   updateEmpty(root);
-  const html = toOutputHtml(root, features);
+  const html = toOutputHtml(root, features, linkPolicy.value);
   if (html === lastEmitted) return;
   lastEmitted = html;
   emit('update:modelValue', html);
@@ -379,20 +429,27 @@ function refreshState() {
 
 function openLinkForm() {
   const root = contentRef.value;
-  if (!root || !has('link') || !editable.value) return;
+  if (!root || !canLink.value || !editable.value) return;
   const range = rangeOrCaretAtEnd(root);
   if (!range) return;
   flushRecord();
   linkRange = range.cloneRange();
   const existing = getLinkAt(root, range);
+  const optionIndex = existing
+    ? (linkOptions.value ?? []).findIndex((option) => option.url === existing.href)
+    : -1;
+  let choice = '';
+  if (optionIndex >= 0) choice = String(optionIndex);
+  else if (existing && config.linkMode === 'both') choice = CUSTOM_LINK;
   Object.assign(linkForm, {
     open: true,
-    href: existing?.href ?? '',
+    choice,
+    href: existing && optionIndex < 0 ? existing.href : '',
     newTab: existing?.newTab ?? false,
     existing: !!existing,
     error: ''
   });
-  nextTick(() => linkInputRef.value?.focus());
+  nextTick(() => (config.linkMode === 'free' ? linkInputRef : linkSelectRef).value?.focus());
 }
 
 function closeLinkForm(restoreSelection: boolean) {
@@ -410,12 +467,22 @@ function closeLinkForm(restoreSelection: boolean) {
 }
 
 function applyLink() {
-  const href = sanitizeUrl(linkForm.href.trim());
-  if (!href) {
-    linkForm.error = t('richText.linkInvalid');
-    return;
+  let link: { href: string; newTab: boolean; text?: string };
+  if (isCustomLink.value) {
+    const href = sanitizeUrl(linkForm.href.trim());
+    if (!href) {
+      linkForm.error = t('richText.linkInvalid');
+      return;
+    }
+    link = { href, newTab: linkForm.newTab };
+  } else {
+    const option = linkOptions.value?.[Number(linkForm.choice)];
+    if (!linkForm.choice || !option) {
+      linkForm.error = t('richText.linkSelectRequired');
+      return;
+    }
+    link = { href: option.url, newTab: !!option.newTab, text: option.label };
   }
-  const link = { href, newTab: linkForm.newTab };
   linkForm.open = false;
   runCommand((root, range) => setLink(root, range, link), linkRange);
 }
@@ -522,7 +589,7 @@ const toolbarGroups = computed<ToolbarItem[][]>(() => {
       : [])
   ];
   const extras: ToolbarItem[] = [
-    ...(has('link')
+    ...(canLink.value
       ? [
           {
             id: 'link',
@@ -730,7 +797,7 @@ function handleKeydown(event: KeyboardEvent) {
     toggleMarkCommand('s');
     return;
   }
-  if (key === 'k' && has('link')) {
+  if (key === 'k' && canLink.value) {
     event.preventDefault();
     openLinkForm();
   }
@@ -791,7 +858,8 @@ function handlePaste(event: ClipboardEvent) {
   if (!data) return;
   const html = toPastedHtml(
     { html: data.getData('text/html'), text: data.getData('text/plain') },
-    features
+    features,
+    linkPolicy.value
   );
   if (!html) return;
   runCommand((root, range) => insertPastedHtml(root, range, html));
@@ -820,8 +888,8 @@ watch(
     // optional フィールドの空値（undefined → ''）のように、出力が同じになる値では読み直さない
     if (root && lastEmitted !== null) {
       const probe = root.ownerDocument.createElement('div');
-      probe.innerHTML = toEditorHtml(value ?? '', features);
-      if (toOutputHtml(probe, features) === lastEmitted) return;
+      probe.innerHTML = toEditorHtml(value ?? '', features, linkPolicy.value);
+      if (toOutputHtml(probe, features, linkPolicy.value) === lastEmitted) return;
     }
     load(value ?? '');
   }

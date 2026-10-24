@@ -123,7 +123,11 @@ export default {
     linkNewTab: 'Open in new tab',
     linkApply: 'Apply',
     linkRemove: 'Remove link',
-    linkInvalid: 'This URL cannot be used'
+    linkInvalid: 'This URL cannot be used',
+    linkTarget: 'Link destination',
+    linkSelectPlaceholder: 'Select a destination',
+    linkCustom: 'Enter a URL',
+    linkSelectRequired: 'Select a link destination'
   },
   deletePanel: {
     title: 'Delete panel',
