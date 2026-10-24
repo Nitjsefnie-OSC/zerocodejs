@@ -113,8 +113,8 @@
               role="button"
               tabindex="0"
               @click="selectImage(image)"
-              @keydown.enter.prevent="selectImage(image)"
-              @keydown.space.prevent="selectImage(image)"
+              @keydown.enter.self.prevent="selectImage(image)"
+              @keydown.space.self.prevent="selectImage(image)"
             >
               <div v-if="reorderSourceImage === image.id" class="zcode-reorder-source-indicator">
                 {{ $t('partsManager.source') }}
@@ -163,8 +163,8 @@
               role="button"
               tabindex="0"
               @click="selectImage(entry.image)"
-              @keydown.enter.prevent="selectImage(entry.image)"
-              @keydown.space.prevent="selectImage(entry.image)"
+              @keydown.enter.self.prevent="selectImage(entry.image)"
+              @keydown.space.self.prevent="selectImage(entry.image)"
             >
               <span
                 v-if="activeTab === 'all'"

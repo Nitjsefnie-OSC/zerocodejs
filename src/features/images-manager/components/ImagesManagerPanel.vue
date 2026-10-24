@@ -64,7 +64,11 @@
           v-for="image in currentImages"
           :key="image.id"
           :class="getImageItemClass(image)"
+          role="button"
+          tabindex="0"
           @click="startEditing(image)"
+          @keydown.enter.self.prevent="startEditing(image)"
+          @keydown.space.self.prevent="startEditing(image)"
         >
           <!-- 並べ替え中の移動元インジケーター -->
           <div v-if="reorderSourceImage === image.id" class="zcode-reorder-source-indicator">
