@@ -21,14 +21,14 @@
     </div>
 
     <!--
-      共通・個別のパーツは parts/ のファイルで管理しているため、パーツ管理には専用だけを出す。
+      共通・個別のパーツは parts/ のファイルで管理しているため、パーツ管理では表示とプレビューだけにする。
       画像は hooks.uploadImage で、追加した時点でサーバー（public/uploads/）に保存する
     -->
     <zcode-editor
       id="editor"
       locale="ja"
       use-shadow-dom="false"
-      config='{"studio":{"hiddenCategories":["common","individual"]},"images":{"accept":"image/png,image/jpeg,image/gif,image/webp,image/avif","maxSize":5242880}}'
+      config='{"studio":{"fileManagedCategories":["common","individual"]},"images":{"accept":"image/png,image/jpeg,image/gif,image/webp,image/avif","maxSize":5242880}}'
     >
     </zcode-editor>
 

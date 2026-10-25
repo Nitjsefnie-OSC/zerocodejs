@@ -4,6 +4,7 @@
     class="zcode-code-textarea"
     :value="modelValue"
     :aria-label="label"
+    :readonly="readonly"
     spellcheck="false"
     autocapitalize="off"
     autocomplete="off"
@@ -19,6 +20,7 @@ import { ref } from 'vue';
 defineProps<{
   modelValue: string;
   label?: string;
+  readonly?: boolean;
 }>();
 
 const emit = defineEmits<{
