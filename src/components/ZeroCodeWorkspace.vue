@@ -186,7 +186,7 @@ const props = withDefaults(
       enableImagesManager?: boolean;
     }
   >(),
-  { enablePartsManager: true, enableImagesManager: true }
+  { fixedCategory: undefined, enablePartsManager: true, enableImagesManager: true }
 );
 
 const teleportTargetRef = ref<HTMLElement | null>(null);
