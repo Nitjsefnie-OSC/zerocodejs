@@ -32,6 +32,16 @@
         </div>
 
         <div class="docs-nav-section">
+          <div class="docs-nav-title">はじめての組み込み</div>
+          <div class="docs-nav-links">
+            <a href="docs-tutorial.html#tutorial-overview" class="docs-nav-link">全体像</a>
+            <a href="docs-tutorial.html#tutorial-terms" class="docs-nav-link">覚える言葉は4つ</a>
+            <a href="docs-tutorial.html#tutorial-steps" class="docs-nav-link">手順</a>
+            <a href="docs-tutorial.html#tutorial-next" class="docs-nav-link">次の一歩</a>
+          </div>
+        </div>
+
+        <div class="docs-nav-section">
           <div class="docs-nav-title">概要</div>
           <div class="docs-nav-links">
             <a href="#about" class="docs-nav-link">ZeroCode.js とは</a>
@@ -171,13 +181,21 @@
           >を参照してください。
         </p>
 
+        <div class="docs-start-banner">
+          <p>
+            <strong>はじめての方へ:</strong>
+            インストールから最初のページの公開までを、図と手順で説明しています。
+          </p>
+          <a class="docs-start-banner-link" href="docs-tutorial.html">はじめての組み込み →</a>
+        </div>
+
         <div class="docs-reader-guide">
           <div class="docs-reader-guide-title" role="heading" aria-level="2">読む順ガイド</div>
           <div class="docs-reader-guide-grid">
             <div class="docs-reader-guide-card">
               <div class="docs-reader-guide-card-title">組み込むエンジニア</div>
               <ol>
-                <li><a href="#quickstart">クイックスタート</a></li>
+                <li><a href="docs-tutorial.html">はじめての組み込み</a></li>
                 <li><a href="docs-api.html#configuration">設定オプション</a></li>
                 <li><a href="docs-backend.html#save-request">保存リクエストの受け方</a></li>
               </ol>
@@ -185,6 +203,7 @@
             <div class="docs-reader-guide-card">
               <div class="docs-reader-guide-card-title">パーツ（テンプレート）を書く人</div>
               <ol>
+                <li><a href="docs-tutorial.html#tutorial-term-part">パーツとは</a></li>
                 <li><a href="docs-template.html#field-syntax">フィールド記法</a></li>
                 <li><a href="docs-template.html#choice-syntax">選択肢記法</a></li>
                 <li><a href="docs-template.html#conditional-syntax">条件分岐と z-* 属性</a></li>
@@ -705,8 +724,10 @@
             各インスタンスは<code>id</code>属性で識別され、独立したデータを管理します
           </li>
           <li>
-            <strong>セッションストレージの分離</strong>:
-            セッションストレージはインスタンスIDごとに分離され、データが混在することはありません
+            <strong>データの保存はホスト</strong>:
+            ページのデータは各インスタンスが持ち、ブラウザには保存しません。保存は
+            <code>save-request</code> を受けたホストが行います（画面の表示設定だけは、ブラウザの
+            localStorage に全インスタンス共通で保存します）
           </li>
           <li>
             <strong>イベントリスナーの分離</strong>:

@@ -173,6 +173,7 @@ editor.setAttribute('images-common', JSON.stringify(imagesData));
 
 ## Documentation
 
+- **[Getting started tutorial (Japanese)](./docs-tutorial.html)**: from installation to publishing your first page, with diagrams
 - [Documentation – About ZeroCode.js](./docs.html#about)
 - [Technical Specification](./TECHNICAL_SPECIFICATION.md)
 - [日本語ドキュメント](./README.ja.md)

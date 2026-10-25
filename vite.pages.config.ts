@@ -23,6 +23,7 @@ export default defineConfig({
       input: {
         index: resolve(__dirname, 'index.html'),
         docs: resolve(__dirname, 'docs.html'),
+        docsTutorial: resolve(__dirname, 'docs-tutorial.html'),
         docsTemplate: resolve(__dirname, 'docs-template.html'),
         docsApi: resolve(__dirname, 'docs-api.html'),
         docsBackend: resolve(__dirname, 'docs-backend.html'),

@@ -1,4 +1,4 @@
-// 自動生成: ドキュメント横断検索インデックス（docs 4ページの h2/h3/h4）
+// 自動生成: ドキュメント横断検索インデックス（docs 5ページの h2/h3/h4）
 // 再生成: node scripts/build-docs-search-index.mjs
 window.__DOCS_SEARCH_INDEX__ = [
   {
@@ -132,6 +132,90 @@ window.__DOCS_SEARCH_INDEX__ = [
     id: 'shadow-dom-jquery',
     text: 'Shadow DOM内でのjQuery使用',
     parent: 'Shadow DOM'
+  },
+  {
+    page: 'docs-tutorial.html',
+    id: 'tutorial-overview',
+    text: '全体像',
+    parent: ''
+  },
+  {
+    page: 'docs-tutorial.html',
+    id: 'tutorial-terms',
+    text: '覚える言葉は4つ',
+    parent: ''
+  },
+  {
+    page: 'docs-tutorial.html',
+    id: 'tutorial-term-part',
+    text: 'パーツ: 書いた HTML が、そのまま入力欄になる',
+    parent: '覚える言葉は4つ'
+  },
+  {
+    page: 'docs-tutorial.html',
+    id: 'tutorial-term-page',
+    text: 'ページ: パーツを並べたもの',
+    parent: '覚える言葉は4つ'
+  },
+  {
+    page: 'docs-tutorial.html',
+    id: 'tutorial-term-category',
+    text: 'カテゴリ: 共通・個別・専用',
+    parent: '覚える言葉は4つ'
+  },
+  {
+    page: 'docs-tutorial.html',
+    id: 'tutorial-term-screens',
+    text: '画面: 使う人に合わせて3つ',
+    parent: '覚える言葉は4つ'
+  },
+  {
+    page: 'docs-tutorial.html',
+    id: 'tutorial-steps',
+    text: '手順',
+    parent: ''
+  },
+  {
+    page: 'docs-tutorial.html',
+    id: 'tutorial-step1',
+    text: '1. インストール',
+    parent: '手順'
+  },
+  {
+    page: 'docs-tutorial.html',
+    id: 'tutorial-step2',
+    text: '2. 最初のパーツを書く',
+    parent: '手順'
+  },
+  {
+    page: 'docs-tutorial.html',
+    id: 'tutorial-step3',
+    text: '3. パーツを1つの JSON にまとめる',
+    parent: '手順'
+  },
+  {
+    page: 'docs-tutorial.html',
+    id: 'tutorial-step4',
+    text: '4. サーバーを用意する',
+    parent: '手順'
+  },
+  {
+    page: 'docs-tutorial.html',
+    id: 'tutorial-step5',
+    text: '5. 管理画面を作る',
+    parent: '手順'
+  },
+  {
+    page: 'docs-tutorial.html',
+    id: 'tutorial-step6',
+    text: '6. 動かして確かめる',
+    parent: '手順'
+  },
+  {
+    page: 'docs-tutorial.html',
+    id: 'tutorial-next',
+    text: '次の一歩',
+    parent: ''
   },
   {
     page: 'docs-template.html',

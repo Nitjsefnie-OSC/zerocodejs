@@ -1,0 +1,778 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ZeroCode.js ドキュメント - はじめての組み込み</title>
+
+    <!-- 共通CSS（リセットCSS含む） -->
+    <link rel="stylesheet" href="./css/common.css" />
+    <!-- サイト共通CSS（ヘッダー・フッター） -->
+    <link rel="stylesheet" href="./css/site-common.css" />
+    <!-- ページ専用CSS -->
+    <link rel="stylesheet" href="./css/docs.css" />
+  </head>
+  <body>
+    <!-- ヘッダー（共通） -->
+    <div id="header-placeholder"></div>
+
+    <div class="docs-container">
+      <!-- サイドバー -->
+      <aside class="docs-sidebar">
+        <!-- 検索セクション -->
+        <div class="docs-search-section">
+          <input
+            type="text"
+            id="docs-search-input"
+            class="docs-search-input"
+            placeholder="ドキュメントを検索..."
+            autocomplete="off"
+          />
+          <div id="docs-search-results" class="docs-search-results"></div>
+        </div>
+
+        <div class="docs-nav-section">
+          <div class="docs-nav-title">はじめての組み込み</div>
+          <div class="docs-nav-links">
+            <a href="#tutorial-overview" class="docs-nav-link">全体像</a>
+            <a href="#tutorial-terms" class="docs-nav-link">覚える言葉は4つ</a>
+            <a href="#tutorial-steps" class="docs-nav-link">手順</a>
+            <a href="#tutorial-next" class="docs-nav-link">次の一歩</a>
+          </div>
+        </div>
+
+        <div class="docs-nav-section">
+          <div class="docs-nav-title">概要</div>
+          <div class="docs-nav-links">
+            <a href="docs.html#about" class="docs-nav-link">ZeroCode.js とは</a>
+            <div class="docs-nav-sub">
+              <a href="docs.html#about-purpose" class="docs-nav-link-sub">目的</a>
+              <a href="docs.html#about-problems" class="docs-nav-link-sub">解決したい課題</a>
+              <a href="docs.html#about-design" class="docs-nav-link-sub">設計方針</a>
+              <a href="docs.html#about-data" class="docs-nav-link-sub">データの扱い</a>
+              <a href="docs.html#about-components" class="docs-nav-link-sub"
+                >コンポーネントと役割</a
+              >
+              <a href="docs.html#about-operation" class="docs-nav-link-sub">運用の例</a>
+              <a href="docs.html#about-retrofit" class="docs-nav-link-sub"
+                >既存のサイトに後から組み込む</a
+              >
+              <a href="docs.html#roadmap" class="docs-nav-link-sub">編集体験改善ロードマップ</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="docs-nav-section">
+          <div class="docs-nav-title">フロントエンド</div>
+          <div class="docs-nav-links">
+            <a href="docs.html#quickstart" class="docs-nav-link">クイックスタート</a>
+            <div class="docs-nav-sub">
+              <a href="docs.html#installation" class="docs-nav-link-sub">インストール</a>
+              <a href="docs.html#basic-usage" class="docs-nav-link-sub">基本的な使用例</a>
+            </div>
+            <a href="docs.html#multiple-instances" class="docs-nav-link">複数インスタンス対応</a>
+            <a href="docs.html#shadow-dom" class="docs-nav-link">Shadow DOM</a>
+            <div class="docs-nav-sub">
+              <a href="docs.html#shadow-dom-host-style" class="docs-nav-link-sub"
+                >ホストスタイルのリセット</a
+              >
+            </div>
+            <a href="docs-template.html#template-syntax" class="docs-nav-link">テンプレート記法</a>
+            <div class="docs-nav-sub">
+              <a href="docs-template.html#field-syntax" class="docs-nav-link-sub">フィールド記法</a>
+              <div class="docs-nav-sub-sub">
+                <a href="docs-template.html#text-field" class="docs-nav-link-sub-sub"
+                  >テキストフィールド</a
+                >
+                <a href="docs-template.html#textarea-field" class="docs-nav-link-sub-sub"
+                  >テキストエリア</a
+                >
+                <a href="docs-template.html#rich-text-field" class="docs-nav-link-sub-sub"
+                  >リッチテキスト</a
+                >
+                <a href="docs-template.html#image-field" class="docs-nav-link-sub-sub"
+                  >画像フィールド</a
+                >
+                <a href="docs-template.html#grouped-fields" class="docs-nav-link-sub-sub"
+                  >グループ化</a
+                >
+                <a href="docs-template.html#optional-fields" class="docs-nav-link-sub-sub"
+                  >オプショナル</a
+                >
+                <a href="docs-template.html#validation-syntax" class="docs-nav-link-sub-sub"
+                  >バリデーション</a
+                >
+              </div>
+              <a href="docs-template.html#backend-data" class="docs-nav-link-sub"
+                >バックエンドデータ</a
+              >
+              <a href="docs-template.html#z-for-loop" class="docs-nav-link-sub">z-for ループ</a>
+              <a href="docs-template.html#choice-syntax" class="docs-nav-link-sub">選択肢記法</a>
+              <a href="docs-template.html#conditional-syntax" class="docs-nav-link-sub">条件分岐</a>
+              <div class="docs-nav-sub-sub">
+                <a href="docs-template.html#z-tag-syntax" class="docs-nav-link-sub-sub"
+                  >z-tag 属性</a
+                >
+                <a href="docs-template.html#z-empty-syntax" class="docs-nav-link-sub-sub"
+                  >z-empty 属性</a
+                >
+              </div>
+              <a href="docs-template.html#slot-syntax" class="docs-nav-link-sub">スロット</a>
+            </div>
+            <a href="docs-api.html#editing-modes" class="docs-nav-link">編集モード</a>
+            <a href="docs-api.html#parts-management" class="docs-nav-link">パーツ管理</a>
+            <div class="docs-nav-sub">
+              <a href="docs-api.html#types-and-parts" class="docs-nav-link-sub">タイプとパーツ</a>
+              <a href="docs-api.html#common-and-individual-parts" class="docs-nav-link-sub"
+                >共通パーツと個別パーツ</a
+              >
+              <a href="docs-api.html#parts-management-features" class="docs-nav-link-sub"
+                >パーツ管理機能</a
+              >
+              <a href="docs-api.html#part-template-structure" class="docs-nav-link-sub"
+                >パーツテンプレートの構造</a
+              >
+              <a href="docs-api.html#template-field-initialization" class="docs-nav-link-sub"
+                >テンプレート記法の後から追加</a
+              >
+            </div>
+            <a href="docs-api.html#images-management" class="docs-nav-link">画像管理</a>
+            <a href="docs-api.html#configuration" class="docs-nav-link">設定オプション</a>
+            <a href="docs-api.html#api-reference" class="docs-nav-link">APIリファレンス</a>
+            <a href="docs-api.html#events" class="docs-nav-link">イベント</a>
+            <a href="docs-api.html#methods" class="docs-nav-link">メソッド</a>
+          </div>
+        </div>
+
+        <div class="docs-nav-section">
+          <div class="docs-nav-title">バックエンド</div>
+          <div class="docs-nav-links">
+            <a href="docs-api.html#data-structure" class="docs-nav-link">データ構造</a>
+            <a href="docs-backend.html#database-design" class="docs-nav-link">データベース構成</a>
+            <a href="docs-backend.html#save-request" class="docs-nav-link">保存リクエスト</a>
+            <div class="docs-nav-sub">
+              <a href="docs-backend.html#save-request-handler" class="docs-nav-link-sub"
+                >イベントの受け取り方</a
+              >
+              <a href="docs-backend.html#save-request-image-upload" class="docs-nav-link-sub"
+                >画像のアップロード</a
+              >
+              <a href="docs-backend.html#save-request-validation" class="docs-nav-link-sub"
+                >バリデーションエラー</a
+              >
+            </div>
+            <a href="docs-backend.html#security" class="docs-nav-link">セキュリティ</a>
+          </div>
+        </div>
+      </aside>
+
+      <!-- メインコンテンツ -->
+      <main class="docs-content">
+        <!-- パンくずリスト -->
+        <nav class="docs-breadcrumb" id="docs-breadcrumb">
+          <a href="./docs.html">ドキュメント</a>
+          <span class="docs-breadcrumb-separator">></span>
+          <span id="docs-breadcrumb-current">はじめての組み込み</span>
+        </nav>
+
+        <h1>はじめての組み込み</h1>
+        <p class="docs-lead">
+          ZeroCode.js
+          をインストールしてから、最初のページを公開するまでを、順を追って説明します。最後まで進めると、「開発者がパーツを書く
+          → 運営者が管理画面でページを作る →
+          公開ページに表示される」という一連の流れが、手元で動きます。
+        </p>
+        <div class="docs-info">
+          <p>
+            <strong>必要なもの:</strong> Node.js 20 以上、テキストエディタ（VS Code
+            がおすすめ）。所要時間は30分ほどです。完成形に近いものは、リポジトリの
+            <code>examples/lp</code> で動かせます。
+          </p>
+        </div>
+
+        <h2 id="tutorial-overview">全体像</h2>
+        <p>
+          ZeroCode.js に関わる人は、次の4者です。ZeroCode.js が受け持つのは<strong
+            >管理画面と HTML を作る部分だけ</strong
+          >で、データの保存やログインは、あなたのサーバー（ホスト）が受け持ちます。
+        </p>
+
+        <figure class="docs-figure">
+          <svg
+            viewBox="0 0 760 330"
+            role="img"
+            aria-labelledby="fig-overview-title fig-overview-desc"
+          >
+            <title id="fig-overview-title">ZeroCode.js の全体像</title>
+            <desc id="fig-overview-desc">
+              開発者がパーツを書き、ホストのサーバーに登録する。運営者は管理画面でページを作って保存する。訪問者にはホストが公開ページの
+              HTML を返す。
+            </desc>
+            <defs>
+              <marker
+                id="arrow"
+                viewBox="0 0 10 10"
+                refX="9"
+                refY="5"
+                markerWidth="7"
+                markerHeight="7"
+                orient="auto-start-reverse"
+              >
+                <path d="M0,0 L10,5 L0,10 z" fill="#5f6e70" />
+              </marker>
+            </defs>
+
+            <g class="fig-box fig-box--dev">
+              <rect x="10" y="115" width="200" height="100" rx="10" />
+              <text x="110" y="145" class="fig-title">① パーツを書く</text>
+              <text x="110" y="168" class="fig-sub">開発者</text>
+              <text x="110" y="194" class="fig-code">parts/*.html</text>
+            </g>
+            <g class="fig-box fig-box--host">
+              <rect x="280" y="115" width="200" height="100" rx="10" />
+              <text x="380" y="145" class="fig-title">② 受け渡し・保存</text>
+              <text x="380" y="168" class="fig-sub">ホスト（あなたのサーバー）</text>
+              <text x="380" y="194" class="fig-code">API / データベース</text>
+            </g>
+            <g class="fig-box fig-box--editor">
+              <rect x="550" y="10" width="200" height="100" rx="10" />
+              <text x="650" y="40" class="fig-title">③ ページを作る</text>
+              <text x="650" y="63" class="fig-sub">運営者</text>
+              <text x="650" y="89" class="fig-code">&lt;zcode-cms&gt;</text>
+            </g>
+            <g class="fig-box fig-box--public">
+              <rect x="550" y="220" width="200" height="100" rx="10" />
+              <text x="650" y="250" class="fig-title">④ 公開</text>
+              <text x="650" y="273" class="fig-sub">訪問者</text>
+              <text x="650" y="299" class="fig-code">公開ページの HTML</text>
+            </g>
+
+            <line x1="210" y1="165" x2="276" y2="165" class="fig-arrow" marker-end="url(#arrow)" />
+            <text x="243" y="155" class="fig-label">build-parts</text>
+
+            <path d="M480,135 C515,135 515,70 546,70" class="fig-arrow" marker-end="url(#arrow)" />
+            <text x="470" y="88" class="fig-label fig-label--start">データを渡す</text>
+            <path d="M550,95 C530,95 520,150 484,150" class="fig-arrow" marker-end="url(#arrow)" />
+            <text x="560" y="128" class="fig-label fig-label--start">保存</text>
+
+            <path
+              d="M480,195 C515,195 515,270 546,270"
+              class="fig-arrow"
+              marker-end="url(#arrow)"
+            />
+            <text x="484" y="214" class="fig-label fig-label--start">renderToHtml</text>
+          </svg>
+          <figcaption>
+            図1. ZeroCode.js が受け持つのは、③の管理画面と、④の HTML
+            を作る処理（<code>renderToHtml</code>）。②の保存とログインはホストが受け持つ
+          </figcaption>
+        </figure>
+
+        <table class="docs-table">
+          <thead>
+            <tr>
+              <th>誰が</th>
+              <th>何をする</th>
+              <th>使うもの</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>開発者</td>
+              <td>ページの部品（パーツ）を HTML で書く</td>
+              <td>手元のエディタ、<code>npx zerocodejs</code></td>
+            </tr>
+            <tr>
+              <td>ホスト</td>
+              <td>パーツとページのデータを保存し、管理画面に渡す。公開ページの HTML を返す</td>
+              <td>あなたのサーバー（このページでは Node.js + Express）</td>
+            </tr>
+            <tr>
+              <td>運営者</td>
+              <td>パーツを並べて文章・画像を入れ、ページを作る</td>
+              <td>管理画面（<code>&lt;zcode-cms&gt;</code>）</td>
+            </tr>
+            <tr>
+              <td>訪問者</td>
+              <td>公開ページを見る</td>
+              <td>ふつうの HTML（ZeroCode.js の読み込みは不要）</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h2 id="tutorial-terms">覚える言葉は4つ</h2>
+
+        <h3 id="tutorial-term-part">パーツ: 書いた HTML が、そのまま入力欄になる</h3>
+        <p>
+          <strong>パーツ</strong
+          >は、見出し・カード・お問い合わせ欄などのページの部品です。開発者がふつうの HTML
+          で書き、運営者に入力してほしいところだけを <code>{$名前:初期値}</code>
+          のような記法にします。管理画面は、この記法から入力欄を自動で作ります。
+        </p>
+
+        <figure class="docs-figure">
+          <svg viewBox="0 0 760 230" role="img" aria-labelledby="fig-part-title fig-part-desc">
+            <title id="fig-part-title">パーツの記法が入力欄と HTML になる流れ</title>
+            <desc id="fig-part-desc">
+              テンプレートの {$title:見出しを入力} が、管理画面では title
+              の入力欄になり、公開ページでは入力した文字の h2 になる。
+            </desc>
+            <g class="fig-box fig-box--dev">
+              <rect x="10" y="10" width="230" height="210" rx="10" />
+              <text x="125" y="36" class="fig-title">パーツ（開発者が書く）</text>
+            </g>
+            <text x="26" y="72" class="fig-mono">&lt;section&gt;</text>
+            <text x="38" y="100" class="fig-mono">&lt;h2&gt;</text>
+            <text x="38" y="124" class="fig-mono fig-mono--hl">{$title:見出しを入力}</text>
+            <text x="38" y="148" class="fig-mono">&lt;/h2&gt;</text>
+            <text x="26" y="176" class="fig-mono">&lt;/section&gt;</text>
+
+            <g class="fig-box fig-box--editor">
+              <rect x="265" y="10" width="230" height="210" rx="10" />
+              <text x="380" y="36" class="fig-title">管理画面（運営者が入力）</text>
+            </g>
+            <text x="285" y="78" class="fig-small">title</text>
+            <rect x="285" y="86" width="190" height="34" rx="6" class="fig-input" />
+            <text x="295" y="108" class="fig-input-text">春の新メニュー</text>
+            <text x="285" y="150" class="fig-small">入力欄は記法から自動で作られる</text>
+
+            <g class="fig-box fig-box--public">
+              <rect x="520" y="10" width="230" height="210" rx="10" />
+              <text x="635" y="36" class="fig-title">公開ページの HTML</text>
+            </g>
+            <text x="536" y="72" class="fig-mono">&lt;section&gt;</text>
+            <text x="548" y="100" class="fig-mono">&lt;h2&gt;</text>
+            <text x="548" y="124" class="fig-mono fig-mono--hl">春の新メニュー</text>
+            <text x="548" y="148" class="fig-mono">&lt;/h2&gt;</text>
+            <text x="536" y="176" class="fig-mono">&lt;/section&gt;</text>
+
+            <line x1="240" y1="118" x2="262" y2="118" class="fig-arrow" marker-end="url(#arrow)" />
+            <line x1="495" y1="118" x2="517" y2="118" class="fig-arrow" marker-end="url(#arrow)" />
+          </svg>
+          <figcaption>
+            図2. 記法の部分だけが入力欄になり、それ以外は書いた HTML
+            がそのまま出力される（ZeroCode.js が余計なタグを足すことはない）
+          </figcaption>
+        </figure>
+
+        <h3 id="tutorial-term-page">ページ: パーツを並べたもの</h3>
+        <p>
+          <strong>ページ</strong
+          >は、パーツを上から順に並べ、それぞれに入力した内容を持たせたものです。データとしては、「どのパーツを使い、何を入力したか」の一覧（JSON）だけを保存します。HTML
+          は表示のたびにパーツから作り直すので、パーツの見た目を直すと、そのパーツを使っているすべてのページに反映されます。
+        </p>
+
+        <h3 id="tutorial-term-category">カテゴリ: 共通・個別・専用</h3>
+        <p>パーツと画像は、どこで使うかによって3つのカテゴリに分けます。</p>
+        <div class="docs-cards">
+          <div class="docs-card">
+            <div class="docs-card-title">共通</div>
+            <p>サイト全体で使う。見出し・ボタン・お問い合わせ欄など。</p>
+          </div>
+          <div class="docs-card">
+            <div class="docs-card-title">個別</div>
+            <p>ページの種類ごとに使う。店舗ページ用・記事ページ用など。</p>
+          </div>
+          <div class="docs-card">
+            <div class="docs-card-title">専用</div>
+            <p>特定のページや用途のためだけに作る。キャンペーンページの特別な部品など。</p>
+          </div>
+        </div>
+        <p>最初は「共通」だけで十分です。このページでも、共通のパーツを1つ作ります。</p>
+
+        <h3 id="tutorial-term-screens">画面: 使う人に合わせて3つ</h3>
+        <div class="docs-cards">
+          <div class="docs-card">
+            <div class="docs-card-title"><code>&lt;zcode-cms&gt;</code></div>
+            <p>
+              <strong>運営者向け。</strong
+              >パーツの追加・編集・並べ替え・削除だけができる。パーツ自体は変えられない。
+            </p>
+          </div>
+          <div class="docs-card">
+            <div class="docs-card-title"><code>&lt;zcode-editor&gt;</code></div>
+            <p>
+              <strong>開発者向け。</strong>cms
+              の機能に加えて、パーツ管理・画像管理・データの確認ができる。
+            </p>
+          </div>
+          <div class="docs-card">
+            <div class="docs-card-title"><code>&lt;zcode-studio&gt;</code></div>
+            <p>
+              <strong>専用パーツの担当者向け。</strong>パーツ管理などで扱えるのは専用カテゴリだけ。
+            </p>
+          </div>
+        </div>
+        <p>このページでは、運営者の画面 <code>&lt;zcode-cms&gt;</code> を使います。</p>
+
+        <h2 id="tutorial-steps">手順</h2>
+        <p>次の6つの手順で、図1の①〜④を順に作ります。できあがるフォルダは次のとおりです。</p>
+        <pre><code>my-site/
+├── parts/                      手順2: パーツ（開発者が書く）
+│   └── common/01-heading/
+│       ├── _type.json
+│       ├── 01-heading.html
+│       └── 01-heading.css
+├── data/
+│   ├── parts.json              手順3: build-parts が作る（自動生成）
+│   └── page.json               管理画面から保存したページ
+├── public/admin.html           手順5: 管理画面
+├── server.js                   手順4: サーバー
+└── package.json</code></pre>
+
+        <h3 id="tutorial-step1">1. インストール</h3>
+        <pre><code>mkdir my-site &amp;&amp; cd my-site
+npm init -y
+npm pkg set type=module
+npm install zerocodejs express jsdom
+npx zerocodejs init-vscode</code></pre>
+        <ul>
+          <li>
+            <code>express</code> はこのページで使うサーバーです。お使いのものに置き換えられます。
+          </li>
+          <li><code>jsdom</code> は、サーバーで HTML を作る（手順4）ときに使います。</li>
+          <li>
+            <code>init-vscode</code> は、VS Code で記法の補完を出す設定を
+            <code>.vscode/</code> に置きます（<a href="docs-template.html#editor-support"
+              >エディタの補完</a
+            >）。
+          </li>
+        </ul>
+
+        <h3 id="tutorial-step2">2. 最初のパーツを書く</h3>
+        <p>
+          見出しとリード文のパーツを1つ作ります。フォルダ名・ファイル名の先頭の番号は、管理画面に並ぶ順番です。
+        </p>
+        <p>
+          <code>parts/common/01-heading/_type.json</code>（パーツのグループ。「タイプ」と呼びます）
+        </p>
+        <pre><code>{ "id": "type-heading", "type": "見出し", "description": "セクションの見出し" }</code></pre>
+        <p><code>parts/common/01-heading/01-heading.html</code>（パーツ本体）</p>
+        <pre><code>&lt;!--zerocode
+{ "id": "heading", "title": "見出し", "description": "セクションの見出しとリード文" }
+--&gt;
+&lt;section class="heading"&gt;
+  &lt;h2 z-tag="$tag:h2|h3"&gt;{$title:見出しを入力}&lt;/h2&gt;
+  &lt;p z-empty="$lead"&gt;{$lead?:リード文を入力:textarea}&lt;/p&gt;
+&lt;/section&gt;</code></pre>
+        <p><code>parts/common/01-heading/01-heading.css</code>（パーツの CSS。なくてもよい）</p>
+        <pre><code>.heading { padding: 48px 16px; text-align: center; }</code></pre>
+        <p>使った記法は次の4つです。</p>
+        <table class="docs-table">
+          <thead>
+            <tr>
+              <th>記法</th>
+              <th>管理画面での見え方</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>{$title:見出しを入力}</code></td>
+              <td>1行の入力欄。初期値は「見出しを入力」</td>
+            </tr>
+            <tr>
+              <td><code>{$lead?:…:textarea}</code></td>
+              <td>複数行の入力欄。<code>?</code> は「空でもよい」</td>
+            </tr>
+            <tr>
+              <td><code>z-tag="$tag:h2|h3"</code></td>
+              <td>見出しのタグを h2 / h3 から選べる</td>
+            </tr>
+            <tr>
+              <td><code>z-empty="$lead"</code></td>
+              <td>リード文が空なら、この <code>&lt;p&gt;</code> ごと出力しない</td>
+            </tr>
+          </tbody>
+        </table>
+        <p>
+          パーツの先頭のコメント（<code>&lt;!--zerocode … --&gt;</code>）の
+          <code>id</code>
+          は、ページのデータから参照されます。<strong>一度使い始めたら変えないでください。</strong>記法の一覧は<a
+            href="docs-template.html#template-syntax"
+            >テンプレート記法</a
+          >にあります。
+        </p>
+
+        <h3 id="tutorial-step3">3. パーツを1つの JSON にまとめる</h3>
+        <pre><code>npx zerocodejs check-parts parts               # 書き間違いを調べる
+npx zerocodejs build-parts parts -o data/parts.json</code></pre>
+        <p>
+          <code>data/parts.json</code> に、管理画面とサーバーが読む形（<code>{ parts, css }</code
+          >）のデータができます。パーツを書いている間は
+          <code>--watch</code> を付けると、保存のたびに作り直されます。
+        </p>
+        <pre><code>npx zerocodejs build-parts parts -o data/parts.json --watch</code></pre>
+
+        <h3 id="tutorial-step4">4. サーバーを用意する</h3>
+        <p>
+          サーバーの役目は3つです。管理画面にデータを渡すこと、保存すること、公開ページの HTML
+          を返すことです。
+        </p>
+        <p><code>server.js</code></p>
+        <pre><code>import express from 'express';
+import { readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { renderToHtml, renderCssToHtml } from 'zerocodejs/ssr';
+
+const app = express();
+app.use(express.json({ limit: '10mb' }));
+
+const readJson = (file, fallback) =&gt;
+  existsSync(file) ? JSON.parse(readFileSync(file, 'utf8')) : fallback;
+
+// パーツ（build-parts の出力）と、保存したページを合わせて ZeroCode のデータにする
+function loadData() {
+  const { parts, css } = readJson('data/parts.json', { parts: {}, css: {} });
+  const saved = readJson('data/page.json', { page: [], images: {} });
+  return {
+    page: saved.page,
+    parts: { common: [], individual: [], special: [], ...parts },
+    css,
+    images: { common: [], individual: [], special: [], ...saved.images }
+  };
+}
+
+// 管理画面: データを渡す・保存する（本番では、ここをログインで守る）
+app.get('/api/data', (req, res) =&gt; res.json(loadData()));
+app.post('/api/save', (req, res) =&gt; {
+  const { page, images } = req.body;
+  writeFileSync('data/page.json', JSON.stringify({ page, images }, null, 2));
+  res.json({ ok: true });
+});
+
+// 公開ページ: サーバーで HTML を作る
+app.get('/', (req, res) =&gt; {
+  const data = loadData();
+  res.send(`&lt;!doctype html&gt;
+&lt;html lang="ja"&gt;
+&lt;head&gt;&lt;meta charset="utf-8"&gt;${renderCssToHtml(data.css)}&lt;/head&gt;
+&lt;body&gt;${renderToHtml(data)}&lt;/body&gt;
+&lt;/html&gt;`);
+});
+
+app.use(express.static('public'));
+app.use('/vendor/vue', express.static('node_modules/vue/dist'));
+app.use('/vendor/zerocodejs', express.static('node_modules/zerocodejs/dist'));
+
+app.listen(3000, () =&gt; console.log('http://localhost:3000'));</code></pre>
+        <div class="docs-info">
+          <p>
+            <strong>ポイント:</strong>
+            保存するのはページ（<code>page</code>）と画像だけです。パーツはファイルが正本なので、管理画面からは保存しません。データの形は<a
+              href="docs-api.html#data-structure"
+              >データ構造</a
+            >にあります。
+          </p>
+        </div>
+
+        <h3 id="tutorial-step5">5. 管理画面を作る</h3>
+        <p>
+          管理画面は、<code>&lt;zcode-cms&gt;</code>
+          を置き、データを渡し、保存の合図を受け取るだけです。
+        </p>
+        <p><code>public/admin.html</code></p>
+        <pre><code>&lt;!doctype html&gt;
+&lt;html lang="ja"&gt;
+  &lt;head&gt;
+    &lt;meta charset="utf-8" /&gt;
+    &lt;title&gt;管理画面&lt;/title&gt;
+    &lt;link rel="stylesheet" href="/vendor/zerocodejs/zerocodejs.css" /&gt;
+  &lt;/head&gt;
+  &lt;body&gt;
+    &lt;zcode-cms id="cms" locale="ja"&gt;&lt;/zcode-cms&gt;
+
+    &lt;script src="/vendor/vue/vue.global.prod.js"&gt;&lt;/script&gt;
+    &lt;script src="/vendor/zerocodejs/zerocode.umd.js"&gt;&lt;/script&gt;
+    &lt;script&gt;
+      const cms = document.getElementById('cms');
+
+      // 1. データを読み込んで渡す
+      fetch('/api/data')
+        .then((res) =&gt; res.json())
+        .then((data) =&gt; {
+          cms.setAttribute('parts-common', JSON.stringify(data.parts.common));
+          cms.setAttribute('css-common', data.css.common || '');
+          cms.setAttribute('images-special', JSON.stringify(data.images.special));
+          cms.setAttribute('page', JSON.stringify(data.page));
+        });
+
+      // 2. 保存ボタンが押されたら、データを取り出してサーバーに送る
+      cms.addEventListener('save-request', async (event) =&gt; {
+        const { requestId, targets } = event.detail;
+        const data = cms.getData();
+        const res = await fetch('/api/save', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ page: data.page, images: data.images })
+        });
+        // 3. 結果を知らせる（管理画面に「保存しました」などが出る）
+        for (const target of targets) {
+          cms.dispatchEvent(
+            new CustomEvent('save-result', {
+              detail: { requestId, target, ok: res.ok, errors: [] }
+            })
+          );
+        }
+      });
+    &lt;/script&gt;
+  &lt;/body&gt;
+&lt;/html&gt;</code></pre>
+        <p>保存のときの流れは次のとおりです。</p>
+
+        <figure class="docs-figure">
+          <svg viewBox="0 0 760 300" role="img" aria-labelledby="fig-save-title fig-save-desc">
+            <title id="fig-save-title">保存の流れ</title>
+            <desc id="fig-save-desc">
+              運営者が保存を押すと、zcode-cms が save-request を出す。あなたのコードが getData
+              でデータを取り出してサーバーに送り、結果を save-result で zcode-cms に返す。
+            </desc>
+            <g class="fig-lane">
+              <rect
+                x="20"
+                y="10"
+                width="150"
+                height="40"
+                rx="8"
+                class="fig-lane-head fig-lane-head--editor"
+              />
+              <text x="95" y="36" class="fig-title">運営者</text>
+              <line x1="95" y1="50" x2="95" y2="290" />
+            </g>
+            <g class="fig-lane">
+              <rect
+                x="210"
+                y="10"
+                width="150"
+                height="40"
+                rx="8"
+                class="fig-lane-head fig-lane-head--lib"
+              />
+              <text x="285" y="36" class="fig-title">&lt;zcode-cms&gt;</text>
+              <line x1="285" y1="50" x2="285" y2="290" />
+            </g>
+            <g class="fig-lane">
+              <rect
+                x="400"
+                y="10"
+                width="150"
+                height="40"
+                rx="8"
+                class="fig-lane-head fig-lane-head--dev"
+              />
+              <text x="475" y="36" class="fig-title">あなたのコード</text>
+              <line x1="475" y1="50" x2="475" y2="290" />
+            </g>
+            <g class="fig-lane">
+              <rect
+                x="590"
+                y="10"
+                width="150"
+                height="40"
+                rx="8"
+                class="fig-lane-head fig-lane-head--host"
+              />
+              <text x="665" y="36" class="fig-title">サーバー</text>
+              <line x1="665" y1="50" x2="665" y2="290" />
+            </g>
+
+            <line x1="95" y1="80" x2="281" y2="80" class="fig-arrow" marker-end="url(#arrow)" />
+            <text x="190" y="72" class="fig-label">① 保存を押す</text>
+            <line x1="285" y1="120" x2="471" y2="120" class="fig-arrow" marker-end="url(#arrow)" />
+            <text x="380" y="112" class="fig-label">② save-request</text>
+            <line x1="475" y1="160" x2="289" y2="160" class="fig-arrow" marker-end="url(#arrow)" />
+            <text x="380" y="152" class="fig-label">③ getData()</text>
+            <line x1="475" y1="200" x2="661" y2="200" class="fig-arrow" marker-end="url(#arrow)" />
+            <text x="570" y="192" class="fig-label">④ POST /api/save</text>
+            <line
+              x1="665"
+              y1="230"
+              x2="479"
+              y2="230"
+              class="fig-arrow fig-arrow--dash"
+              marker-end="url(#arrow)"
+            />
+            <text x="570" y="222" class="fig-label">⑤ ok</text>
+            <line x1="475" y1="270" x2="289" y2="270" class="fig-arrow" marker-end="url(#arrow)" />
+            <text x="380" y="262" class="fig-label">⑥ save-result</text>
+          </svg>
+          <figcaption>
+            図3. ZeroCode.js は自分では保存しない。<code>save-request</code>
+            を受けたら、あなたのコードが <code>getData()</code> で取り出して保存する
+          </figcaption>
+        </figure>
+
+        <div class="docs-info">
+          <p>
+            <strong>Vite などのバンドラーを使う場合:</strong>
+            <code>&lt;script&gt;</code> での読み込みの代わりに、<code
+              >import 'zerocodejs/cms';</code
+            >
+            と <code>import 'zerocodejs/style.css';</code> を書きます（<code>zerocodejs/cms</code>
+            は <code>&lt;zcode-cms&gt;</code> だけの軽い入り口です）。
+          </p>
+        </div>
+
+        <h3 id="tutorial-step6">6. 動かして確かめる</h3>
+        <pre><code>node server.js</code></pre>
+        <ol>
+          <li>
+            <a href="http://localhost:3000/admin.html">http://localhost:3000/admin.html</a>
+            を開き、「+ パーツを追加」から「見出し」を選びます。
+          </li>
+          <li>追加した見出しをクリックすると編集パネルが開くので、文字を入れます。</li>
+          <li>左下の「保存」を押します。<code>data/page.json</code> にページが保存されます。</li>
+          <li>
+            <a href="http://localhost:3000/">http://localhost:3000/</a>
+            を開くと、入力した見出しが表示されます。ページのソースを見ると、書いた HTML
+            のままで、ZeroCode.js の余計なタグが入っていないことがわかります。
+          </li>
+        </ol>
+        <p>
+          パーツの HTML を直して
+          <code>build-parts</code>
+          をやり直すと、保存済みのページにもそのまま反映されます（図1の①→②→④）。
+        </p>
+
+        <h2 id="tutorial-next">次の一歩</h2>
+        <div class="docs-cards">
+          <a class="docs-card docs-card--link" href="docs-template.html#template-syntax">
+            <div class="docs-card-title">記法をもっと知る</div>
+            <p>画像・リッチテキスト・選択肢・スロット（パーツの入れ子）など。</p>
+          </a>
+          <a class="docs-card docs-card--link" href="docs-template.html#parts-files">
+            <div class="docs-card-title">パーツをファイルで管理する</div>
+            <p>フォルダの決まりと、<code>npx zerocodejs</code> のコマンドの詳細。</p>
+          </a>
+          <a class="docs-card docs-card--link" href="docs-backend.html#save-request-image-upload">
+            <div class="docs-card-title">画像をつなぐ</div>
+            <p><code>hooks</code> で、追加した画像をその場であなたのサーバーにアップロードする。</p>
+          </a>
+          <a class="docs-card docs-card--link" href="docs.html#about-operation">
+            <div class="docs-card-title">運用を決める</div>
+            <p>誰がどのカテゴリのパーツを書くか。社内・外部の分け方の例。</p>
+          </a>
+          <a class="docs-card docs-card--link" href="docs-backend.html#security">
+            <div class="docs-card-title">本番の前に</div>
+            <p>ログインで管理画面と API を守る。サーバー側での検査。</p>
+          </a>
+          <a class="docs-card docs-card--link" href="docs.html#about-retrofit">
+            <div class="docs-card-title">既存のサイトに入れる</div>
+            <p>今あるサイトの一部から、段階的に組み込む。</p>
+          </a>
+        </div>
+        <p>
+          ここまでの内容に、ファイルを保存すると管理画面へすぐ反映する仕組み・画像のアップロード・複数ページを足したものが、リポジトリの
+          <code>examples/lp</code> です。
+        </p>
+      </main>
+    </div>
+
+    <script src="./js/docs-search-index.js"></script>
+    <script src="./js/docs.js"></script>
+
+    <!-- フッター（共通） -->
+    <div id="footer-placeholder"></div>
+
+    <!-- 共通ヘッダー・フッター読み込み -->
+    <script type="module" src="./common-header-footer.js"></script>
+  </body>
+</html>
