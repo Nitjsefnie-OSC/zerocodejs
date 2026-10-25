@@ -196,19 +196,25 @@ window.__DOCS_SEARCH_INDEX__ = [
   {
     page: 'docs-tutorial.html',
     id: 'tutorial-step4',
-    text: '4. サーバーを用意する',
+    text: '4. サーバー側の連携を書く',
     parent: '手順'
   },
   {
     page: 'docs-tutorial.html',
     id: 'tutorial-step5',
-    text: '5. 管理画面を作る',
+    text: '5. 管理画面の連携を書く',
     parent: '手順'
   },
   {
     page: 'docs-tutorial.html',
     id: 'tutorial-step6',
-    text: '6. 動かして確かめる',
+    text: '6. プロダクトにつなぐ',
+    parent: '手順'
+  },
+  {
+    page: 'docs-tutorial.html',
+    id: 'tutorial-step7',
+    text: '7. 動かして確かめる',
     parent: '手順'
   },
   {
