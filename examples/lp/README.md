@@ -40,7 +40,7 @@ parts/
 ```
 
 1. **書く**: `parts/` の `.html` を手元のエディタで編集します。このフォルダを VS Code で開くと、`.vscode/` の設定で `z-*` 属性の補完と `zc-` で始まるスニペット（`zc-text` → `{$field:default}` など）が使えます。
-2. **確かめる**: `npm run dev` の間は、ファイルを保存するたびに `data/built/` の JSON が作り直されます。公開ページ・管理画面を再読み込みすると反映されます。書き間違いはターミナルにファイル名と行番号つきで出ます（`npm run parts:check` で検査だけもできます）。
+2. **確かめる**: `npm run dev` の間は、ファイルを保存するたびに `data/built/` の JSON が作り直されます。開いている管理画面には、そのまま反映されます（編集中・未保存のページの内容は残ります）。公開ページは自動で再読み込みされます。書き間違いはターミナルにファイル名と行番号つきで出ます（`npm run parts:check` で検査だけもできます）。
 3. **ページを作る**: 運営者は管理画面（`/edit`）でパーツを並べ、文章・画像を入れて保存します。
 
 - 新しいページのパーツのフォルダ（`parts/pages/<名前>/`）を足したときは、`npm run dev` を起動し直してください。
@@ -60,6 +60,7 @@ parts/
 - `POST /api/reset` — body に `{ page? }` で該当ページを初期化
 - `POST /api/upload` — 本文に画像のファイル（`Content-Type` に画像の種類、`X-File-Name` にファイル名）。`{ ok, id, name, url }` を返す
 - `GET /api/media` — `public/uploads/` の画像の一覧（`[{ id, name, url }]`）
+- `GET /api/parts-events` — 開発時のみ。`data/built/` が変わると `parts` イベントを送る（Server-Sent Events）。管理画面はパーツと CSS を `setData` で差し替え、公開ページは再読み込みする
 
 ## 本番運用時の注意
 
