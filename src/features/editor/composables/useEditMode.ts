@@ -63,20 +63,9 @@ export function useEditMode(
     });
   }
 
-  function saveFieldEdit(field: {
-    type:
-      | 'text'
-      | 'textarea'
-      | 'radio'
-      | 'checkbox'
-      | 'rich'
-      | 'image'
-      | 'select'
-      | 'select-multiple';
-    fieldName: string;
-    currentValue: any;
-    optional?: boolean;
-  }) {
+  function saveFieldEdit(
+    field: Pick<EditPanelField, 'type' | 'fieldName' | 'currentValue' | 'optional'>
+  ) {
     if (editingComponent.value && editingComponentPath.value) {
       const component = getComponentByPath(editingComponentPath.value, cmsData);
       if (component) {

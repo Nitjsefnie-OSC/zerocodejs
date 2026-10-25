@@ -5822,7 +5822,7 @@
   overflow-y: auto;
 }
 
-.zcode-save-confirm-dialog-body p {
+.zcode-save-confirm-dialog-message {
   margin: 0 0 12px 0;
   font-size: 14px;
   color: #374151;
@@ -5834,7 +5834,7 @@
   margin: 12px 0;
 }
 
-.zcode-save-confirm-targets li {
+.zcode-save-confirm-target {
   padding: 8px 12px;
   background: #f9fafb;
   border-radius: 4px;
@@ -5843,7 +5843,7 @@
   color: #374151;
 }
 
-.zcode-save-confirm-targets li:last-child {
+.zcode-save-confirm-target:last-child {
   margin-bottom: 0;
 }
 

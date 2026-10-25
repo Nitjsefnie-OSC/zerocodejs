@@ -38,5 +38,21 @@ module.exports = {
     'no-console': ['warn', { allow: ['warn', 'error', 'debug'] }],
     '@typescript-eslint/no-var-requires': 'off',
     'no-useless-escape': 'off'
-  }
+  },
+  overrides: [
+    {
+      // テストでは、テスト用の小さなコンポーネントを1ファイルに複数定義する
+      files: ['**/*.test.ts'],
+      rules: {
+        'vue/one-component-per-file': 'off'
+      }
+    },
+    {
+      // Node で動かすスクリプトとデモのサーバーは、標準出力に結果を出す
+      files: ['scripts/**', 'examples/**/*.js', 'examples/**/*.mjs'],
+      rules: {
+        'no-console': 'off'
+      }
+    }
+  ]
 };

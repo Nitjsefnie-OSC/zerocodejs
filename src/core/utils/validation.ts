@@ -1,5 +1,5 @@
-export function validateData(data?: any): boolean {
-  const target = data;
+export function validateData(data?: unknown): boolean {
+  const target = data as { page?: Array<{ id?: unknown; part_id?: unknown }> } | undefined;
 
   // 基本的な構造チェック
   if (!target || !target.page || !Array.isArray(target.page)) return false;

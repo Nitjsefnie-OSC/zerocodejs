@@ -166,6 +166,7 @@
                   <ZoomIn :size="14" />
                 </button>
               </div>
+              <!-- eslint-disable-next-line vue/no-v-html -- 描画処理で無害化済みの HTML -->
               <div class="zcode-module-preview-content" v-html="getClickedComponentPreviewHtml()" />
             </div>
             <div class="zcode-duplicate-selected-hint">
@@ -210,10 +211,12 @@
                     <ZoomIn :size="14" />
                   </button>
                 </div>
+                <!-- eslint-disable vue/no-v-html -- 描画処理で無害化済みの HTML -->
                 <div
                   class="zcode-module-preview-content"
                   v-html="getPartPreviewHtml(typeGroup.typeData, part)"
                 />
+                <!-- eslint-enable vue/no-v-html -->
               </div>
             </div>
           </div>
@@ -248,6 +251,7 @@
               <X :size="18" />
             </button>
           </div>
+          <!-- eslint-disable vue/no-v-html -- 描画処理で無害化済みの HTML -->
           <div
             class="zcode-preview-modal-body"
             v-html="
@@ -256,6 +260,7 @@
                 : getPartPreviewHtml(previewTarget.type, previewTarget.part)
             "
           />
+          <!-- eslint-enable vue/no-v-html -->
         </div>
       </div>
     </Teleport>

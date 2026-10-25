@@ -156,10 +156,12 @@
                 </div>
                 <!-- プレビュー表示 -->
                 <div v-if="type._displayPart" class="zcode-part-preview">
+                  <!-- eslint-disable vue/no-v-html -- 描画処理で無害化済みの HTML -->
                   <div
                     class="zcode-part-preview-content"
                     v-html="getPartPreviewHtml(type, type._displayPart)"
                   />
+                  <!-- eslint-enable vue/no-v-html -->
                 </div>
               </div>
             </div>
@@ -564,11 +566,13 @@
                   </div>
                   <div class="zcode-part-editor-pane-body">
                     <template v-if="sidePaneTab === 'preview'">
+                      <!-- eslint-disable vue/no-v-html -- 描画処理で無害化済みの HTML -->
                       <div
                         class="zcode-part-editor-preview-tab"
                         @click="showPreviewModal = true"
                         v-html="displayPreviewHtml"
                       />
+                      <!-- eslint-enable vue/no-v-html -->
                       <div class="zcode-part-editor-preview-hint">
                         {{ $t('partsManager.clickToEnlarge') }}
                       </div>
@@ -707,6 +711,7 @@ import { useZeroCodeHost } from '../../../core/composables/useZeroCodeHost';
 import { zcodeTeleportTargetKey } from '../../../core/injectionKeys';
 import { useI18n } from '../../../i18n';
 import type { ZeroCodeData, TypeData, CMSConfig, ComponentData } from '../../../types';
+import { usePartCssDraft } from '../composables/usePartCssDraft';
 import { usePartsManager } from '../composables/usePartsManager';
 import { getAvailableFieldsFromPart } from '../../../core/utils/edit-panel-fields';
 import { findFirstComponentWithPartId } from '../../../core/utils/path-utils';
@@ -751,74 +756,6 @@ const dontShowCssWarningAgainParts = ref(getCssWarningPartsSetting());
 const codeTab = ref<'html' | 'css' | 'slots'>('html');
 const sidePaneTab = ref<'preview' | 'editPanel' | 'imageRef'>('preview');
 const htmlTextareaRef = ref<InstanceType<typeof CodeTextarea> | null>(null);
-const cssDraft = ref('');
-const cssDraftInitial = ref('');
-
-const MODAL_PREVIEW_CSS_STYLE_IDS = {
-  common: 'zcode-css-style-parts-manager-preview-common',
-  individual: 'zcode-css-style-parts-manager-preview-individual',
-  special: 'zcode-css-style-parts-manager-preview-special'
-};
-const modalPreviewCssStyleEls: Map<string, HTMLStyleElement> = new Map();
-
-// 現在のカテゴリのCSSを取得
-const currentCSS = computed(() => {
-  if (activeCategory.value === 'common') return props.cmsData.css?.common ?? '';
-  if (activeCategory.value === 'individual') return props.cmsData.css?.individual ?? '';
-  return props.cmsData.css?.special ?? '';
-});
-
-function applyModalPreviewPageCSS(cssMap: {
-  common?: string;
-  individual?: string;
-  special?: string;
-}) {
-  // 順序: common → individual → special
-  const order = ['common', 'individual', 'special'] as const;
-  order.forEach((category) => {
-    const css = cssMap[category];
-    if (!css || !css.trim()) {
-      const el = modalPreviewCssStyleEls.get(category);
-      if (el) {
-        el.remove();
-        modalPreviewCssStyleEls.delete(category);
-      }
-      return;
-    }
-
-    let styleElement = modalPreviewCssStyleEls.get(category);
-    if (!styleElement) {
-      styleElement = document.createElement('style');
-      styleElement.id = MODAL_PREVIEW_CSS_STYLE_IDS[category];
-      styleElement.setAttribute('data-zcode-css', 'true');
-      styleElement.setAttribute('data-zcode-css-parts-preview', 'true');
-      styleElement.setAttribute('data-zcode-css-category', category);
-      if (!styleElement.parentNode) {
-        const host = zcodeTeleportTarget?.value;
-        if (host) {
-          const root = host.getRootNode();
-          if (root instanceof ShadowRoot) {
-            root.appendChild(styleElement);
-          } else {
-            document.head.appendChild(styleElement);
-          }
-        } else {
-          document.head.appendChild(styleElement);
-        }
-      }
-      modalPreviewCssStyleEls.set(category, styleElement);
-    }
-
-    styleElement.textContent = css;
-  });
-}
-
-function cleanupModalPreviewPageCSS() {
-  modalPreviewCssStyleEls.forEach((el) => {
-    el.remove();
-  });
-  modalPreviewCssStyleEls.clear();
-}
 
 function openTemplateHelp() {
   showTemplateHelp.value = true;
@@ -902,6 +839,7 @@ const host = useZeroCodeHost();
 const {
   // 非表示カテゴリ
   isActiveCategoryFileManaged,
+  setActiveCategoryCss,
 
   // 並べ替え
   reorderSourcePart,
@@ -1044,13 +982,11 @@ if (props.fixedCategory) {
 }
 
 const isPartEditModalOpen = computed(() => {
-  const level = (editingLevel as any)?.value ?? editingLevel;
-  return level === 'part' && !!editingPart.value;
+  return editingLevel.value === 'part' && !!editingPart.value;
 });
 
 const isTypeEditModalOpen = computed(() => {
-  const level = (editingLevel as any)?.value ?? editingLevel;
-  return !!editingType.value && (level === 'type' || isCreatingNew.value);
+  return !!editingType.value && (editingLevel.value === 'type' || isCreatingNew.value);
 });
 
 const typeEditModalRef = ref<HTMLElement | null>(null);
@@ -1073,95 +1009,30 @@ useModalA11y(
   partEditModalRef
 );
 
-watch(
-  () => isPartEditModalOpen.value,
-  (isOpen) => {
-    if (!isOpen) {
-      cleanupModalPreviewPageCSS();
-      return;
-    }
-    nextTick(() => {
-      const current = currentCSS.value;
-      cssDraftInitial.value = current;
-      cssDraft.value = current;
-      // モーダルプレビューでは3つのCSSをすべて適用
-      applyModalPreviewPageCSS({
-        common: props.cmsData.css?.common,
-        individual: props.cmsData.css?.individual,
-        special: props.cmsData.css?.special
-      });
-    });
-  },
-  { immediate: true }
-);
-
-// ファイルで管理するカテゴリは、開いている間に元の CSS が差し替えられたら追従する
-watch(
-  () => currentCSS.value,
-  (css) => {
-    if (!isPartEditModalOpen.value || !isActiveCategoryFileManaged.value) return;
-    cssDraftInitial.value = css;
-    cssDraft.value = css;
-  }
-);
-
-// activeCategoryが変更されたときにCSSを更新
-watch(
-  () => activeCategory.value,
-  () => {
-    if (isPartEditModalOpen.value) {
-      nextTick(() => {
-        const current = currentCSS.value;
-        cssDraftInitial.value = current;
-        cssDraft.value = current;
-      });
-    }
-  }
-);
-
-watch(
-  [() => cssDraft.value, () => isPartEditModalOpen.value, () => activeCategory.value],
-  ([css, isOpen, category]) => {
-    if (!isOpen) return;
-    nextTick(() => {
-      // 現在のカテゴリのCSSのみを更新し、他のカテゴリのCSSは保持
-      const cssMap = {
-        common: props.cmsData.css?.common,
-        individual: props.cmsData.css?.individual,
-        special: props.cmsData.css?.special
-      };
-      if (category === 'common') {
-        cssMap.common = css ?? '';
-      } else if (category === 'individual') {
-        cssMap.individual = css ?? '';
-      } else {
-        cssMap.special = css ?? '';
-      }
-      applyModalPreviewPageCSS(cssMap);
-    });
-  }
-);
+const { cssDraft, isCssDirty, markDraftSaved, discardDraft } = usePartCssDraft({
+  cmsData: () => props.cmsData,
+  activeCategory,
+  isOpen: isPartEditModalOpen,
+  isFileManaged: isActiveCategoryFileManaged,
+  teleportTarget: zcodeTeleportTarget
+});
 
 async function handleSavePart() {
   await savePartInternal();
-  if (!editingPart.value && props.cmsData.css) {
-    if (activeCategory.value === 'common') {
-      props.cmsData.css.common = cssDraft.value;
-    } else if (activeCategory.value === 'individual') {
-      props.cmsData.css.individual = cssDraft.value;
-    } else {
-      props.cmsData.css.special = cssDraft.value;
-    }
-    cssDraftInitial.value = cssDraft.value;
+  if (!editingPart.value) {
+    setActiveCategoryCss(cssDraft.value);
+    markDraftSaved();
   }
 }
 
 function handleCancelPart() {
-  if (isPartDirty.value && !confirm(t('partsManager.discardPartChangesConfirm'))) {
+  if (
+    (isPartDirty.value || isCssDirty.value) &&
+    !confirm(t('partsManager.discardPartChangesConfirm'))
+  ) {
     return;
   }
-  cssDraft.value = cssDraftInitial.value;
-  cleanupModalPreviewPageCSS();
+  discardDraft();
   showPreviewModal.value = false;
   cancelEditingPart();
 }
@@ -1171,7 +1042,6 @@ onBeforeUnmount(() => {
     clearTimeout(previewDebounceTimer);
     previewDebounceTimer = null;
   }
-  cleanupModalPreviewPageCSS();
 });
 
 watch(

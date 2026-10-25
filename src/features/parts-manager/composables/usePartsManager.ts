@@ -110,7 +110,7 @@ export function usePartsManager(cmsData: ZeroCodeData, options?: PartsManagerOpt
     return currentTypes.value.find((t) => t.type === type) || null;
   }
 
-  function getPartSlots(partIndex: number): Record<string, any> | null {
+  function getPartSlots(partIndex: number): NonNullable<PartData['slots']> | null {
     if (editingPart.value && editingPart.value.partIndex === partIndex) {
       return editingPart.value.part.slots || null;
     }
@@ -120,7 +120,7 @@ export function usePartsManager(cmsData: ZeroCodeData, options?: PartsManagerOpt
   function updatePartSlots(
     partIndex: number,
     slotName: string,
-    updater: (slots: Record<string, any>) => void
+    updater: (slots: NonNullable<PartData['slots']>) => void
   ): boolean {
     void slotName;
     if (editingPart.value && editingPart.value.partIndex === partIndex) {
@@ -137,8 +137,8 @@ export function usePartsManager(cmsData: ZeroCodeData, options?: PartsManagerOpt
 
   function createDefaultFieldValues(
     fieldInfos: ReturnType<typeof extractFieldsFromTemplate>
-  ): Record<string, any> {
-    const defaults: Record<string, any> = {};
+  ): Record<string, unknown> {
+    const defaults: Record<string, unknown> = {};
 
     fieldInfos.forEach((field) => {
       if (field.optional) {
@@ -217,6 +217,11 @@ export function usePartsManager(cmsData: ZeroCodeData, options?: PartsManagerOpt
     editingLevel.value = 'type';
     isCreatingNew.value = false;
     selectedType.value = type;
+  }
+
+  function setActiveCategoryCss(css: string) {
+    if (isActiveCategoryFileManaged.value) return;
+    cmsData.css[activeCategory.value] = css;
   }
 
   // ファイルで管理するカテゴリは編集できないため、開いているパーツも元のデータの更新
@@ -914,6 +919,7 @@ export function usePartsManager(cmsData: ZeroCodeData, options?: PartsManagerOpt
   return {
     // ファイルで管理するカテゴリ
     isActiveCategoryFileManaged,
+    setActiveCategoryCss,
 
     // 並べ替え
     reorderSourcePart,

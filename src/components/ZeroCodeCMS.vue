@@ -9,7 +9,7 @@
     }"
   >
     <Toolbar
-      v-if="!hideToolbar"
+      v-if="!embedded"
       :current-mode="currentMode"
       :view-mode="viewMode"
       :allow-dynamic-content-interaction="allowDynamicContentInteraction"
@@ -35,9 +35,9 @@
       </button>
     </div>
 
-    <!-- 保存ボタン（左下固定、管理モードの時のみ表示。Studio 等で親に委譲する場合は非表示） -->
-    <div v-if="viewMode === 'manage' && !hideFixedSaveButton" class="zcode-save-controls-fixed">
-      <button class="zcode-save-btn" :aria-label="$t('common.save')" @click="handleSave">
+    <!-- 保存ボタン（左下固定、管理モードの時のみ表示。Editor / Studio の中では外側が出す） -->
+    <div v-if="viewMode === 'manage' && !embedded" class="zcode-save-controls-fixed">
+      <button class="zcode-save-btn" :aria-label="$t('common.save')" @click="requestSave">
         <Save :size="16" aria-hidden="true" />
         <span>{{ $t('common.save') }}</span>
       </button>
@@ -170,49 +170,15 @@
       @close="closeContextMenu"
     />
 
-    <!-- 保存確認ダイアログ -->
-    <div
-      v-if="showSaveConfirmDialog"
-      class="zcode-save-confirm-dialog-overlay"
-      @click.self="cancelSave"
-    >
-      <div ref="saveConfirmDialogRef" class="zcode-save-confirm-dialog">
-        <div class="zcode-save-confirm-dialog-header">
-          <div class="zcode-save-confirm-dialog-title">
-            {{ $t('saveConfirm.title') }}
-          </div>
-        </div>
-        <div class="zcode-save-confirm-dialog-body">
-          <p>{{ $t('saveConfirm.simpleMessage') }}</p>
-        </div>
-        <div class="zcode-save-confirm-dialog-footer">
-          <button class="zcode-btn-secondary" @click="cancelSave">
-            {{ $t('common.cancel') }}
-          </button>
-          <button class="zcode-btn-primary" @click="confirmSave">
-            {{ $t('saveConfirm.saveButton') }}
-          </button>
-        </div>
-      </div>
-    </div>
+    <SaveConfirmDialog :show="showSaveConfirmDialog" @confirm="confirmSave" @cancel="cancelSave" />
 
     <!-- Teleport 用（Shadow DOM 内にモーダル向け。Editor 埋め込み時は provide なし） -->
-    <div v-if="!skipTeleportTargetProvide" ref="teleportTargetRef" class="zcode-teleport-root" />
+    <div v-if="!embedded" ref="teleportTargetRef" class="zcode-teleport-root" />
   </div>
 </template>
 
 <script setup lang="ts">
-import {
-  ref,
-  computed,
-  onMounted,
-  onUnmounted,
-  watch,
-  nextTick,
-  getCurrentInstance,
-  provide,
-  type Ref
-} from 'vue';
+import { ref, computed, onMounted, onUnmounted, watch, nextTick, provide, type Ref } from 'vue';
 import { zcodeRichTextConfigKey, zcodeTeleportTargetKey } from '../core/injectionKeys';
 import { resolveRichTextConfig } from '../features/editor/rich-text/features';
 import { Save } from '../core/icons';
@@ -226,7 +192,11 @@ import ReorderPanel from '../features/reorder/components/ReorderPanel.vue';
 import AddPanel from '../features/add/components/AddPanel.vue';
 import ContextMenu from '../features/editor/components/ContextMenu.vue';
 import { useZeroCodeData } from '../core/composables/useZeroCodeData';
-import { useModalA11y } from '../core/composables/useModalA11y';
+import { useHostEvents } from '../core/composables/useHostEvents';
+import { useSaveResult } from '../features/editor/composables/useSaveResult';
+import { useSaveRequest } from '../features/editor/composables/useSaveRequest';
+import { useCmsSettings } from '../features/editor/composables/useCmsSettings';
+import SaveConfirmDialog from '../features/editor/components/SaveConfirmDialog.vue';
 import { useZeroCodeRenderer } from '../core/composables/useZeroCodeRenderer';
 import { useEditorMode, type EditorMode } from '../features/editor/composables/useEditorMode';
 import { useEditMode } from '../features/editor/composables/useEditMode';
@@ -249,108 +219,50 @@ import { validateData as validateDataUtil } from '../core/utils/validation';
 import { saveCMSSettings } from '../core/utils/storage';
 import {
   resolveCmsSettingDefault,
-  resolveCmsSettingsDefaultsAfterClear,
   TOOLBAR_CMS_SETTING_KEYS,
   ADD_PANEL_CMS_SETTING_KEYS,
   REORDER_PANEL_CMS_SETTING_KEYS
 } from '../core/utils/cms-settings-reset';
-import { logger } from '../core/utils/logger';
-import { useI18n } from '../i18n';
-import type { CMSConfig, CMSSettings, ZeroCodeHooks } from '../types';
+import { parseConfig } from '../core/utils/config';
+import { PAGE_SAVE_TARGETS } from '../core/utils/save-targets';
+import type { CMSConfig } from '../types';
+import type { ZeroCodeDataProps } from './props';
 import { provideZeroCodeHost } from '../core/composables/useZeroCodeHost';
 
-const { t } = useI18n();
-
-const props = defineProps<{
-  locale?: string;
-  page?: string;
-  /** 専用画像のページスコープ用 ID（記事 ID など）。ホストが `<zcode-cms page-id="...">` で渡す */
-  pageId?: string;
-  cssCommon?: string;
-  cssIndividual?: string;
-  cssSpecial?: string;
-  partsCommon?: string;
-  partsIndividual?: string;
-  partsSpecial?: string;
-  imagesCommon?: string;
-  imagesIndividual?: string;
-  imagesSpecial?: string;
-  config?: string;
-  endpoints?: string;
-  backendData?: string;
-  /** true のとき固定保存ボタンを出さない（親が save-request を送る） */
-  hideFixedSaveButton?: boolean;
-  /** save-request の detail.source（埋め込み先が studio のときは 'studio'） */
-  saveRequestSource?: 'cms' | 'studio';
-  /**
-   * true のとき Teleport 用の provide / マウント点を出さない（ZeroCodeEditor / Studio が上位で提供する場合）
-   */
-  skipTeleportTargetProvide?: boolean;
-  /** true のとき内蔵ツールバーを出さない（ZeroCodeEditor / Studio が外側で表示する場合） */
-  hideToolbar?: boolean;
-  /** ホストの関数（画像のアップロードなど）。Web Component では要素の hooks プロパティ */
-  hooks?: ZeroCodeHooks;
-}>();
-
-const hideToolbar = computed(() => props.hideToolbar === true);
-
-const skipTeleportTargetProvide = computed(() => props.skipTeleportTargetProvide === true);
+const props = defineProps<
+  ZeroCodeDataProps & {
+    /** ZeroCodeEditor / Studio の中で使う（ツールバー・保存ボタン・Teleport 先は外側が出す） */
+    embedded?: boolean;
+  }
+>();
 
 const teleportTargetRef = ref<HTMLElement | null>(null);
-if (props.skipTeleportTargetProvide !== true) {
+if (!props.embedded) {
   provide(zcodeTeleportTargetKey, teleportTargetRef);
 }
 
 const viewMode = ref<'preview' | 'manage'>('manage');
 const settingsPanelOpen = ref(false);
 
-// configをパース
-const parseConfig = (configString?: string): Partial<CMSConfig> => {
-  if (!configString) return {};
-  try {
-    return JSON.parse(configString);
-  } catch (e) {
-    logger.warn('ZeroCodeCMS: Failed to parse config:', e);
-    return {};
-  }
-};
-
-const config = parseConfig(props.config);
+const config: Partial<CMSConfig> = parseConfig(props.config, 'ZeroCodeCMS');
 provide(zcodeRichTextConfigKey, resolveRichTextConfig(config.richText));
-provideZeroCodeHost({
-  source: props.saveRequestSource ?? 'cms',
+const host = provideZeroCodeHost({
+  source: 'cms',
   hooks: () => props.hooks,
   images: config.images
 });
 
-/** ページ保存時はページ本体に加え、専用画像プール（images-special）もホストが永続化できるよう含める */
-const saveTargets = ['page', 'images-special'];
-
-const hideFixedSaveButton = computed(() => props.hideFixedSaveButton === true);
-const saveRequestSource = computed(() => props.saveRequestSource ?? 'cms');
-
-// 初期値の読み込み（優先順位: localStorage > config.cms > コードデフォルト）
-const getInitialCMSValue = <K extends keyof CMSSettings>(key: K): NonNullable<CMSSettings[K]> =>
-  resolveCmsSettingDefault(key, config);
-
-// 設定の初期化（デフォルト ON: showSaveConfirm, scrollIntoViewOnPartEdit, showPartDiscoveryOutlines）
-const devRightPadding = ref(getInitialCMSValue('devRightPadding'));
-const enableContextMenu = ref(getInitialCMSValue('enableContextMenu'));
-const showSaveConfirm = ref(getInitialCMSValue('showSaveConfirm'));
-const scrollIntoViewOnPartEdit = ref(getInitialCMSValue('scrollIntoViewOnPartEdit'));
-const showPartDiscoveryOutlines = ref(getInitialCMSValue('showPartDiscoveryOutlines'));
-const showAddBetweenButtons = ref(getInitialCMSValue('showAddBetweenButtons'));
-const showReorderStructureLabels = ref(getInitialCMSValue('showReorderStructureLabels'));
+const {
+  devRightPadding,
+  enableContextMenu,
+  showSaveConfirm,
+  scrollIntoViewOnPartEdit,
+  showPartDiscoveryOutlines,
+  showAddBetweenButtons,
+  showReorderStructureLabels,
+  resetSettings
+} = useCmsSettings(config);
 const devRightPaddingValue = computed(() => devRightPadding.value);
-
-// 保存確認ダイアログの状態
-const showSaveConfirmDialog = ref(false);
-const saveConfirmDialogRef = ref<HTMLElement | null>(null);
-useModalA11y(
-  () => showSaveConfirmDialog.value,
-  () => cancelSave(),
-  saveConfirmDialogRef
-);
 
 const { cmsData, loadDataFromProps, getData: getDataBase, setData } = useZeroCodeData(props);
 const { fullPageHtml, renderComponentPreviewHtml } = useZeroCodeRenderer(cmsData, true);
@@ -368,6 +280,7 @@ function getData(path?: string) {
 }
 
 const containerRef = ref<HTMLElement | null>(null);
+const { getHostElement, dispatchEvent } = useHostEvents(containerRef);
 const previewAreaRef = ref<InstanceType<typeof PreviewArea> | null>(null);
 const previewArea = computed(() => {
   const exposed = previewAreaRef.value?.previewArea;
@@ -388,7 +301,10 @@ const {
 } = useEditorMode();
 
 // localStorageからallowDynamicContentInteractionを読み込み（デフォルトはfalse）
-const savedAllowDynamicContentInteraction = getInitialCMSValue('allowDynamicContentInteraction');
+const savedAllowDynamicContentInteraction = resolveCmsSettingDefault(
+  'allowDynamicContentInteraction',
+  config
+);
 const allowDynamicContentInteraction = ref(savedAllowDynamicContentInteraction);
 allowDynamicContentInteractionBase.value = savedAllowDynamicContentInteraction;
 
@@ -432,28 +348,15 @@ const {
 
 addModeActions.handleEditClick = handleEditClick;
 
-const fieldErrors = ref<Record<string, string>>({});
-
-type SaveResultError = { path?: string; field?: string; message?: string; code?: string };
-const lastSaveResultErrors = ref<SaveResultError[]>([]);
-const saveErrorBanner = ref<{
-  visible: boolean;
-  message: string;
-  requestId?: string;
-  target?: string;
-}>({
-  visible: false,
-  message: ''
-});
+const { fieldErrors, saveErrorBanner, clearFieldError } = useSaveResult(
+  getHostElement,
+  editingComponentPath
+);
 
 type EditableField = Parameters<typeof saveFieldEdit>[0];
 
 function handleSaveFieldEdit(field: EditableField) {
-  if (field?.fieldName && fieldErrors.value[field.fieldName]) {
-    const next = { ...fieldErrors.value };
-    delete next[field.fieldName];
-    fieldErrors.value = next;
-  }
+  if (field?.fieldName) clearFieldError(field.fieldName);
   saveFieldEdit(field);
 }
 
@@ -757,153 +660,6 @@ const {
   cleanupContextMenu
 } = useContextMenu(previewArea, enableContextMenu, switchMode);
 
-function dispatchEvent(eventName: string, detail: unknown) {
-  const hostElement = getHostElement();
-  if (hostElement) {
-    const event = new CustomEvent(eventName, {
-      detail,
-      bubbles: true,
-      composed: true
-    });
-    hostElement.dispatchEvent(event);
-    return;
-  }
-
-  const event = new CustomEvent(eventName, {
-    detail,
-    bubbles: true,
-    composed: true
-  });
-  if (typeof window !== 'undefined') {
-    window.dispatchEvent(event);
-  }
-}
-
-function createRequestId() {
-  return `req-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-}
-
-function getHostElement(): HTMLElement | null {
-  // コンテナ要素から取得を試みる
-  if (containerRef.value) {
-    const root = containerRef.value.getRootNode();
-    if (root instanceof ShadowRoot && root.host) {
-      return root.host as HTMLElement;
-    }
-    // Light DOM の場合
-    const host =
-      containerRef.value.closest?.('zcode-cms') ||
-      containerRef.value.closest?.('zcode-editor') ||
-      containerRef.value.closest?.('zcode-studio');
-    if (host) {
-      return host as HTMLElement;
-    }
-  }
-
-  // フォールバック: getCurrentInstance から取得
-  const instance = getCurrentInstance();
-  if (instance) {
-    const el = instance.vnode.el;
-
-    if (el instanceof HTMLElement) {
-      const root = el.getRootNode();
-      if (root instanceof ShadowRoot && root.host) {
-        return root.host as HTMLElement;
-      }
-      const host =
-        el.closest?.('zcode-cms') || el.closest?.('zcode-editor') || el.closest?.('zcode-studio');
-      if (host) {
-        return host as HTMLElement;
-      }
-      return null;
-    }
-
-    if (el instanceof Node) {
-      const root = el.getRootNode();
-      if (root instanceof ShadowRoot && root.host) {
-        return root.host as HTMLElement;
-      }
-    }
-  }
-
-  return null;
-}
-
-type SaveResultDetail = {
-  requestId?: string;
-  target?: string;
-  ok?: boolean;
-  errors?: unknown;
-};
-
-function isObject(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null;
-}
-
-function parseSaveResultErrors(input: unknown): SaveResultError[] {
-  if (!Array.isArray(input)) return [];
-  return input
-    .filter((e): e is Record<string, unknown> => isObject(e))
-    .map((e) => ({
-      path: typeof e.path === 'string' ? e.path : undefined,
-      field: typeof e.field === 'string' ? e.field : undefined,
-      message: typeof e.message === 'string' ? e.message : undefined,
-      code: typeof e.code === 'string' ? e.code : undefined
-    }));
-}
-
-function applyFieldErrorsForPath(path: string | null) {
-  if (!path) {
-    fieldErrors.value = {};
-    return;
-  }
-  const next: Record<string, string> = {};
-  for (const err of lastSaveResultErrors.value) {
-    const errPath = typeof err?.path === 'string' ? err.path : null;
-    const field = typeof err?.field === 'string' ? err.field : null;
-    const message = typeof err?.message === 'string' ? err.message : null;
-    if (!field || !message) continue;
-    if (errPath && errPath !== path) continue;
-    next[field] = message;
-  }
-  fieldErrors.value = next;
-}
-
-function handleSaveResult(e: Event) {
-  const detail = (e as CustomEvent<unknown>).detail;
-  if (!isObject(detail)) return;
-
-  const d = detail as SaveResultDetail;
-
-  if (d.ok === true) {
-    saveErrorBanner.value.visible = false;
-    saveErrorBanner.value.message = '';
-    lastSaveResultErrors.value = [];
-    fieldErrors.value = {};
-    return;
-  }
-
-  if (d.ok !== false) {
-    return;
-  }
-
-  const errors = parseSaveResultErrors(d.errors);
-  lastSaveResultErrors.value = errors;
-
-  const count = errors.length;
-  const firstMessage =
-    typeof errors[0]?.message === 'string' && errors[0].message ? errors[0].message : null;
-
-  saveErrorBanner.value.visible = true;
-  saveErrorBanner.value.requestId = typeof d.requestId === 'string' ? d.requestId : undefined;
-  saveErrorBanner.value.target = typeof d.target === 'string' ? d.target : undefined;
-  saveErrorBanner.value.message = firstMessage
-    ? t('editor.saveFailedWithMessage', { count, message: firstMessage })
-    : t('editor.saveFailedWithCount', { count });
-
-  applyFieldErrorsForPath(editingComponentPath.value || null);
-}
-
 onMounted(() => {
   loadDataFromProps();
 
@@ -916,28 +672,12 @@ onMounted(() => {
     updateShadowDOMAllowDynamicContentInteraction();
     dispatchEvent('zcode-dom-updated', {});
   });
-
-  const host = getHostElement();
-  if (host) {
-    host.addEventListener('save-result', handleSaveResult);
-  }
 });
 
 onUnmounted(() => {
   cleanupEventListeners();
   cleanupContextMenu();
-  const host = getHostElement();
-  if (host) {
-    host.removeEventListener('save-result', handleSaveResult);
-  }
 });
-
-watch(
-  () => editingComponentPath.value,
-  (path) => {
-    applyFieldErrorsForPath(path || null);
-  }
-);
 
 watch(
   [
@@ -1021,11 +761,6 @@ watch([editingComponentPath, addTargetPath, deleteConfirmPath, showPartDiscovery
   });
 });
 
-// devRightPaddingの変更をlocalStorageに保存
-watch(devRightPadding, (newValue) => {
-  saveCMSSettings({ devRightPadding: newValue });
-});
-
 watch(allowDynamicContentInteraction, (newValue) => {
   // manageモードの時のみlocalStorageに保存（previewモードでは保存しない）
   if (viewMode.value === 'manage') {
@@ -1042,7 +777,6 @@ watch(allowDynamicContentInteraction, (newValue) => {
 });
 
 watch(enableContextMenu, (newValue) => {
-  saveCMSSettings({ enableContextMenu: newValue });
   if (newValue) {
     nextTick(() => {
       setupContextMenu();
@@ -1052,38 +786,20 @@ watch(enableContextMenu, (newValue) => {
   }
 });
 
-watch(showSaveConfirm, (newValue) => {
-  saveCMSSettings({ showSaveConfirm: newValue });
-});
-
-watch(scrollIntoViewOnPartEdit, (newValue) => {
-  saveCMSSettings({ scrollIntoViewOnPartEdit: newValue });
-});
-
-watch(showPartDiscoveryOutlines, (newValue) => {
-  saveCMSSettings({ showPartDiscoveryOutlines: newValue });
+watch(showPartDiscoveryOutlines, () => {
   nextTick(() => {
     syncManageOutlines();
   });
 });
 
-watch(showAddBetweenButtons, (newValue) => {
-  saveCMSSettings({ showAddBetweenButtons: newValue });
-});
-
-watch(showReorderStructureLabels, (newValue) => {
-  saveCMSSettings({ showReorderStructureLabels: newValue });
+watch(showReorderStructureLabels, () => {
   nextTick(() => {
     syncStructureLabels();
   });
 });
 
 function resetToolbarSettings() {
-  const defaults = resolveCmsSettingsDefaultsAfterClear(TOOLBAR_CMS_SETTING_KEYS, config);
-  devRightPadding.value = defaults.devRightPadding!;
-  enableContextMenu.value = defaults.enableContextMenu!;
-  showPartDiscoveryOutlines.value = defaults.showPartDiscoveryOutlines!;
-  scrollIntoViewOnPartEdit.value = defaults.scrollIntoViewOnPartEdit!;
+  const defaults = resetSettings(TOOLBAR_CMS_SETTING_KEYS);
   allowDynamicContentInteraction.value = defaults.allowDynamicContentInteraction!;
   savedAllowDynamicContentInteractionForPreview = defaults.allowDynamicContentInteraction!;
 }
@@ -1091,53 +807,23 @@ function resetToolbarSettings() {
 function resetAddPanelOptions() {
   setAddInsertBeforeUserOption(false);
   editAfterAdd.value = false;
-  const defaults = resolveCmsSettingsDefaultsAfterClear(ADD_PANEL_CMS_SETTING_KEYS, config);
-  showAddBetweenButtons.value = defaults.showAddBetweenButtons!;
+  resetSettings(ADD_PANEL_CMS_SETTING_KEYS);
 }
 
 function resetReorderPanelOptions() {
-  const defaults = resolveCmsSettingsDefaultsAfterClear(REORDER_PANEL_CMS_SETTING_KEYS, config);
-  showReorderStructureLabels.value = defaults.showReorderStructureLabels!;
+  resetSettings(REORDER_PANEL_CMS_SETTING_KEYS);
 }
 
 function resetDeletePanelOptions() {
   continueDeleteAfter.value = false;
 }
 
-// 保存ボタンクリック時の処理
-function handleSave() {
-  // 設定を確認
-  if (!showSaveConfirm.value) {
-    // 確認をスキップして直接保存
-    executeSave();
-    return;
-  }
-
-  // 確認ダイアログを表示
-  showSaveConfirmDialog.value = true;
-}
-
-// 保存を実行する関数
-function executeSave() {
-  const requestId = createRequestId();
-  dispatchEvent('save-request', {
-    requestId,
-    source: saveRequestSource.value,
-    targets: saveTargets,
-    timestamp: Date.now()
-  });
-}
-
-// 保存確認ダイアログで保存を確認した場合
-function confirmSave() {
-  showSaveConfirmDialog.value = false;
-  executeSave();
-}
-
-// 保存確認ダイアログでキャンセルした場合
-function cancelSave() {
-  showSaveConfirmDialog.value = false;
-}
+const { showSaveConfirmDialog, requestSave, confirmSave, cancelSave } = useSaveRequest({
+  source: () => host.source,
+  getTargets: () => PAGE_SAVE_TARGETS,
+  showConfirm: showSaveConfirm,
+  dispatchEvent
+});
 
 defineExpose({
   getData,

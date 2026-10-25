@@ -103,7 +103,7 @@ export function useDeleteMode(
         return;
       }
 
-      let current: any = cmsData.page[topIndex];
+      let current: unknown = cmsData.page[topIndex];
       const fieldPath = pathParts.slice(2);
 
       if (fieldPath.length >= 3 && fieldPath[0] === 'slots') {
@@ -117,7 +117,7 @@ export function useDeleteMode(
           clearDeleteSelection();
           return;
         }
-        current = current[fieldPath[i]];
+        current = (current as Record<string, unknown>)[fieldPath[i]];
       }
 
       const lastField = fieldPath[fieldPath.length - 1];
@@ -130,7 +130,7 @@ export function useDeleteMode(
             logger.error('Invalid array index:', lastField);
           }
         } else if (lastField in current) {
-          delete current[lastField];
+          delete (current as Record<string, unknown>)[lastField];
         } else {
           logger.error('Field not found:', path);
         }
@@ -221,7 +221,7 @@ export function useDeleteMode(
     }
 
     const fieldInfos = extractFieldsFromTemplate(part.body);
-    const defaults: Record<string, any> = {};
+    const defaults: Record<string, unknown> = {};
 
     fieldInfos.forEach((field) => {
       if (field.optional) {

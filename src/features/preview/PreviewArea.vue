@@ -1,6 +1,7 @@
 <template>
   <div ref="previewArea">
     <!-- 完全リアクティブなHTMLレンダリング（ラッパーなし） -->
+    <!-- eslint-disable-next-line vue/no-v-html -- 描画処理で無害化済みの HTML -->
     <div ref="htmlContainer" v-html="fullPageHtml" />
 
     <!-- パーツが空の場合（編集機能がある場合のみ表示） -->

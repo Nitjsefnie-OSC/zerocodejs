@@ -835,12 +835,12 @@ export function useClickHandlers(
   function cleanupEventListeners() {
     eventListeners.forEach((listeners, element) => {
       listeners.forEach(({ type, listener, options }) => {
-        element.removeEventListener(type, listener, options as any);
+        element.removeEventListener(type, listener, options);
       });
     });
     eventListeners.clear();
     documentListeners.forEach(({ type, listener, options }) => {
-      document.removeEventListener(type, listener, options as any);
+      document.removeEventListener(type, listener, options);
     });
     documentListeners.length = 0;
     reorderPreviewDragState = null;
