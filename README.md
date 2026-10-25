@@ -34,6 +34,8 @@ ZeroCode.js is an embeddable CMS library for existing web services. Authenticati
 
 ## Quick Start
 
+ZeroCode.js lets you add an editing UI to an existing page with Web Components: put the tag on a page and its content becomes editable right in the browser. The CDN sample below is all it takes to start editing — no build step.
+
 ### CDN (Easiest)
 
 ```html
