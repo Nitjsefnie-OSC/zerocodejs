@@ -77,9 +77,8 @@ export interface CMSSettings {
   showReorderStructureLabels?: boolean;
 }
 
+/** zcode-editor / zcode-studio の設定 */
 export interface DevSettings {
-  showDataViewer?: boolean;
-  dontShowCssWarningAgainCommon?: boolean;
   showSaveConfirm?: boolean; // 保存時の確認ダイアログを表示する（デフォルト: true）
 }
 
@@ -89,14 +88,15 @@ export interface UserSettings {
   dev?: DevSettings;
 }
 
-export interface StudioSettings {
-  showSaveConfirm?: boolean;
-  sanitizePartTemplate?: boolean;
+/** パーツ管理（zcode-editor / zcode-studio）の設定 */
+export interface PartsSettings {
+  /** パーツを保存する前にテンプレートを無害化する（sanitizePartTemplate。デフォルト: false） */
+  sanitizeTemplate?: boolean;
   /**
    * パーツの定義をファイル（プロダクトのリポジトリ）で管理するカテゴリ。
    * パーツ管理では一覧・プレビュー・パーツの内容を表示するだけで、追加・保存・削除・並べ替えはできない。
    */
-  fileManagedCategories?: Array<'common' | 'individual' | 'special'>;
+  fileManagedCategories?: ImageCategory[];
 }
 
 export interface RichTextSettings {
@@ -120,7 +120,7 @@ export interface ImageUploadSettings {
 export interface CMSConfig {
   cms?: CMSSettings;
   dev?: DevSettings;
-  studio?: StudioSettings;
+  parts?: PartsSettings;
   richText?: RichTextSettings;
   images?: ImageUploadSettings;
   categoryOrder?: 'common' | 'individual' | 'special';

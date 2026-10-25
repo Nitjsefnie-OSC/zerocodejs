@@ -270,7 +270,7 @@ interface ImageData {
 - `css-individual`: 個別パーツ用CSS（文字列、読み取り専用）
 - `css-special`: 専用パーツ用CSS（文字列、**編集可能**）
 - `backend-data`: バックエンドデータ（JSON文字列）
-- `config`: 初期設定データ（JSON文字列）。`{"studio": {...}}`の形式で指定
+- `config`: 初期設定データ（JSON文字列）。`zcode-editor` と同じ（`dev` / `parts` など）
 - `endpoints`: エンドポイント設定（JSON文字列）
 - `use-shadow-dom`: Shadow DOMを使用するか（`'true'` | `'false'`）
 
@@ -288,16 +288,15 @@ interface ImageData {
 
 - `save-request`: 保存ボタンクリック時に発火。`source: 'studio'`。`targets` は `zcode-editor` と同様にアクティブなタブとデータビューアの表示に応じて決まる（ページ管理 → `['page', 'images-special']`、専用パーツ → `['parts-special', 'parts-special-css']`、専用画像 → `['images-special']`、データビューアはページ／専用パーツ／専用画像のいずれを表示中かに応じて `page`+`images-special` または `parts-special`+CSS または `images-special`）
 
-**config.studio オプション**:
+**パーツ管理の設定（`config.parts`。`zcode-editor` でも同じ）**:
 
-- `showSaveConfirm`: 保存時の確認ダイアログを表示する（デフォルト: `true`）
-- `sanitizePartTemplate`: パーツテンプレート保存時に DOMPurify ベースのサニタイズを実行する（デフォルト: `false`）
-- `fileManagedCategories`: パーツの定義をファイル（プロダクトのリポジトリ）で管理するカテゴリ（`'common' | 'individual' | 'special'` の配列）。パーツ管理では、そのカテゴリの一覧・プレビュー・パーツの内容（HTML・CSS・スロット設定）を表示し、入力欄に値を入れてプレビューを確かめられる。タイプ・パーツの追加・保存・削除・並べ替えはできず、「ファイルで管理しています」と表示する（操作関数の入口でもガード済み）。`zcode-editor` でも有効
+- `sanitizeTemplate`: パーツテンプレート保存時に `sanitizePartTemplate`（DOMPurify ベース）で無害化する（デフォルト: `false`）
+- `fileManagedCategories`: パーツの定義をファイル（プロダクトのリポジトリ）で管理するカテゴリ（`'common' | 'individual' | 'special'` の配列）。パーツ管理では、そのカテゴリの一覧・プレビュー・パーツの内容（HTML・CSS・スロット設定）を表示し、入力欄に値を入れてプレビューを確かめられる。タイプ・パーツの追加・保存・削除・並べ替えはできず、「ファイルで管理しています」と表示する（操作関数の入口でもガード済み）
 
 **使用例**:
 
 ```html
-<zcode-studio id="studio" locale="ja" config='{"studio":{"sanitizePartTemplate":true}}'>
+<zcode-studio id="studio" locale="ja" config='{"parts":{"sanitizeTemplate":true}}'>
   <link slot="css" rel="stylesheet" href="/css/common.css" />
   <script slot="script" src="/js/accordion.js"></script>
 </zcode-studio>
@@ -307,7 +306,7 @@ interface ImageData {
 
 ### 設定の構造
 
-設定は`cms`、`dev`、`studio`の3つのカテゴリに分離されています。`zcode-cms`と`zcode-editor`の両方で編集モード（CMS）の設定は共有されます。`zcode-studio`は`studio`カテゴリの設定を使用します。
+設定は`cms`（ページの編集画面。3つの要素で共有）、`dev`（`zcode-editor` / `zcode-studio` の画面）、`parts`（パーツ管理）と、`richText` などの共通の設定に分かれています。
 
 #### localStorageの構造
 
@@ -319,7 +318,7 @@ interface ImageData {
     "enableContextMenu": false
   },
   "dev": {
-    "showDataViewer": false
+    "showSaveConfirm": true
   }
 }
 ```
@@ -334,7 +333,7 @@ interface ImageData {
 ></zcode-cms>
 
 <zcode-editor
-  config='{"cms": {"allowDynamicContentInteraction": true}, "dev": {"showDataViewer": true}}'
+  config='{"cms": {"allowDynamicContentInteraction": true}, "parts": {"fileManagedCategories": ["common"]}}'
 ></zcode-editor>
 ```
 
@@ -389,13 +388,20 @@ cmsElement.setAttribute('config', JSON.stringify(cmsConfig));
 
 ### Dev設定（`dev`）
 
-`zcode-editor`専用の設定です。
+`zcode-editor` と `zcode-studio` の設定です。
 
 #### 設定項目
 
-- **`showDataViewer`** (デフォルト: `false`)
-  - データビューアを表示する
-  - 設定パネルでは「データビューアを表示」として表示
+- **`showSaveConfirm`** (デフォルト: `true`)
+  - 保存時に、保存する対象を示す確認ダイアログを表示する（`zcode-cms` では `cms.showSaveConfirm`）
+  - 設定パネル（タブの右の歯車）で変えた値は localStorage に残る
+
+### パーツ管理の設定（`parts`）
+
+`zcode-editor` と `zcode-studio` のパーツ管理の設定です（localStorage には残らない）。
+
+- **`fileManagedCategories`**: パーツをファイルで管理するカテゴリ（`zcode-studio` の項を参照）
+- **`sanitizeTemplate`** (デフォルト: `false`): パーツを保存する前にテンプレートを無害化する
 
 ### リッチテキスト設定（`richText`）
 
@@ -490,7 +496,7 @@ cmsElement.setAttribute('config', JSON.stringify(cmsConfig));
 
 `SettingsPanel`に`mode="dev-tabs"`を指定した場合に表示される設定：
 
-- **データビューアを表示**: `showDataViewer`の設定
+- **保存時に確認する**: `dev.showSaveConfirm`の設定
 
 ### 設定の型定義
 
@@ -506,7 +512,12 @@ interface CMSSettings {
 }
 
 interface DevSettings {
-  showDataViewer?: boolean;
+  showSaveConfirm?: boolean;
+}
+
+interface PartsSettings {
+  sanitizeTemplate?: boolean;
+  fileManagedCategories?: Array<'common' | 'individual' | 'special'>;
 }
 
 interface RichTextSettings {
@@ -1064,7 +1075,7 @@ ZeroCode.js は Web Component ごとに責務を分け、**HTML を生成でき�
 
 **運用上の注意**:
 
-- パーツテンプレートを信頼できない主体に編集させる場合（Studio を外部の制作会社に開放する等）は、`studio.sanitizePartTemplate: true` を有効にしたうえで、**サーバー側でも `sanitizePartTemplate`（npm パッケージから export）を再実行**すること。クライアント側の無害化は API を直接呼ぶことで回避できる
+- パーツテンプレートを信頼できない主体に編集させる場合（Studio を外部の制作会社に開放する等）は、`parts.sanitizeTemplate: true` を有効にしたうえで、**サーバー側でも `sanitizePartTemplate`（npm パッケージから export）を再実行**すること。クライアント側の無害化は API を直接呼ぶことで回避できる
 - `backendData` にエンドユーザーの投稿（商品名・レビュー等）を含める場合、その値は信頼する入力として描画される。HTML 挿入はされないが、値に含まれるテンプレート記法（`{$field}` 等）が展開されうるため、必要に応じてサーバー側で除去すること
 
 ### CSP（Content Security Policy）
@@ -1306,7 +1317,7 @@ cms.hooks = {
   - 追加して保存しなかった画像はサーバーに残る。どこからも参照されていない画像は、ホスト側で定期的に消す運用にする。
   - **未指定のとき**は従来どおり、ブラウザで base64 にして `needsUpload: true` を付ける（保存時にホストがアップロードして URL に置き換える）。
 - **`listImages`**: 指定すると、画像管理と画像の選択画面に「メディアから選ぶ」を出す。選んだ画像は、今のカテゴリに `{ id, name, url }` として登録する（サーバーのファイルは複製しない）。同じ URL の画像がすでにあれば、それを使う。
-- **`beforeSavePart`**: パーツ管理でパーツを保存する前に、テンプレートを受け取って返す（`config.studio.sanitizePartTemplate` の後に実行）。例外を投げると保存しない。
+- **`beforeSavePart`**: パーツ管理でパーツを保存する前に、テンプレートを受け取って返す（`config.parts.sanitizeTemplate` の後に実行）。例外を投げると保存しない。
 - 画像の一覧から削除しても、サーバーのファイルは消さない。
 - 返した URL も、表示するときは従来どおり URL の無害化（`sanitizeUrl`）を通る。`context.source` で、Studio からのアップロードだけ制限する、といった判断ができる。
 

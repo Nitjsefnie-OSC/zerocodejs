@@ -547,7 +547,9 @@
 
         <h3 id="config-structure">設定の構造</h3>
         <p>
-          設定は<code>cms</code>、<code>dev</code>、および共通設定の3つのカテゴリに分離されています。
+          設定は<code>cms</code>（ページの編集画面）、<code>dev</code>（<code>zcode-editor</code> /
+          <code>zcode-studio</code>
+          の画面）、<code>parts</code>（パーツ管理）と、共通の設定に分かれています。
         </p>
         <pre><code>{
   "cms": {
@@ -556,7 +558,11 @@
     "enableContextMenu": false
   },
   "dev": {
-    "showDataViewer": false
+    "showSaveConfirm": true
+  },
+  "parts": {
+    "fileManagedCategories": ["common", "individual"],
+    "sanitizeTemplate": false
   },
   "richText": {
     "features": ["bold", "strike", "link", "bulletList", "orderedList", "history"]
@@ -590,12 +596,43 @@
         <p>設定パネルでは「右クリックメニューを有効にする」として表示されます。</p>
 
         <h3 id="dev-settings">Dev設定（dev）</h3>
-        <p><code>zcode-editor</code>専用の設定です。</p>
+        <p><code>zcode-editor</code> と <code>zcode-studio</code> の設定です。</p>
 
-        <h4>showDataViewer</h4>
+        <h4>showSaveConfirm</h4>
+        <p>デフォルト: <code>true</code></p>
+        <p>
+          保存ボタンを押したときに、保存する対象を示す確認のダイアログを出します。画面の設定パネルで変えた値は
+          localStorage に残ります（<code>zcode-cms</code> では <code>cms.showSaveConfirm</code>）。
+        </p>
+
+        <h3 id="parts-settings">パーツ管理の設定（parts）</h3>
+        <p>
+          <code>zcode-editor</code> と
+          <code>zcode-studio</code> のパーツ管理の設定です。localStorage には残りません。
+        </p>
+
+        <h4>fileManagedCategories</h4>
+        <p>
+          デフォルト: なし（<code>"common"</code> / <code>"individual"</code> /
+          <code>"special"</code> の配列）
+        </p>
+        <p>
+          パーツの定義をファイル（プロダクトのリポジトリ）で管理するカテゴリです。パーツ管理では、そのカテゴリの一覧・プレビュー・パーツの内容を表示し、入力欄に値を入れて見た目を確かめられます。タイプ・パーツの追加・保存・削除・並べ替えはできません（<a
+            href="docs-template.html#parts-files"
+            >パーツをファイルで管理する</a
+          >）。
+        </p>
+
+        <h4>sanitizeTemplate</h4>
         <p>デフォルト: <code>false</code></p>
-        <p>データビューアを表示します。</p>
-        <p>設定パネルでは「データビューアを表示」として表示されます。</p>
+        <p>
+          パーツを保存する前に、テンプレートを
+          <code>sanitizePartTemplate</code>
+          で無害化します。パーツの編集を信頼できない人に任せる場合に使い、サーバー側でも同じ検査をしてください（<a
+            href="docs-backend.html#security-model"
+            >セキュリティモデル</a
+          >）。
+        </p>
 
         <h3 id="common-settings">共通設定</h3>
         <p><code>zcode-cms</code>と<code>zcode-editor</code>の両方で使用される設定です。</p>
@@ -792,7 +829,7 @@
 &gt;&lt;/zcode-cms&gt;
 
 &lt;zcode-editor
-  config='{"cms": {"allowDynamicContentInteraction": true}, "dev": {"showDataViewer": true}, "categoryOrder": "individual"}'
+  config='{"cms": {"allowDynamicContentInteraction": true}, "parts": {"fileManagedCategories": ["common"]}, "categoryOrder": "individual"}'
 &gt;&lt;/zcode-editor&gt;</code></pre>
 
         <p>または、JavaScript変数で指定することもできます：</p>

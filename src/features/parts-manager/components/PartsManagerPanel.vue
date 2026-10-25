@@ -876,8 +876,8 @@ const {
   deletePartType
 } = usePartsManager(props.cmsData, {
   beforeSavePart: (body) => host.hooks.value.beforeSavePart?.(body) ?? body,
-  sanitize: props.config?.studio?.sanitizePartTemplate,
-  fileManagedCategories: props.config?.studio?.fileManagedCategories
+  sanitize: props.config?.parts?.sanitizeTemplate,
+  fileManagedCategories: props.config?.parts?.fileManagedCategories
 });
 
 // タブとして表示するカテゴリの順序

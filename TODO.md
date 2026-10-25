@@ -20,7 +20,7 @@
   - 設定変更時に自動保存
 - **実装済み**: 2025年12月5日
   - `src/core/utils/storage.ts` を新規作成
-  - 保存対象: `allowDynamicContentInteraction`, `showDataViewer`, `devRightPadding`, `enableTemplateSuggestions`
+  - 保存対象: `allowDynamicContentInteraction`, `devRightPadding` ほか（`cms`）、`showSaveConfirm`（`dev`）
   - ストレージキー: `zcode-user-settings`
 
 ### 2. 権限注意書き（編集用）【スキップ】

@@ -525,6 +525,12 @@ window.__DOCS_SEARCH_INDEX__ = [
   },
   {
     page: 'docs-api.html',
+    id: 'parts-settings',
+    text: 'パーツ管理の設定（parts）',
+    parent: '設定オプション'
+  },
+  {
+    page: 'docs-api.html',
     id: 'common-settings',
     text: '共通設定',
     parent: '設定オプション'
