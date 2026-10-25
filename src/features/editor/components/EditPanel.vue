@@ -264,7 +264,7 @@
       :is-open="imageModalOpen"
       :cms-data="cmsData"
       :page-id="pageId"
-      :current-value="currentImageField?.currentValue || undefined"
+      :current-value="currentImageId"
       @update:model-value="handleImageSelect"
       @close="closeImageModal"
     />
@@ -368,12 +368,12 @@ watch(
 const emit = defineEmits<{
   close: [];
   'select-parent': [];
-  'save-field': [field: any];
+  'save-field': [field: EditPanelField];
 }>();
 
 const localFieldErrors = ref<Record<string, string>>({});
 
-function validateField(field: any) {
+function validateField(field: EditPanelField) {
   const label = field.label || field.fieldName;
 
   const raw = field.currentValue;
@@ -408,9 +408,14 @@ function getFieldError(fieldName: string) {
 }
 
 const imageModalOpen = ref(false);
-const currentImageField = ref<any>(null);
+const currentImageField = ref<EditPanelField | null>(null);
 
-const openImageModal = (field: any) => {
+const currentImageId = computed(() => {
+  const value = currentImageField.value?.currentValue;
+  return typeof value === 'string' && value ? value : undefined;
+});
+
+const openImageModal = (field: EditPanelField) => {
   currentImageField.value = field;
   imageModalOpen.value = true;
 };
@@ -420,7 +425,7 @@ const closeImageModal = () => {
   currentImageField.value = null;
 };
 
-const clearImage = (field: any) => {
+const clearImage = (field: EditPanelField) => {
   field.currentValue = '';
   emit('save-field', field);
 };
@@ -440,14 +445,14 @@ const getImageUrl = (imageId: string | null | undefined): string | null => {
   return image?.url || null;
 };
 
-const handleTextInput = (field: any, event: Event) => {
+const handleTextInput = (field: EditPanelField, event: Event) => {
   const target = event.target as HTMLInputElement | HTMLTextAreaElement;
   field.currentValue = target.value;
   setLocalFieldError(field.fieldName, validateField(field));
   emit('save-field', field);
 };
 
-const handleRichTextUpdate = (field: any, value: string) => {
+const handleRichTextUpdate = (field: EditPanelField, value: string) => {
   if (field.optional && isEmptyForZEmpty(value)) {
     field.currentValue = undefined;
   } else {

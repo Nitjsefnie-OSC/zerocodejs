@@ -70,7 +70,7 @@ describe('validateData', () => {
         {
           part_id: 'part-1',
           title: 'タイトル'
-        } as any
+        } as unknown as ZeroCodeData['page'][number]
       ],
       css: {
         common: '',
@@ -97,7 +97,7 @@ describe('validateData', () => {
         {
           id: 'comp-1',
           title: 'タイトル'
-        } as any
+        } as unknown as ZeroCodeData['page'][number]
       ],
       css: {
         common: '',
@@ -145,7 +145,7 @@ describe('validateData', () => {
   });
 
   it('should return false for null data', () => {
-    expect(validateData(null as any)).toBe(false);
+    expect(validateData(null)).toBe(false);
   });
 
   it('should validate all components in page', () => {
@@ -160,7 +160,7 @@ describe('validateData', () => {
           id: 'comp-2',
           // part_id missing
           title: 'タイトル2'
-        } as any
+        } as unknown as ZeroCodeData['page'][number]
       ],
       css: {
         common: '',

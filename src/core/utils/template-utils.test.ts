@@ -155,7 +155,7 @@ describe('resolveBackendDataPath', () => {
   });
 
   it('should handle null backendData', () => {
-    const result = resolveBackendDataPath(null as any, 'user.name');
+    const result = resolveBackendDataPath(null as never, 'user.name');
     expect(result).toBe('');
   });
 
@@ -288,7 +288,7 @@ describe('expandUrlPlaceholders', () => {
 
   it('should handle null backendData', () => {
     const url = '/shop/{shop_id}/products';
-    const result = expandUrlPlaceholders(url, null as any);
+    const result = expandUrlPlaceholders(url, null as never);
     expect(result).toBe('/shop/{shop_id}/products');
   });
 });

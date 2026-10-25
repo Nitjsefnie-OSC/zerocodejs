@@ -156,10 +156,12 @@
                 </div>
                 <!-- プレビュー表示 -->
                 <div v-if="type._displayPart" class="zcode-part-preview">
+                  <!-- eslint-disable vue/no-v-html -- 描画処理で無害化済みの HTML -->
                   <div
                     class="zcode-part-preview-content"
                     v-html="getPartPreviewHtml(type, type._displayPart)"
                   />
+                  <!-- eslint-enable vue/no-v-html -->
                 </div>
               </div>
             </div>
@@ -564,11 +566,13 @@
                   </div>
                   <div class="zcode-part-editor-pane-body">
                     <template v-if="sidePaneTab === 'preview'">
+                      <!-- eslint-disable vue/no-v-html -- 描画処理で無害化済みの HTML -->
                       <div
                         class="zcode-part-editor-preview-tab"
                         @click="showPreviewModal = true"
                         v-html="displayPreviewHtml"
                       />
+                      <!-- eslint-enable vue/no-v-html -->
                       <div class="zcode-part-editor-preview-hint">
                         {{ $t('partsManager.clickToEnlarge') }}
                       </div>
@@ -902,6 +906,7 @@ const host = useZeroCodeHost();
 const {
   // 非表示カテゴリ
   isActiveCategoryFileManaged,
+  setActiveCategoryCss,
 
   // 並べ替え
   reorderSourcePart,
@@ -1044,13 +1049,11 @@ if (props.fixedCategory) {
 }
 
 const isPartEditModalOpen = computed(() => {
-  const level = (editingLevel as any)?.value ?? editingLevel;
-  return level === 'part' && !!editingPart.value;
+  return editingLevel.value === 'part' && !!editingPart.value;
 });
 
 const isTypeEditModalOpen = computed(() => {
-  const level = (editingLevel as any)?.value ?? editingLevel;
-  return !!editingType.value && (level === 'type' || isCreatingNew.value);
+  return !!editingType.value && (editingLevel.value === 'type' || isCreatingNew.value);
 });
 
 const typeEditModalRef = ref<HTMLElement | null>(null);
@@ -1144,14 +1147,8 @@ watch(
 
 async function handleSavePart() {
   await savePartInternal();
-  if (!editingPart.value && props.cmsData.css) {
-    if (activeCategory.value === 'common') {
-      props.cmsData.css.common = cssDraft.value;
-    } else if (activeCategory.value === 'individual') {
-      props.cmsData.css.individual = cssDraft.value;
-    } else {
-      props.cmsData.css.special = cssDraft.value;
-    }
+  if (!editingPart.value) {
+    setActiveCategoryCss(cssDraft.value);
     cssDraftInitial.value = cssDraft.value;
   }
 }

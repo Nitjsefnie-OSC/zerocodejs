@@ -508,7 +508,7 @@ export function useAddMode(
     const partKey = `${type.id}:${part.id}`;
     if (processedParts.has(partKey)) {
       const fieldInfos = extractFieldsFromTemplate(part.body);
-      const defaults: Record<string, any> = {};
+      const defaults: Record<string, unknown> = {};
       fieldInfos.forEach((field) => {
         if (field.optional) {
           defaults[field.fieldName] = undefined;
@@ -537,7 +537,7 @@ export function useAddMode(
     processedParts.add(partKey);
 
     const fieldInfos = extractFieldsFromTemplate(part.body);
-    const defaults: Record<string, any> = {};
+    const defaults: Record<string, unknown> = {};
 
     fieldInfos.forEach((field) => {
       if (field.optional) {

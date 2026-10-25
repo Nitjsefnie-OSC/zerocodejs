@@ -1,5 +1,11 @@
 import { ref, computed } from 'vue';
-import type { ZeroCodeData, ImageData, ImageHookContext, MediaImage } from '../../../types';
+import type {
+  ComponentData,
+  ZeroCodeData,
+  ImageData,
+  ImageHookContext,
+  MediaImage
+} from '../../../types';
 import { findImageReferences } from '../../../core/utils/image-utils';
 import {
   filterSpecialImagesForPage,
@@ -238,7 +244,7 @@ export function useImagesManager(cmsData: ZeroCodeData, options: UseImagesManage
   // 画像の使用状況をチェック
   function checkImageUsage(
     imageId: string
-  ): Array<{ path: string; component: any; fieldName: string }> {
+  ): Array<{ path: string; component: ComponentData; fieldName: string }> {
     return findImageReferences(imageId, cmsData.page);
   }
 

@@ -10,6 +10,7 @@
             <X :size="18" />
           </button>
         </div>
+        <!-- eslint-disable-next-line vue/no-v-html -- 描画処理で無害化済みの HTML -->
         <div class="zcode-preview-modal-body" v-html="html" />
       </div>
     </div>
