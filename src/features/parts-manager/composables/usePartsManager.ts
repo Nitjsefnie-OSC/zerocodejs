@@ -1,4 +1,4 @@
-import { ref, computed, reactive, toRaw, nextTick } from 'vue';
+import { ref, computed, reactive, toRaw, nextTick, watch } from 'vue';
 import { useI18n } from '../../../i18n';
 import type { ZeroCodeData, TypeData, PartData, ComponentData } from '../../../types';
 import { findPartById, findTypeAndPartByPartId, generateId } from '../../../core/utils/path-utils';
@@ -218,6 +218,20 @@ export function usePartsManager(cmsData: ZeroCodeData, options?: PartsManagerOpt
     isCreatingNew.value = false;
     selectedType.value = type;
   }
+
+  // ファイルで管理するカテゴリは編集できないため、開いているパーツも元のデータの更新
+  // （ファイルを保存してホストが setData で差し替えたとき）に追従させる
+  watch(currentTypes, (types) => {
+    const open = editingPart.value;
+    if (!open || !isActiveCategoryFileManaged.value) return;
+    for (const type of types) {
+      const partIndex = type.parts.findIndex((part) => part.id === open.part.id);
+      if (partIndex !== -1) {
+        startEditingPart(type, partIndex);
+        return;
+      }
+    }
+  });
 
   function startEditingPart(type: TypeData, partIndex: number) {
     const part = type.parts[partIndex];

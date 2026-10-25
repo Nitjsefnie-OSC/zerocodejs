@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import { nextTick, reactive } from 'vue';
 import { usePartsManager } from './usePartsManager';
 import type { ZeroCodeData, TypeData } from '../../../types';
 
@@ -111,5 +112,37 @@ describe('usePartsManager: fileManagedCategories 指定時', () => {
     deletePartType('individual-type');
     expect(data.parts.individual).toHaveLength(0);
     vi.unstubAllGlobals();
+  });
+});
+
+describe('usePartsManager: ファイルで管理するカテゴリの表示中の更新', () => {
+  it('開いているパーツは、元のデータが差し替えられると新しい内容になる', async () => {
+    const data = reactive(makeCmsData()) as ZeroCodeData;
+    const { startEditingPart, editingPart, isPartDirty } = usePartsManager(data, {
+      fileManagedCategories: ['common']
+    });
+    startEditingPart(data.parts.common[0], 0);
+
+    const next = JSON.parse(JSON.stringify(data.parts.common));
+    next[0].parts[0].body = '<div>from file</div>';
+    data.parts.common = next;
+    await nextTick();
+
+    expect(editingPart.value?.part.body).toBe('<div>from file</div>');
+    expect(isPartDirty.value).toBe(false);
+  });
+
+  it('編集できるカテゴリでは、開いているパーツを差し替えない', async () => {
+    const data = reactive(makeCmsData()) as ZeroCodeData;
+    const { startEditingPart, editingPart } = usePartsManager(data);
+    startEditingPart(data.parts.common[0], 0);
+    editingPart.value!.part.body = '<div>editing</div>';
+
+    const next = JSON.parse(JSON.stringify(data.parts.common));
+    next[0].parts[0].body = '<div>from file</div>';
+    data.parts.common = next;
+    await nextTick();
+
+    expect(editingPart.value?.part.body).toBe('<div>editing</div>');
   });
 });

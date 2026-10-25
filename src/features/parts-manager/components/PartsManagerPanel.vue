@@ -1095,6 +1095,16 @@ watch(
   { immediate: true }
 );
 
+// ファイルで管理するカテゴリは、開いている間に元の CSS が差し替えられたら追従する
+watch(
+  () => currentCSS.value,
+  (css) => {
+    if (!isPartEditModalOpen.value || !isActiveCategoryFileManaged.value) return;
+    cssDraftInitial.value = css;
+    cssDraft.value = css;
+  }
+);
+
 // activeCategoryが変更されたときにCSSを更新
 watch(
   () => activeCategory.value,
