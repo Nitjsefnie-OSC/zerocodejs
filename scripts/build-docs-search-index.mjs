@@ -3,7 +3,13 @@
 // docs ページの見出しを追加・変更したら `node scripts/build-docs-search-index.mjs` を実行すること。
 import { readFileSync, writeFileSync } from 'node:fs';
 
-const PAGES = ['docs.html', 'docs-template.html', 'docs-api.html', 'docs-backend.html'];
+const PAGES = [
+  'docs.html',
+  'docs-tutorial.html',
+  'docs-template.html',
+  'docs-api.html',
+  'docs-backend.html'
+];
 const OUT = 'public/js/docs-search-index.js';
 
 const stripTags = (s) =>
@@ -33,7 +39,7 @@ for (const page of PAGES) {
 
 writeFileSync(
   OUT,
-  '// 自動生成: ドキュメント横断検索インデックス（docs 4ページの h2/h3/h4）\n' +
+  '// 自動生成: ドキュメント横断検索インデックス（docs 5ページの h2/h3/h4）\n' +
     '// 再生成: node scripts/build-docs-search-index.mjs\n' +
     'window.__DOCS_SEARCH_INDEX__ = ' +
     JSON.stringify(index, null, 2) +

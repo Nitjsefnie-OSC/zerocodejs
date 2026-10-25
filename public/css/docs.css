@@ -455,3 +455,235 @@
   font-size: 12.5px;
   color: #5f6e70;
 }
+
+/* チュートリアル: 導入文・図・カード */
+.docs-lead {
+  font-size: 17px;
+  line-height: 1.8;
+  color: #2c3e50;
+}
+
+.docs-figure {
+  margin: 24px 0 32px;
+  padding: 16px;
+  background: #fafafa;
+  border: 1px solid #e1e4e8;
+  border-radius: 8px;
+}
+
+.docs-figure svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* 狭い画面では図を縮めすぎず、図の中で横にスクロールする */
+@media (max-width: 640px) {
+  .docs-figure {
+    overflow-x: auto;
+  }
+
+  .docs-figure svg {
+    min-width: 600px;
+  }
+}
+
+.docs-figure figcaption {
+  margin-top: 12px;
+  font-size: 13px;
+  line-height: 1.7;
+  color: #5f6e70;
+}
+
+.fig-box rect {
+  stroke-width: 1.5;
+}
+
+.fig-box--dev rect {
+  fill: #e3f2fd;
+  stroke: #3498db;
+}
+
+.fig-box--host rect {
+  fill: #f0f2f5;
+  stroke: #5f6e70;
+}
+
+.fig-box--editor rect {
+  fill: #e8f5e9;
+  stroke: #2e7d32;
+}
+
+.fig-box--public rect {
+  fill: #fff8e1;
+  stroke: #b7791f;
+}
+
+.fig-title {
+  font-size: 15px;
+  font-weight: 700;
+  fill: #2c3e50;
+  text-anchor: middle;
+}
+
+.fig-sub {
+  font-size: 13px;
+  fill: #46525a;
+  text-anchor: middle;
+}
+
+.fig-code {
+  font-family: 'SFMono-Regular', Consolas, monospace;
+  font-size: 13px;
+  fill: #2c3e50;
+  text-anchor: middle;
+}
+
+.fig-mono {
+  font-family: 'SFMono-Regular', Consolas, monospace;
+  font-size: 13px;
+  fill: #2c3e50;
+}
+
+.fig-mono--hl {
+  font-weight: 700;
+  fill: #1f6fb2;
+}
+
+.fig-small {
+  font-size: 12px;
+  fill: #46525a;
+}
+
+.fig-input {
+  fill: #fff;
+  stroke: #2e7d32;
+  stroke-width: 1.5;
+}
+
+.fig-input-text {
+  font-size: 13px;
+  fill: #2c3e50;
+}
+
+.fig-arrow {
+  fill: none;
+  stroke: #5f6e70;
+  stroke-width: 2;
+}
+
+.fig-arrow--dash {
+  stroke-dasharray: 6 4;
+}
+
+.fig-label {
+  font-size: 12.5px;
+  font-weight: 600;
+  fill: #2c3e50;
+  text-anchor: middle;
+  paint-order: stroke;
+  stroke: #fafafa;
+  stroke-width: 4px;
+}
+
+.fig-label--start {
+  text-anchor: start;
+}
+
+.fig-lane line {
+  stroke: #c5ccd3;
+  stroke-width: 1.5;
+  stroke-dasharray: 4 4;
+}
+
+.fig-lane-head {
+  stroke-width: 1.5;
+}
+
+.fig-lane-head--editor {
+  fill: #e8f5e9;
+  stroke: #2e7d32;
+}
+
+.fig-lane-head--lib {
+  fill: #ede7f6;
+  stroke: #6a4fb3;
+}
+
+.fig-lane-head--dev {
+  fill: #e3f2fd;
+  stroke: #3498db;
+}
+
+.fig-lane-head--host {
+  fill: #f0f2f5;
+  stroke: #5f6e70;
+}
+
+.docs-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  margin: 16px 0 24px;
+}
+
+.docs-card {
+  display: block;
+  padding: 14px 16px;
+  background: #fff;
+  border: 1px solid #e1e4e8;
+  border-radius: 8px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.docs-card p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.docs-card-title {
+  margin-bottom: 6px;
+  font-weight: 700;
+  color: #2c3e50;
+}
+
+.docs-card--link:hover,
+.docs-card--link:focus-visible {
+  border-color: #3498db;
+  box-shadow: 0 2px 8px rgba(52, 152, 219, 0.15);
+}
+
+.docs-start-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin: 24px 0;
+  padding: 18px 22px;
+  background: #e3f2fd;
+  border: 1px solid #b3d7f2;
+  border-radius: 8px;
+}
+
+.docs-start-banner p {
+  margin: 0;
+}
+
+.docs-start-banner-link {
+  display: inline-block;
+  padding: 10px 18px;
+  background: #1f6fb2;
+  color: #fff;
+  border-radius: 6px;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.docs-start-banner-link:hover,
+.docs-start-banner-link:focus-visible {
+  background: #185a91;
+}
