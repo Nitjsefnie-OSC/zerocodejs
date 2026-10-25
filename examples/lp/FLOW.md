@@ -206,7 +206,7 @@ public/edit.html をそのまま送信（中身は同じ 1 ファイル）
 | **public/edit.html**           | 管理画面の HTML。getPage / setPage / loadPages / loadData、popstate、セレクト変更の処理。画像のアップロード・メディアの一覧の `hooks`。                         |
 | **parts/**                     | パーツのファイル（正本）。                                                                                                                                      |
 | **scripts/parts.mjs**          | `parts/` を `data/built/` の JSON にまとめる（`--watch` / `--check`）。                                                                                         |
-| **scripts/dev.mjs**            | パーツを監視しながらサーバーを起動する（`npm run dev`）。                                                                                                       |
+| **scripts/dev.mjs**            | パーツを監視しながらサーバーを起動する（`npm run dev`）。まとめ直すと `/api/parts-events` で開いている画面に知らせ、管理画面はパーツだけを差し替える。          |
 | **public/js/zerocode-api.js**  | データのエディタへの適用（applyDataToComponent）、save-request を受け /api/save 呼び出しと save-result 発火。                                                   |
 | **data/common.json**           | 共通データ。                                                                                                                                                    |
 | **data/pages/:name/page.json** | ページ別データ。                                                                                                                                                |

@@ -240,7 +240,8 @@ function basicAuthEdit(req, res, next) {
     req.path === '/api/save' ||
     req.path === '/api/reset' ||
     req.path === '/api/upload' ||
-    req.path === '/api/media';
+    req.path === '/api/media' ||
+    req.path === '/api/parts-events';
   if (!needAuth) return next();
   const auth = req.headers.authorization;
   if (!auth || !auth.startsWith('Basic ')) {
@@ -434,10 +435,35 @@ app.get('/api/media', (_req, res) => {
   }
 });
 
+const SHOW_DEV_UI = process.env.NODE_ENV !== 'production';
+
+// 開発用: parts/ からまとめた JSON（data/built/）が変わったことを、開いている画面に知らせる（Server-Sent Events）
+const partsEventClients = new Set();
+let partsChangeTimer = null;
+if (SHOW_DEV_UI) {
+  ensureDir(BUILT_DIR);
+  fs.watch(BUILT_DIR, { recursive: true }, () => {
+    clearTimeout(partsChangeTimer);
+    partsChangeTimer = setTimeout(() => {
+      for (const client of partsEventClients) client.write('event: parts\ndata: changed\n\n');
+    }, 150);
+  });
+}
+
+app.get('/api/parts-events', (req, res) => {
+  if (!SHOW_DEV_UI) return res.status(404).end();
+  res.writeHead(200, {
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache',
+    Connection: 'keep-alive'
+  });
+  res.write(': connected\n\n');
+  partsEventClients.add(res);
+  req.on('close', () => partsEventClients.delete(res));
+});
+
 let renderToHtml = null;
 let renderCssToHtml = null;
-
-const SHOW_DEV_UI = process.env.NODE_ENV !== 'production';
 
 const ssrTemplate = `<!doctype html>
 <html lang="ja">
@@ -466,6 +492,8 @@ const devHeaderBlock = `<div class="dev-header dev-header--pub">
     </div>
   </div>
   `;
+const devLiveReload = `
+  <script>new EventSource('/api/parts-events').addEventListener('parts', () => location.reload());</script>`;
 const devFooterBlock = `
   <div class="dev-footer dev-footer--pub">
     <div class="dev-footer__inner">
@@ -510,7 +538,9 @@ async function serveSSR(req, res, pageName) {
     const editLink = name === 'default' ? '/edit' : '/edit/' + encodeURIComponent(name);
     const devCss = SHOW_DEV_UI ? devCssLink : '';
     const devHeader = SHOW_DEV_UI ? devHeaderBlock.replace(/\{\{EDIT_LINK\}\}/g, editLink) : '';
-    const devFooter = SHOW_DEV_UI ? devFooterBlock.replace(/\{\{EDIT_LINK\}\}/g, editLink) : '';
+    const devFooter = SHOW_DEV_UI
+      ? devFooterBlock.replace(/\{\{EDIT_LINK\}\}/g, editLink) + devLiveReload
+      : '';
     const html = ssrTemplate
       .replace('{{PAGENAME}}', name)
       .replace('{{DEV_CSS_LINK}}', devCss)

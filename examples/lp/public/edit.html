@@ -34,8 +34,8 @@
 
     <div class="dev-footer">
       <div class="dev-footer__inner">
-        パーツ: <code>parts/</code> のファイル（保存すると自動でまとめ直す。反映は再読み込み） /
-        ページ: <code id="store-path">data/common.json + data/pages/.../page.json</code>
+        パーツ: <code>parts/</code> のファイル（保存するとこの画面に反映） / ページ:
+        <code id="store-path">data/common.json + data/pages/.../page.json</code>
       </div>
     </div>
 
@@ -135,6 +135,31 @@
             });
         }
 
+        // parts/ のファイルを保存すると、サーバーから知らせが来る（開発時のみ）。
+        // パーツと CSS だけを差し替え、編集中・未保存のページの内容は残す
+        function reloadParts() {
+          return fetch('/api/data?page=' + encodeURIComponent(getPage()))
+            .then(function (res) {
+              if (!res.ok) throw new Error('Failed to load');
+              return res.json();
+            })
+            .then(function (data) {
+              editor.setData('parts.common', data.parts.common || []);
+              editor.setData('parts.individual', data.parts.individual || []);
+              editor.setData('css.common', data.css.common || '');
+              editor.setData('css.individual', data.css.individual || '');
+            })
+            .catch(function (err) {
+              console.error('Failed to reload parts:', err);
+            });
+        }
+
+        function watchParts() {
+          if (!window.EventSource) return;
+          var events = new EventSource('/api/parts-events');
+          events.addEventListener('parts', reloadParts);
+        }
+
         function syncSelectFromPath() {
           var page = getPage();
           if (pageSelect.value !== page) pageSelect.value = page;
@@ -142,6 +167,7 @@
 
         function init() {
           ZeroCodeApi.setupApiSaveListeners();
+          watchParts();
           loadPages()
             .then(function () {
               return loadData();
