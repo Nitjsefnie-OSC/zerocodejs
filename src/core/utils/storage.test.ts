@@ -186,10 +186,10 @@ describe('storage', () => {
     it('should load Dev settings', () => {
       localStorageMock.setItem(
         'zcode-user-settings',
-        JSON.stringify({ dev: { showDataViewer: true } })
+        JSON.stringify({ dev: { showSaveConfirm: true } })
       );
       const settings = loadDevSettings();
-      expect(settings.showDataViewer).toBe(true);
+      expect(settings.showSaveConfirm).toBe(true);
     });
 
     it('should return empty object when Dev settings not found', () => {
@@ -198,22 +198,22 @@ describe('storage', () => {
     });
 
     it('should save Dev settings', () => {
-      saveDevSettings({ showDataViewer: true });
+      saveDevSettings({ showSaveConfirm: true });
       const settings = loadDevSettings();
-      expect(settings.showDataViewer).toBe(true);
+      expect(settings.showSaveConfirm).toBe(true);
     });
 
     it('should get Dev setting with default', () => {
-      const value = getDevSetting('showDataViewer', false);
+      const value = getDevSetting('showSaveConfirm', false);
       expect(value).toBe(false);
     });
 
     it('should get stored Dev setting', () => {
       localStorageMock.setItem(
         'zcode-user-settings',
-        JSON.stringify({ dev: { showDataViewer: true } })
+        JSON.stringify({ dev: { showSaveConfirm: true } })
       );
-      const value = getDevSetting('showDataViewer', false);
+      const value = getDevSetting('showSaveConfirm', false);
       expect(value).toBe(true);
     });
   });

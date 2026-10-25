@@ -210,18 +210,8 @@ provideZeroCodeHost({
 
 const { dispatchEvent } = useHostEvents();
 
-/**
- * Editor は設定パネルの値を localStorage に残す（初期値は config.dev）。
- * Studio は config.studio の値を使い、残さない
- */
-const showSaveConfirm = ref(
-  props.source === 'studio'
-    ? config.studio?.showSaveConfirm !== false
-    : getDevSetting('showSaveConfirm', config.dev?.showSaveConfirm ?? true)
-);
-if (props.source === 'editor') {
-  watch(showSaveConfirm, (value) => saveDevSettings({ showSaveConfirm: value }));
-}
+const showSaveConfirm = ref(getDevSetting('showSaveConfirm', config.dev?.showSaveConfirm ?? true));
+watch(showSaveConfirm, (value) => saveDevSettings({ showSaveConfirm: value }));
 
 const { cmsData: ownCmsData, loadDataFromProps } = useZeroCodeData(props);
 

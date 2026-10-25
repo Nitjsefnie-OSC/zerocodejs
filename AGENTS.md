@@ -627,7 +627,7 @@ interface ImageData {
     - `<zcode-studio>` Web Component（シェルは `zcode-editor` と同型、ページ管理は CMS 同等、パーツ/画像/データは専用系に限定）
     - `save-request` の `source: 'studio'` を追加（サーバー側での権限チェック用）
     - パーツテンプレート用サニタイズ関数 `sanitizePartTemplate` を追加（DOMPurify ベース、z-\* 属性許可）
-    - `sanitizePartTemplate` オプトインを config から設定可能（`beforeSavePart` は2026年10月に要素の `hooks` へ移動）
+    - `sanitizePartTemplate` オプトインを config から設定可能（2026年10月に `config.studio.sanitizePartTemplate` から `config.parts.sanitizeTemplate` へ移動。`beforeSavePart` は2026年10月に要素の `hooks` へ移動）
     - サニタイズ関数を npm パッケージから export（サーバーとルール共有用）
 
 20. ✅ **Husky + lint-staged（pre-commit）**（2026年3月）
