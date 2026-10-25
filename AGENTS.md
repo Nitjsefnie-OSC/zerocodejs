@@ -486,15 +486,22 @@ interface ImageData {
 ### 主要なコンポーネント
 
 - `src/components/ZeroCodeCMS.vue`: ユーザー用管理画面
-- `src/components/ZeroCodeEditor.vue`: エンジニア用管理画面（ZeroCodeCMS + パーツ管理・画像管理・データビューア）
-- `src/components/ZeroCodeStudio.vue`: 専用パーツを編集する画面（専用パーツ・専用CSS・専用画像のみ編集可、それ以外は読み取り専用プレビュー）
+- `src/components/ZeroCodeEditor.vue`: エンジニア用管理画面（ZeroCodeCMS + パーツ管理・画像管理・データビューア）。中身は `ZeroCodeWorkspace.vue`
+- `src/components/ZeroCodeStudio.vue`: 専用パーツを編集する画面（専用パーツ・専用CSS・専用画像のみ編集可、それ以外は読み取り専用プレビュー）。中身は `ZeroCodeWorkspace.vue`（`fixed-category="special"`）
+- `src/components/ZeroCodeWorkspace.vue`: Editor / Studio 共通の画面（タブ・ツールバー・保存）。違いは `source`・`fixedCategory`・保存確認の設定の残し方だけ
+- `src/components/props.ts`: CMS / Editor / Studio 共通の props（Web Component の属性に対応）
 - `src/components/ZeroCodePreview.vue`: プレビュー表示用コンポーネント
+
+### Web Component
+
+- `src/web-components/zerocode-element.ts`: 3つの要素の基底クラス `ZeroCodeElement`（属性 → props、Shadow DOM / Light DOM、`slot="css"` / `slot="script"`、`hooks`、`getData` / `setData`）。各要素（`zcode-cms.ts` 等）は使うコンポーネントと追加の属性だけを書く
 
 ### コアコンポーザブル
 
 - `src/core/composables/useZeroCodeData.ts`: データ管理（読み込み、取得、設定）
 - `src/core/composables/useZeroCodeRenderer.ts`: レンダリング処理
 - `src/core/composables/useZeroCodeHost.ts`: ホストとの連携（`hooks` と `config.images`、`source`）。最上位のコンポーネントが `provideZeroCodeHost` で決め、`useZeroCodeHost` で取り出す。Web Component の `hooks` プロパティは `src/web-components/hooks-property.ts` から `app.provide` で渡る
+- `src/core/composables/useHostEvents.ts`: ホストの要素へのイベント送出（`dispatchEvent`）と `createRequestId`。同じページに複数の要素があっても、そのコンポーネントを含む要素に届く
 
 ### 機能別コンポーザブル
 
@@ -506,6 +513,10 @@ interface ImageData {
 - `src/features/editor/composables/useModeSwitcher.ts`: モード切り替え
 - `src/features/editor/composables/useContextMenu.ts`: 右クリックメニュー
 - `src/features/editor/composables/useOutlineManager.ts`: アウトライン管理（ホバー・選択状態の表示）
+- `src/features/editor/composables/useSaveRequest.ts`: 保存ボタン → 確認ダイアログ（`SaveConfirmDialog.vue`）→ `save-request`
+- `src/features/editor/composables/useSaveResult.ts`: `save-result` の受け取り（失敗時のバナーとフィールドのエラー）
+- `src/features/editor/composables/useCmsSettings.ts`: CMS の利用者ごとの設定（初期値と localStorage への保存、リセット）
+- `src/core/utils/save-targets.ts`: Editor / Studio の表示中のタブから `save-request` の targets を決める（`PAGE_SAVE_TARGETS`）
 
 #### モード別機能
 
@@ -517,6 +528,7 @@ interface ImageData {
 
 - `src/features/parent-selector/composables/useParentSelector.ts`: 親要素選択
 - `src/features/parts-manager/composables/usePartsManager.ts`: パーツ管理
+- `src/features/parts-manager/composables/usePartCssDraft.ts`: パーツ編集モーダルの CSS の下書きとプレビュー用の CSS
 - `src/features/images-manager/composables/useImagesManager.ts`: 画像管理
 
 ### ユーティリティ関数
