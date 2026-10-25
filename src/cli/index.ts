@@ -1,5 +1,5 @@
-import { existsSync, readdirSync, readFileSync, watch, writeFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { existsSync, mkdirSync, readdirSync, readFileSync, watch, writeFileSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
 import { checkParts } from './check';
 import { CATEGORIES, readPartsDir, writePartsDir, type Category, type Issue } from './parts-dir';
 import { initVscode } from './vscode';
@@ -66,6 +66,7 @@ function buildOnce(dir: string, args: Args, io: CliIo): boolean {
   if (!report(issues, io)) return false;
   const json = `${JSON.stringify({ parts: build.parts, css: build.css }, null, 2)}\n`;
   if (args.output) {
+    mkdirSync(dirname(resolve(args.output)), { recursive: true });
     writeFileSync(args.output, json);
     io.err(`${args.output} に書き出しました（パーツ ${build.sources.length}個）`);
   } else {

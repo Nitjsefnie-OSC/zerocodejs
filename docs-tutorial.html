@@ -406,19 +406,31 @@
         <p>このページでは、運営者の画面 <code>&lt;zcode-cms&gt;</code> を使います。</p>
 
         <h2 id="tutorial-steps">手順</h2>
-        <p>次の6つの手順で、図1の①〜④を順に作ります。できあがるフォルダは次のとおりです。</p>
+        <p>
+          次の7つの手順で、図1の①〜④を順に作ります。ZeroCode.js 関係のものは、すべて
+          <code>zerocode/</code> にまとめます。プロダクト側に足すのは、つなぐための数行だけです。
+        </p>
         <pre><code>my-site/
-├── parts/                      手順2: パーツ（開発者が書く）
-│   └── common/01-heading/
-│       ├── _type.json
-│       ├── 01-heading.html
-│       └── 01-heading.css
-├── data/
-│   ├── parts.json              手順3: build-parts が作る（自動生成）
-│   └── page.json               管理画面から保存したページ
-├── public/admin.html           手順5: 管理画面
-├── server.js                   手順4: サーバー
-└── package.json</code></pre>
+├── zerocode/                   ZeroCode.js 関係はすべてここ
+│   ├── parts/                  手順2: パーツ（開発者が書く）
+│   │   └── common/01-heading/
+│   │       ├── _type.json
+│   │       ├── 01-heading.html
+│   │       └── 01-heading.css
+│   ├── build/parts.json        手順3: build-parts が作る（自動生成）
+│   ├── server.js               手順4: サーバー側の連携
+│   └── admin.js                手順5: 管理画面の連携
+├── app.js                      手順6: プロダクトのサーバー（数行足す）
+├── views/admin.html            手順6: プロダクトの管理画面（数行足す）
+└── zerocode-page.json          保存したページ（本番ではデータベース）</code></pre>
+        <div class="docs-info">
+          <p>
+            <strong>フォルダの場所と名前は自由です。</strong
+            >コマンドは読むフォルダと書き出すファイルを引数で受け取るので、既存のプロダクトでは
+            <code>resources/zerocode/</code>（Laravel）や <code>src/zerocode/</code>
+            のように、プロダクトの決まりに合わせてください。
+          </p>
+        </div>
 
         <h3 id="tutorial-step1">1. インストール</h3>
         <pre><code>mkdir my-site &amp;&amp; cd my-site
@@ -426,6 +438,13 @@ npm init -y
 npm pkg set type=module
 npm install zerocodejs express jsdom
 npx zerocodejs init-vscode</code></pre>
+        <p>
+          既存のプロダクトに入れる場合は、<code>mkdir</code> と
+          <code>npm init</code> は不要です。プロダクトのフォルダで
+          <code>npm install</code> から始めてください（<a href="docs.html#about-retrofit"
+            >既存のサイトに後から組み込むときの確認</a
+          >）。
+        </p>
         <ul>
           <li>
             <code>express</code> はこのページで使うサーバーです。お使いのものに置き換えられます。
@@ -444,10 +463,11 @@ npx zerocodejs init-vscode</code></pre>
           見出しとリード文のパーツを1つ作ります。フォルダ名・ファイル名の先頭の番号は、管理画面に並ぶ順番です。
         </p>
         <p>
-          <code>parts/common/01-heading/_type.json</code>（パーツのグループ。「タイプ」と呼びます）
+          <code>zerocode/parts/common/01-heading/_type.json</code
+          >（パーツのグループ。「タイプ」と呼びます）
         </p>
         <pre><code>{ "id": "type-heading", "type": "見出し", "description": "セクションの見出し" }</code></pre>
-        <p><code>parts/common/01-heading/01-heading.html</code>（パーツ本体）</p>
+        <p><code>zerocode/parts/common/01-heading/01-heading.html</code>（パーツ本体）</p>
         <pre><code>&lt;!--zerocode
 { "id": "heading", "title": "見出し", "description": "セクションの見出しとリード文" }
 --&gt;
@@ -455,7 +475,9 @@ npx zerocodejs init-vscode</code></pre>
   &lt;h2 z-tag="$tag:h2|h3"&gt;{$title:見出しを入力}&lt;/h2&gt;
   &lt;p z-empty="$lead"&gt;{$lead?:リード文を入力:textarea}&lt;/p&gt;
 &lt;/section&gt;</code></pre>
-        <p><code>parts/common/01-heading/01-heading.css</code>（パーツの CSS。なくてもよい）</p>
+        <p>
+          <code>zerocode/parts/common/01-heading/01-heading.css</code>（パーツの CSS。なくてもよい）
+        </p>
         <pre><code>.heading { padding: 48px 16px; text-align: center; }</code></pre>
         <p>使った記法は次の4つです。</p>
         <table class="docs-table">
@@ -494,66 +516,97 @@ npx zerocodejs init-vscode</code></pre>
         </p>
 
         <h3 id="tutorial-step3">3. パーツを1つの JSON にまとめる</h3>
-        <pre><code>npx zerocodejs check-parts parts               # 書き間違いを調べる
-npx zerocodejs build-parts parts -o data/parts.json</code></pre>
+        <pre><code>npx zerocodejs check-parts zerocode/parts      # 書き間違いを調べる
+npx zerocodejs build-parts zerocode/parts -o zerocode/build/parts.json</code></pre>
         <p>
-          <code>data/parts.json</code> に、管理画面とサーバーが読む形（<code>{ parts, css }</code
+          <code>zerocode/build/parts.json</code> に、管理画面とサーバーが読む形（<code
+            >{ parts, css }</code
           >）のデータができます。パーツを書いている間は
-          <code>--watch</code> を付けると、保存のたびに作り直されます。
+          <code>--watch</code> を付けると、保存のたびに作り直されます。よく使うので、<code
+            >package.json</code
+          >
+          の scripts に入れておくと便利です。
         </p>
-        <pre><code>npx zerocodejs build-parts parts -o data/parts.json --watch</code></pre>
+        <pre><code>"scripts": {
+  "parts": "zerocodejs build-parts zerocode/parts -o zerocode/build/parts.json",
+  "parts:watch": "zerocodejs build-parts zerocode/parts -o zerocode/build/parts.json --watch"
+}</code></pre>
+        <ul>
+          <li>
+            <code>zerocode/build/</code> は自動で作られるので、公開の手順（CI など）で
+            <code>npm run parts</code> を実行するなら <code>.gitignore</code> に入れます。
+          </li>
+          <li>
+            Prettier などの整形の道具を使っている場合は、<code>zerocode/parts/</code>
+            を対象から外してください（<code>.prettierignore</code>）。整形すると、パーツの本文の改行や空白が変わります。
+          </li>
+        </ul>
 
-        <h3 id="tutorial-step4">4. サーバーを用意する</h3>
+        <h3 id="tutorial-step4">4. サーバー側の連携を書く</h3>
         <p>
-          サーバーの役目は3つです。管理画面にデータを渡すこと、保存すること、公開ページの HTML
-          を返すことです。
+          サーバー側の役目は3つです。管理画面にデータを渡すこと、保存すること、公開ページの HTML
+          を作ることです。これを <code>zerocode/server.js</code> にまとめ、Express の Router
+          として書き出します。ページのデータをどこに保存するかは、プロダクトから関数で受け取ります。
         </p>
-        <p><code>server.js</code></p>
+        <p><code>zerocode/server.js</code></p>
         <pre><code>import express from 'express';
-import { readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync } from 'node:fs';
+import { createRequire } from 'node:module';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { renderToHtml, renderCssToHtml } from 'zerocodejs/ssr';
 
-const app = express();
-app.use(express.json({ limit: '10mb' }));
+const here = dirname(fileURLToPath(import.meta.url));
+const require = createRequire(import.meta.url);
+const PARTS_FILE = join(here, 'build/parts.json');
 
-const readJson = (file, fallback) =&gt;
-  existsSync(file) ? JSON.parse(readFileSync(file, 'utf8')) : fallback;
-
-// パーツ（build-parts の出力）と、保存したページを合わせて ZeroCode のデータにする
-function loadData() {
-  const { parts, css } = readJson('data/parts.json', { parts: {}, css: {} });
-  const saved = readJson('data/page.json', { page: [], images: {} });
-  return {
-    page: saved.page,
-    parts: { common: [], individual: [], special: [], ...parts },
-    css,
-    images: { common: [], individual: [], special: [], ...saved.images }
-  };
+function readParts() {
+  return existsSync(PARTS_FILE)
+    ? JSON.parse(readFileSync(PARTS_FILE, 'utf8'))
+    : { parts: {}, css: {} };
 }
 
-// 管理画面: データを渡す・保存する（本番では、ここをログインで守る）
-app.get('/api/data', (req, res) =&gt; res.json(loadData()));
-app.post('/api/save', (req, res) =&gt; {
-  const { page, images } = req.body;
-  writeFileSync('data/page.json', JSON.stringify({ page, images }, null, 2));
-  res.json({ ok: true });
-});
+/**
+ * ZeroCode.js の連携をまとめたもの。プロダクトとの接点は、ページの読み書きの2つの関数だけ。
+ * @param {{ loadPage: () =&gt; Promise&lt;object | null&gt;, savePage: (data: object) =&gt; Promise&lt;void&gt; }} storage
+ */
+export function createZeroCode({ loadPage, savePage }) {
+  // パーツ（build-parts の出力）と、保存したページを合わせて ZeroCode のデータにする
+  async function loadData() {
+    const { parts, css } = readParts();
+    const saved = (await loadPage()) ?? { page: [], images: {} };
+    return {
+      page: saved.page,
+      parts: { common: [], individual: [], special: [], ...parts },
+      css,
+      images: { common: [], individual: [], special: [], ...saved.images }
+    };
+  }
 
-// 公開ページ: サーバーで HTML を作る
-app.get('/', (req, res) =&gt; {
-  const data = loadData();
-  res.send(`&lt;!doctype html&gt;
-&lt;html lang="ja"&gt;
-&lt;head&gt;&lt;meta charset="utf-8"&gt;${renderCssToHtml(data.css)}&lt;/head&gt;
-&lt;body&gt;${renderToHtml(data)}&lt;/body&gt;
-&lt;/html&gt;`);
-});
+  const router = express.Router();
+  router.use(express.json({ limit: '10mb' }));
 
-app.use(express.static('public'));
-app.use('/vendor/vue', express.static('node_modules/vue/dist'));
-app.use('/vendor/zerocodejs', express.static('node_modules/zerocodejs/dist'));
+  // 管理画面: データを渡す・保存する
+  router.get('/api/data', async (req, res) =&gt; res.json(await loadData()));
+  router.post('/api/save', async (req, res) =&gt; {
+    const { page, images } = req.body;
+    await savePage({ page, images });
+    res.json({ ok: true });
+  });
 
-app.listen(3000, () =&gt; console.log('http://localhost:3000'));</code></pre>
+  // 管理画面で読み込むファイル
+  router.get('/admin.js', (req, res) =&gt; res.sendFile(join(here, 'admin.js')));
+  router.use('/vendor/zerocodejs', express.static(dirname(require.resolve('zerocodejs/style.css'))));
+  router.use('/vendor/vue', express.static(join(dirname(require.resolve('vue/package.json')), 'dist')));
+
+  // 公開ページ: パーツを並べる領域の HTML と CSS を作る
+  async function render() {
+    const data = await loadData();
+    return { html: renderToHtml(data), css: renderCssToHtml(data.css) };
+  }
+
+  return { router, render };
+}</code></pre>
         <div class="docs-info">
           <p>
             <strong>ポイント:</strong>
@@ -564,58 +617,43 @@ app.listen(3000, () =&gt; console.log('http://localhost:3000'));</code></pre>
           </p>
         </div>
 
-        <h3 id="tutorial-step5">5. 管理画面を作る</h3>
+        <h3 id="tutorial-step5">5. 管理画面の連携を書く</h3>
         <p>
-          管理画面は、<code>&lt;zcode-cms&gt;</code>
-          を置き、データを渡し、保存の合図を受け取るだけです。
+          管理画面ですることは、<code>&lt;zcode-cms&gt;</code>
+          にデータを渡すことと、保存の合図を受け取ることだけです。これも
+          <code>zerocode/</code> に置きます。
         </p>
-        <p><code>public/admin.html</code></p>
-        <pre><code>&lt;!doctype html&gt;
-&lt;html lang="ja"&gt;
-  &lt;head&gt;
-    &lt;meta charset="utf-8" /&gt;
-    &lt;title&gt;管理画面&lt;/title&gt;
-    &lt;link rel="stylesheet" href="/vendor/zerocodejs/zerocodejs.css" /&gt;
-  &lt;/head&gt;
-  &lt;body&gt;
-    &lt;zcode-cms id="cms" locale="ja"&gt;&lt;/zcode-cms&gt;
+        <p><code>zerocode/admin.js</code></p>
+        <pre><code>// 管理画面の連携。&lt;zcode-cms data-api="..."&gt; の data-api に、API の場所を書く
+const cms = document.querySelector('zcode-cms');
+const api = cms.dataset.api;
 
-    &lt;script src="/vendor/vue/vue.global.prod.js"&gt;&lt;/script&gt;
-    &lt;script src="/vendor/zerocodejs/zerocode.umd.js"&gt;&lt;/script&gt;
-    &lt;script&gt;
-      const cms = document.getElementById('cms');
+// 1. データを読み込んで渡す
+fetch(`${api}/data`)
+  .then((res) =&gt; res.json())
+  .then((data) =&gt; {
+    cms.setAttribute('parts-common', JSON.stringify(data.parts.common));
+    cms.setAttribute('css-common', data.css.common || '');
+    cms.setAttribute('images-special', JSON.stringify(data.images.special));
+    cms.setAttribute('page', JSON.stringify(data.page));
+  });
 
-      // 1. データを読み込んで渡す
-      fetch('/api/data')
-        .then((res) =&gt; res.json())
-        .then((data) =&gt; {
-          cms.setAttribute('parts-common', JSON.stringify(data.parts.common));
-          cms.setAttribute('css-common', data.css.common || '');
-          cms.setAttribute('images-special', JSON.stringify(data.images.special));
-          cms.setAttribute('page', JSON.stringify(data.page));
-        });
-
-      // 2. 保存ボタンが押されたら、データを取り出してサーバーに送る
-      cms.addEventListener('save-request', async (event) =&gt; {
-        const { requestId, targets } = event.detail;
-        const data = cms.getData();
-        const res = await fetch('/api/save', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ page: data.page, images: data.images })
-        });
-        // 3. 結果を知らせる（管理画面に「保存しました」などが出る）
-        for (const target of targets) {
-          cms.dispatchEvent(
-            new CustomEvent('save-result', {
-              detail: { requestId, target, ok: res.ok, errors: [] }
-            })
-          );
-        }
-      });
-    &lt;/script&gt;
-  &lt;/body&gt;
-&lt;/html&gt;</code></pre>
+// 2. 保存ボタンが押されたら、データを取り出してサーバーに送る
+cms.addEventListener('save-request', async (event) =&gt; {
+  const { requestId, targets } = event.detail;
+  const data = cms.getData();
+  const res = await fetch(`${api}/save`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ page: data.page, images: data.images })
+  });
+  // 3. 結果を知らせる（管理画面に「保存しました」などが出る）
+  for (const target of targets) {
+    cms.dispatchEvent(
+      new CustomEvent('save-result', { detail: { requestId, target, ok: res.ok, errors: [] } })
+    );
+  }
+});</code></pre>
         <p>保存のときの流れは次のとおりです。</p>
 
         <figure class="docs-figure">
@@ -711,25 +749,117 @@ app.listen(3000, () =&gt; console.log('http://localhost:3000'));</code></pre>
           </p>
         </div>
 
-        <h3 id="tutorial-step6">6. 動かして確かめる</h3>
-        <pre><code>node server.js</code></pre>
+        <h3 id="tutorial-step6">6. プロダクトにつなぐ</h3>
+        <p>
+          ここまでで、ZeroCode.js 関係のものはすべて <code>zerocode/</code>
+          に入りました。プロダクト側では、次の3か所に数行を足すだけです。
+        </p>
+        <p><code>app.js</code>（プロダクトのサーバー。このページでは、ここで初めて作ります）</p>
+        <pre><code>import express from 'express';
+import { readFile, writeFile } from 'node:fs/promises';
+import { createZeroCode } from './zerocode/server.js';
+
+const app = express();
+
+// プロダクトのログインの確認（ここでは例として全員を通す）
+const requireLogin = (req, res, next) =&gt; next();
+
+// ページのデータの読み書き（ここではファイル。本番ではプロダクトのデータベース）
+const PAGE_FILE = 'zerocode-page.json';
+const zerocode = createZeroCode({
+  loadPage: () =&gt;
+    readFile(PAGE_FILE, 'utf8').then(JSON.parse, () =&gt; null),
+  savePage: (data) =&gt; writeFile(PAGE_FILE, JSON.stringify(data, null, 2))
+});
+
+// ZeroCode.js をつなぐ（API と管理画面のファイル）
+app.use('/zerocode', requireLogin, zerocode.router);
+
+// 管理画面
+app.get('/admin', requireLogin, (req, res) =&gt; res.sendFile('views/admin.html', { root: '.' }));
+
+// 公開ページ: プロダクトのテンプレートの中に、ZeroCode.js の HTML を差し込む
+app.get('/', async (req, res) =&gt; {
+  const { html, css } = await zerocode.render();
+  res.send(`&lt;!doctype html&gt;
+&lt;html lang="ja"&gt;
+&lt;head&gt;&lt;meta charset="utf-8"&gt;${css}&lt;/head&gt;
+&lt;body&gt;
+  &lt;header&gt;（プロダクトのヘッダー）&lt;/header&gt;
+  &lt;main&gt;${html}&lt;/main&gt;
+  &lt;footer&gt;（プロダクトのフッター）&lt;/footer&gt;
+&lt;/body&gt;
+&lt;/html&gt;`);
+});
+
+app.listen(3000, () =&gt; console.log('http://localhost:3000'));</code></pre>
+        <p><code>views/admin.html</code>（プロダクトの管理画面に足す）</p>
+        <pre><code>&lt;!doctype html&gt;
+&lt;html lang="ja"&gt;
+  &lt;head&gt;
+    &lt;meta charset="utf-8" /&gt;
+    &lt;title&gt;管理画面&lt;/title&gt;
+    &lt;link rel="stylesheet" href="/zerocode/vendor/zerocodejs/zerocodejs.css" /&gt;
+  &lt;/head&gt;
+  &lt;body&gt;
+    &lt;zcode-cms locale="ja" data-api="/zerocode/api"&gt;&lt;/zcode-cms&gt;
+
+    &lt;script src="/zerocode/vendor/vue/vue.global.prod.js"&gt;&lt;/script&gt;
+    &lt;script src="/zerocode/vendor/zerocodejs/zerocode.umd.js"&gt;&lt;/script&gt;
+    &lt;script src="/zerocode/admin.js"&gt;&lt;/script&gt;
+  &lt;/body&gt;
+&lt;/html&gt;</code></pre>
+        <table class="docs-table">
+          <thead>
+            <tr>
+              <th>プロダクトに足すもの</th>
+              <th>本番で差し替えるところ</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>app.use('/zerocode', requireLogin, zerocode.router)</code></td>
+              <td>
+                <code>requireLogin</code> を、プロダクトのログインの確認にする。<code
+                  >/zerocode</code
+                >
+                は空いているパスなら何でもよい
+              </td>
+            </tr>
+            <tr>
+              <td><code>createZeroCode({ loadPage, savePage })</code></td>
+              <td>ページの読み書きを、プロダクトのデータベースにする</td>
+            </tr>
+            <tr>
+              <td>公開ページの <code>zerocode.render()</code></td>
+              <td>プロダクトのテンプレートの中の、パーツを並べたい場所に差し込む</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3 id="tutorial-step7">7. 動かして確かめる</h3>
+        <pre><code>node app.js</code></pre>
         <ol>
           <li>
-            <a href="http://localhost:3000/admin.html">http://localhost:3000/admin.html</a>
+            <a href="http://localhost:3000/admin">http://localhost:3000/admin</a>
             を開き、「+ パーツを追加」から「見出し」を選びます。
           </li>
           <li>追加した見出しをクリックすると編集パネルが開くので、文字を入れます。</li>
-          <li>左下の「保存」を押します。<code>data/page.json</code> にページが保存されます。</li>
+          <li>
+            左下の「保存」を押します。<code>zerocode-page.json</code> にページが保存されます。
+          </li>
           <li>
             <a href="http://localhost:3000/">http://localhost:3000/</a>
-            を開くと、入力した見出しが表示されます。ページのソースを見ると、書いた HTML
-            のままで、ZeroCode.js の余計なタグが入っていないことがわかります。
+            を開くと、プロダクトのヘッダーとフッターの間に、入力した見出しが表示されます。ページのソースを見ると、書いた
+            HTML のままで、ZeroCode.js の余計なタグが入っていないことがわかります。
           </li>
         </ol>
         <p>
-          パーツの HTML を直して
-          <code>build-parts</code>
+          パーツの HTML を直して <code>npm run parts</code>
           をやり直すと、保存済みのページにもそのまま反映されます（図1の①→②→④）。
+        </p>
+        <p>
+          ZeroCode.js をやめるときは、<code>zerocode/</code> と、手順6で足した数行を消すだけです。
         </p>
 
         <h2 id="tutorial-next">次の一歩</h2>

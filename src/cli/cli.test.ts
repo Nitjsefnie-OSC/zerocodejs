@@ -194,6 +194,12 @@ describe('コマンド', () => {
     expect(check.err).toContain('問題ありません');
   });
 
+  it('build-parts は書き出し先のフォルダがなければ作る', () => {
+    const output = join(dir, 'zerocode/build/parts.json');
+    expect(run(['build-parts', join(dir, 'parts'), '-o', output]).code).toBe(0);
+    expect(existsSync(output)).toBe(true);
+  });
+
   it('エラーがあると build-parts は書き出さずに 1 を返す', () => {
     write('parts/common/01-t/02-bad.html', '<p>情報なし</p>');
     const output = join(dir, 'out.json');
