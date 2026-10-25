@@ -96,71 +96,7 @@
     "special": ""
   },
   "parts": {
-    "individual": [
-      {
-        "id": "lp-type-hero",
-        "type": "hero",
-        "description": "ヒーローセクション",
-        "parts": [
-          {
-            "id": "lp-part-hero",
-            "title": "hero",
-            "description": "ヒーロー（特集）",
-            "body": "<section class=\"hero\">\n  <div class=\"hero__bg\" style=\"background-image: url({$bg_image:feature-hero-bg:image})\"></div>\n  <div class=\"hero__inner\">\n    <div class=\"hero__label\" z-if=\"show_label\">{$label:Feature}</div>\n    <div class=\"hero__title\" z-tag=\"$tag:h1|h2|div\">{$title:特集タイトル}</div>\n    <div class=\"hero__divider\"></div>\n    <div class=\"hero__desc\">{$desc:説明文:textarea}</div>\n    <div class=\"hero__actions\">\n      <a href=\"{$link_btn:#contact}\" class=\"btn btn--white btn--lg\">{$btn_text:ボタン}</a>\n    </div>\n  </div>\n</section>"
-          }
-        ]
-      },
-      {
-        "id": "lp-type-section",
-        "type": "section",
-        "description": "セクション",
-        "parts": [
-          {
-            "id": "lp-part-section-list",
-            "title": "section_list",
-            "description": "リスト型セクション",
-            "slots": {
-              "items": {
-                "allowedParts": ["lp-part-reason"]
-              }
-            },
-            "body": "<section class=\"section section--($style:default|gray|dark)\">\n  <div class=\"container\">\n    <div class=\"section-header\" z-if=\"style\" data-light=\"dark\">\n      <span class=\"section-header__label\">{$label:Label}</span>\n      <div class=\"section-header__title\" z-tag=\"$tag:h2|h3|h4\">{$heading:セクション見出し}</div>\n      <div class=\"section-header__sub\" z-if=\"show_sub\">{$sub:サブテキスト}</div>\n    </div>\n    <div class=\"reasons\" z-slot=\"items\"></div>\n  </div>\n</section>"
-          },
-          {
-            "id": "lp-part-section-faq",
-            "title": "section_faq",
-            "description": "FAQ型セクション",
-            "slots": {
-              "items": {
-                "allowedParts": ["lp-part-faq"]
-              }
-            },
-            "body": "<section class=\"section section--($style:default|gray|dark)\">\n  <div class=\"container\">\n    <div class=\"section-header\">\n      <span class=\"section-header__label\">{$label:Label}</span>\n      <div class=\"section-header__title\" z-tag=\"$tag:h2|h3|h4\">{$heading:セクション見出し}</div>\n      <div class=\"section-header__sub\" z-if=\"show_sub\">{$sub:サブテキスト}</div>\n    </div>\n    <div class=\"faq-list\" z-slot=\"items\"></div>\n  </div>\n</section>"
-          }
-        ]
-      },
-      {
-        "id": "lp-type-cards",
-        "type": "cards",
-        "description": "カード・アイテム",
-        "parts": [
-          {
-            "id": "lp-part-reason",
-            "title": "reason",
-            "description": "選ばれる理由（1項目）",
-            "slotOnly": true,
-            "body": "<div class=\"reason\">\n  <div class=\"reason__figure\">\n    <div class=\"reason__figure-img\"><img src=\"{$img:img-reason-1:image}\" alt=\"\" loading=\"lazy\"></div>\n  </div>\n  <div class=\"reason__body\">\n    <div class=\"reason__title\">{$title:タイトル}</div>\n    <div class=\"reason__text\">{$text:説明文:textarea}</div>\n  </div>\n</div>"
-          },
-          {
-            "id": "lp-part-faq",
-            "title": "faq_item",
-            "description": "FAQ（1問）",
-            "slotOnly": true,
-            "body": "<details class=\"faq\">\n  <summary class=\"faq__q\">{$question:質問文を入力}</summary>\n  <div class=\"faq__a\">{$answer:回答文を入力:rich}</div>\n</details>"
-          }
-        ]
-      }
-    ],
+    "individual": [],
     "special": []
   },
   "images": {

@@ -3,21 +3,7 @@
     "common": ""
   },
   "parts": {
-    "common": [
-      {
-        "id": "lp-type-cta",
-        "type": "cta",
-        "description": "CTA（お問い合わせ誘導）",
-        "parts": [
-          {
-            "id": "lp-part-cta",
-            "title": "cta",
-            "description": "CTA セクション",
-            "body": "<section class=\"cta\">\n  <div class=\"cta__bg\"></div>\n  <div class=\"container\">\n    <div class=\"cta__inner\">\n      <div class=\"cta__title\" z-tag=\"$tag:h2|h3|div\">{$title:お問い合わせ}</div>\n      <div class=\"cta__text\">{$text:説明文を入力:textarea}</div>\n      <a href=\"{$link_btn:mailto:info@example.com}\" class=\"btn btn--white btn--lg\">{$btn_text:予約する}</a>\n      <div class=\"cta__note\" z-if=\"show_note\">{$note:※ 注釈テキスト}</div>\n    </div>\n  </div>\n</section>"
-          }
-        ]
-      }
-    ]
+    "common": []
   },
   "images": {
     "common": [

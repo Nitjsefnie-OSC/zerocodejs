@@ -102,3 +102,11 @@ describe('VS Code のスニペット', () => {
     expect(options.every((tag) => VALID_Z_TAG_NAMES.includes(tag))).toBe(true);
   });
 });
+
+describe('examples/lp の補完設定', () => {
+  it('スニペットは editor-support の写しと同じ（記法を変えたら写し直す）', () => {
+    expect(read('examples/lp/.vscode/zerocode.code-snippets')).toBe(
+      read('editor-support/vscode/zerocode.code-snippets')
+    );
+  });
+});

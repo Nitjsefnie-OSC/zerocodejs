@@ -58,55 +58,7 @@
     "special": ""
   },
   "parts": {
-    "individual": [
-      {
-        "id": "lp-type-hero",
-        "type": "hero",
-        "description": "ヒーローセクション",
-        "parts": [
-          {
-            "id": "lp-part-hero",
-            "title": "hero",
-            "description": "ヒーロー（キャンペーン）",
-            "body": "<section class=\"hero\">\n  <div class=\"hero__bg\" style=\"background-image: url({$bg_image:campaign-hero-bg:image})\"></div>\n  <div class=\"hero__inner\">\n    <div class=\"hero__label\" z-if=\"show_label\">{$label:Campaign}</div>\n    <div class=\"hero__title\" z-tag=\"$tag:h1|h2|div\">{$title:キャンペーンタイトル}</div>\n    <div class=\"hero__divider\"></div>\n    <div class=\"hero__desc\">{$desc:説明文:textarea}</div>\n    <div class=\"hero__actions\">\n      <a href=\"{$link_btn:#contact}\" class=\"btn btn--white btn--lg\">{$btn_text:申し込む}</a>\n    </div>\n  </div>\n</section>"
-          }
-        ]
-      },
-      {
-        "id": "lp-type-section-numbers",
-        "type": "numbers",
-        "description": "実績数値セクション",
-        "parts": [
-          {
-            "id": "lp-part-section-numbers",
-            "title": "section_numbers",
-            "description": "実績数値",
-            "slots": {
-              "items": {
-                "allowedParts": [
-                  "lp-part-number"
-                ]
-              }
-            },
-            "body": "<section class=\"numbers\">\n  <div class=\"container\">\n    <div class=\"numbers__grid\" z-slot=\"items\"></div>\n  </div>\n</section>"
-          }
-        ]
-      },
-      {
-        "id": "lp-type-number",
-        "type": "number",
-        "description": "実績数値（1項目）",
-        "parts": [
-          {
-            "id": "lp-part-number",
-            "title": "number",
-            "description": "実績数値（1項目）",
-            "slotOnly": true,
-            "body": "<div class=\"numbers__item\">\n  <div class=\"numbers__value\">{$val:0}<span>{$unit: }</span></div>\n  <div class=\"numbers__label\">{$label:ラベル}</div>\n</div>"
-          }
-        ]
-      }
-    ],
+    "individual": [],
     "special": []
   },
   "images": {

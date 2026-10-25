@@ -1,0 +1,26 @@
+<!--zerocode
+{
+  "id": "lp-part-section-cards",
+  "title": "section_cards",
+  "description": "カード型セクション（3列グリッド）",
+  "slots": {
+    "items": {
+      "allowedParts": [
+        "lp-part-service",
+        "lp-part-pricing",
+        "lp-part-voice"
+      ]
+    }
+  }
+}
+-->
+<section class="section section--($style:default|gray|dark)">
+  <div class="container">
+    <div class="section-header" z-if="style" data-light="dark">
+      <span class="section-header__label">{$label:Label}</span>
+      <div class="section-header__title" z-tag="$tag:h2|h3|h4">{$heading:セクション見出し}</div>
+      <div class="section-header__sub" z-if="show_sub">{$sub:サブテキスト}</div>
+    </div>
+    <div class="cards cards--3" z-slot="items"></div>
+  </div>
+</section>

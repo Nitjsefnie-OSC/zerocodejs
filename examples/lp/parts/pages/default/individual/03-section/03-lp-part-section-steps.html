@@ -1,0 +1,24 @@
+<!--zerocode
+{
+  "id": "lp-part-section-steps",
+  "title": "section_steps",
+  "description": "ステップ型セクション（横並び）",
+  "slots": {
+    "items": {
+      "allowedParts": [
+        "lp-part-step"
+      ]
+    }
+  }
+}
+-->
+<section class="section section--($style:default|gray|dark)">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-header__label">{$label:Label}</span>
+      <div class="section-header__title" z-tag="$tag:h2|h3|h4">{$heading:セクション見出し}</div>
+      <div class="section-header__sub" z-if="show_sub">{$sub:サブテキスト}</div>
+    </div>
+    <div class="steps" z-slot="items"></div>
+  </div>
+</section>

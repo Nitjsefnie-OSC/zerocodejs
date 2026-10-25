@@ -20,12 +20,22 @@
       </div>
     </div>
 
-    <zcode-editor id="editor" locale="ja" use-shadow-dom="false"> </zcode-editor>
+    <!--
+      共通・個別のパーツは parts/ のファイルで管理しているため、パーツ管理には専用だけを出す。
+      画像は hooks.uploadImage で、追加した時点でサーバー（public/uploads/）に保存する
+    -->
+    <zcode-editor
+      id="editor"
+      locale="ja"
+      use-shadow-dom="false"
+      config='{"studio":{"hiddenCategories":["common","individual"]},"images":{"accept":"image/png,image/jpeg,image/gif,image/webp,image/avif","maxSize":5242880}}'
+    >
+    </zcode-editor>
 
     <div class="dev-footer">
       <div class="dev-footer__inner">
-        保存先: <code id="store-path">data/common.json + data/pages/.../page.json</code> —
-        編集して保存すると JSON が更新されます
+        パーツ: <code>parts/</code> のファイル（保存すると自動でまとめ直す。反映は再読み込み） /
+        ページ: <code id="store-path">data/common.json + data/pages/.../page.json</code>
       </div>
     </div>
 
@@ -39,6 +49,27 @@
         var pageSelect = document.getElementById('page-select');
         var pubLink = document.getElementById('pub-link');
         var storePathEl = document.getElementById('store-path');
+
+        editor.hooks = {
+          uploadImage: function (file) {
+            return fetch('/api/upload', {
+              method: 'POST',
+              headers: { 'Content-Type': file.type, 'X-File-Name': encodeURIComponent(file.name) },
+              body: file
+            }).then(function (res) {
+              return res.json().then(function (body) {
+                if (!res.ok || !body.ok) throw new Error(body.error || 'upload failed');
+                return { id: body.id, name: body.name, url: body.url };
+              });
+            });
+          },
+          listImages: function () {
+            return fetch('/api/media').then(function (res) {
+              if (!res.ok) throw new Error('media list failed');
+              return res.json();
+            });
+          }
+        };
 
         function getPage() {
           var match = window.location.pathname.match(/^\/edit(?:\/([^/]+))?\/?$/);
