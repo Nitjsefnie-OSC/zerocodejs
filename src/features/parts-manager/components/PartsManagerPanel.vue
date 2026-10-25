@@ -26,7 +26,11 @@
           <HelpCircle :size="14" />
         </button>
       </div>
-      <div v-if="visibleCategories.length > 0" class="zcode-parts-add-wrapper">
+      <div v-if="isActiveCategoryFileManaged" class="zcode-parts-file-managed-note" role="note">
+        <Info :size="14" aria-hidden="true" />
+        <span>{{ $t('partsManager.fileManagedNote') }}</span>
+      </div>
+      <div v-else class="zcode-parts-add-wrapper">
         <button class="zcode-btn-primary zcode-parts-new-btn" @click="startCreating">
           <Plus :size="14" />
           <span>{{ $t('partsManager.createType') }}</span>
@@ -45,7 +49,7 @@
         >
           <div class="zcode-part-type-title" role="heading" aria-level="5">
             {{ typeGroup.type }}
-            <div class="zcode-part-type-actions">
+            <div v-if="!isActiveCategoryFileManaged" class="zcode-part-type-actions">
               <button
                 v-if="typeGroup.parts.length > 0"
                 class="zcode-part-type-edit-btn"
@@ -95,12 +99,18 @@
                 <div class="zcode-part-item-actions">
                   <button
                     class="zcode-action-btn"
-                    :title="$t('partsManager.editPartButton')"
+                    :title="
+                      isActiveCategoryFileManaged
+                        ? $t('partsManager.viewPartButton')
+                        : $t('partsManager.editPartButton')
+                    "
                     @click.stop="startEditingPart(type, type._partIndex ?? 0)"
                   >
-                    <Edit :size="14" />
+                    <Eye v-if="isActiveCategoryFileManaged" :size="14" />
+                    <Edit v-else :size="14" />
                   </button>
                   <button
+                    v-if="!isActiveCategoryFileManaged"
                     class="zcode-action-btn"
                     :class="{
                       active:
@@ -113,6 +123,7 @@
                     <ArrowUpDown :size="14" />
                   </button>
                   <button
+                    v-if="!isActiveCategoryFileManaged"
                     class="zcode-action-btn zcode-delete-btn"
                     :title="$t('partsManager.deletePartButton')"
                     @click.stop="handleDelete({ ...type, _partIndex: type._partIndex ?? 0 })"
@@ -154,7 +165,7 @@
             </div>
             <!-- パーツ追加ボタン -->
             <div
-              v-if="typeGroup.parts.length > 0"
+              v-if="typeGroup.parts.length > 0 && !isActiveCategoryFileManaged"
               class="zcode-part-item zcode-part-item-add"
               @click.stop="addPartToType(typeGroup.parts[0] as TypeData)"
             >
@@ -243,7 +254,11 @@
           <div ref="partEditModalRef" class="zcode-part-modal-content" @click.stop>
             <div class="zcode-part-editor-header">
               <div class="zcode-part-editor-header-title" role="heading" aria-level="4">
-                {{ $t('partsManager.editPart', { title: editingPart.part.title }) }}
+                {{
+                  isActiveCategoryFileManaged
+                    ? $t('partsManager.viewPart', { title: editingPart.part.title })
+                    : $t('partsManager.editPart', { title: editingPart.part.title })
+                }}
               </div>
               <div ref="partOptionsRef" class="zcode-part-editor-header-actions">
                 <button
@@ -274,6 +289,7 @@
                       <select
                         :value="editingPart.part.outlinePosition === 'inner' ? 'inner' : 'outer'"
                         class="zcode-part-editor-options-select"
+                        :disabled="isActiveCategoryFileManaged"
                         @change="
                           editingPart.part.outlinePosition =
                             ($event.target as HTMLSelectElement).value === 'inner'
@@ -292,6 +308,7 @@
                         <input
                           type="checkbox"
                           :checked="editingPart.part.slotOnly === true"
+                          :disabled="isActiveCategoryFileManaged"
                           @change="
                             editingPart.part.slotOnly = ($event.target as HTMLInputElement).checked
                               ? true
@@ -328,6 +345,7 @@
                       v-model="editingPart.part.title"
                       type="text"
                       class="zcode-text-input"
+                      :readonly="isActiveCategoryFileManaged"
                       required
                     />
                   </div>
@@ -337,6 +355,7 @@
                       v-model="editingPart.part.description"
                       type="text"
                       class="zcode-text-input"
+                      :readonly="isActiveCategoryFileManaged"
                       :placeholder="$t('partsManager.partDescriptionPlaceholder')"
                     />
                   </div>
@@ -424,6 +443,7 @@
                               {{ $t('partsManager.slot') }}: {{ slotName }}
                             </div>
                             <button
+                              v-if="!isActiveCategoryFileManaged"
                               class="zcode-btn-small"
                               @click="removePartSlot(editingPart.partIndex, slotName)"
                             >
@@ -448,6 +468,7 @@
                                 <input
                                   type="checkbox"
                                   :checked="getAllowedPartsForSlot(slotName).includes(part.id)"
+                                  :disabled="isActiveCategoryFileManaged"
                                   class="zcode-checkbox"
                                   @change="handleAllowedPartChange(slotName, part.id, $event)"
                                 />
@@ -457,7 +478,10 @@
                           </div>
                         </div>
 
-                        <div v-if="availableSlotsForPart.length > 0" class="zcode-slot-add-section">
+                        <div
+                          v-if="availableSlotsForPart.length > 0 && !isActiveCategoryFileManaged"
+                          class="zcode-slot-add-section"
+                        >
                           <label>{{ $t('partsManager.addSlot') }}</label>
                           <div class="zcode-slot-add-controls">
                             <select v-model="selectedSlotToAdd" class="zcode-select-input">
@@ -489,8 +513,14 @@
                       ref="htmlTextareaRef"
                       v-model="editingPart.part.body"
                       label="HTML"
+                      :readonly="isActiveCategoryFileManaged"
                     />
-                    <CodeTextarea v-else v-model="cssDraft" label="CSS" />
+                    <CodeTextarea
+                      v-else
+                      v-model="cssDraft"
+                      label="CSS"
+                      :readonly="isActiveCategoryFileManaged"
+                    />
                   </div>
                 </div>
 
@@ -571,6 +601,7 @@
                                 {{ $t('common.copy') }}
                               </button>
                               <button
+                                v-if="!isActiveCategoryFileManaged"
                                 type="button"
                                 class="zcode-btn-small"
                                 @click="insertImageIdAtCursor(img.id)"
@@ -617,7 +648,16 @@
             </div>
 
             <div class="zcode-part-editor-actions">
+              <div
+                v-if="isActiveCategoryFileManaged"
+                class="zcode-parts-file-managed-note"
+                role="note"
+              >
+                <Info :size="14" aria-hidden="true" />
+                <span>{{ $t('partsManager.fileManagedNote') }}</span>
+              </div>
               <button
+                v-else
                 class="zcode-btn-primary zcode-part-editor-actions-btn zcode-part-editor-actions-btn-primary"
                 @click="handleSavePart"
               >
@@ -629,7 +669,9 @@
                 @click="handleCancelPart"
               >
                 <X :size="16" />
-                <span>{{ $t('common.cancel') }}</span>
+                <span>{{
+                  isActiveCategoryFileManaged ? $t('common.close') : $t('common.cancel')
+                }}</span>
               </button>
             </div>
           </div>
@@ -678,6 +720,7 @@ import {
   ArrowUpDown,
   HelpCircle,
   Info,
+  Eye,
   SlidersHorizontal
 } from '../../../core/icons';
 import CodeTextarea from './CodeTextarea.vue';
@@ -858,7 +901,7 @@ const host = useZeroCodeHost();
 
 const {
   // 非表示カテゴリ
-  visibleCategories,
+  isActiveCategoryFileManaged,
 
   // 並べ替え
   reorderSourcePart,
@@ -896,10 +939,10 @@ const {
 } = usePartsManager(props.cmsData, {
   beforeSavePart: (body) => host.hooks.value.beforeSavePart?.(body) ?? body,
   sanitize: props.config?.studio?.sanitizePartTemplate,
-  hiddenCategories: props.config?.studio?.hiddenCategories
+  fileManagedCategories: props.config?.studio?.fileManagedCategories
 });
 
-// タブとして表示するカテゴリ（非表示カテゴリを除外した上で順序を制御）
+// タブとして表示するカテゴリの順序
 const categoryTabs = computed(() => {
   const tabs: Array<'common' | 'individual' | 'special'> = [];
 
@@ -911,11 +954,7 @@ const categoryTabs = computed(() => {
     tabs.push('common', 'individual', 'special');
   }
 
-  return tabs.filter((c) => visibleCategories.includes(c)) as readonly (
-    | 'common'
-    | 'individual'
-    | 'special'
-  )[];
+  return tabs as readonly ('common' | 'individual' | 'special')[];
 });
 
 const editPanelPreviewComponent = ref<ComponentData | null>(null);
@@ -996,15 +1035,11 @@ function handleEditPanelPreviewSaveField(field: { fieldName: string; currentValu
 }
 
 // fixedCategory が指定されていればそれを使用、そうでなければ categoryOrder に基づいて設定
-// （非表示カテゴリが指定されていた場合は無視し、usePartsManager 側の初期値のまま）
-if (props.fixedCategory && visibleCategories.includes(props.fixedCategory)) {
+if (props.fixedCategory) {
   activeCategory.value = props.fixedCategory;
-} else if (
-  props.config?.categoryOrder === 'individual' &&
-  visibleCategories.includes('individual')
-) {
+} else if (props.config?.categoryOrder === 'individual') {
   activeCategory.value = 'individual';
-} else if (props.config?.categoryOrder === 'special' && visibleCategories.includes('special')) {
+} else if (props.config?.categoryOrder === 'special') {
   activeCategory.value = 'special';
 }
 

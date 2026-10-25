@@ -4805,6 +4805,16 @@
   flex-shrink: 0;
 }
 
+.zcode-parts-file-managed-note {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  color: #4b5563;
+}
+
 .zcode-part-editor-actions-btn {
   flex: 1;
 }

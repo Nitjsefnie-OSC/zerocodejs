@@ -93,11 +93,10 @@ export interface StudioSettings {
   showSaveConfirm?: boolean;
   sanitizePartTemplate?: boolean;
   /**
-   * 指定したカテゴリをパーツマネージャー（タイプ/パーツの追加・編集・削除・並べ替えUI）から
-   * 除外する。タブ自体を表示せず、一覧にも出さない。
-   * 用途例: 特定カテゴリのパーツ定義をアプリコード側で管理し、CMS上のGUI編集を禁止したい場合。
+   * パーツの定義をファイル（プロダクトのリポジトリ）で管理するカテゴリ。
+   * パーツ管理では一覧・プレビュー・パーツの内容を表示するだけで、追加・保存・削除・並べ替えはできない。
    */
-  hiddenCategories?: Array<'common' | 'individual' | 'special'>;
+  fileManagedCategories?: Array<'common' | 'individual' | 'special'>;
 }
 
 export interface RichTextSettings {

@@ -20,28 +20,26 @@ export interface PartsManagerOptions {
   beforeSavePart?: (body: string) => string | Promise<string>;
   sanitize?: boolean;
   /**
-   * 指定したカテゴリの一覧表示・追加・編集・削除・並べ替えを全て禁止する。
-   * UIから到達不可能にする（タブ・一覧に出さない）ことに加え、各操作関数の入口でも
-   * 防御的にガードする。
+   * パーツの定義をファイル（プロダクトのリポジトリ）で管理するカテゴリ。
+   * 一覧・プレビュー・パーツの内容の表示はできるが、追加・保存・削除・並べ替えはできない。
+   * UI で操作を出さないことに加え、各操作関数の入口でもガードする。
    */
-  hiddenCategories?: Array<'common' | 'individual' | 'special'>;
+  fileManagedCategories?: Array<'common' | 'individual' | 'special'>;
 }
-
-const ALL_PARTS_MANAGER_CATEGORIES = ['common', 'individual', 'special'] as const;
 
 export function usePartsManager(cmsData: ZeroCodeData, options?: PartsManagerOptions) {
   const { t } = useI18n();
 
-  const hiddenCategorySet = new Set(options?.hiddenCategories ?? []);
-  function isCategoryHidden(category: 'common' | 'individual' | 'special'): boolean {
-    return hiddenCategorySet.has(category);
+  const fileManagedCategorySet = new Set(options?.fileManagedCategories ?? []);
+  function isCategoryFileManaged(category: 'common' | 'individual' | 'special'): boolean {
+    return fileManagedCategorySet.has(category);
   }
-  const visibleCategories = ALL_PARTS_MANAGER_CATEGORIES.filter((c) => !isCategoryHidden(c));
 
   // ========================================
   // 状態管理
   // ========================================
-  const activeCategory = ref<'common' | 'individual' | 'special'>(visibleCategories[0] ?? 'common');
+  const activeCategory = ref<'common' | 'individual' | 'special'>('common');
+  const isActiveCategoryFileManaged = computed(() => isCategoryFileManaged(activeCategory.value));
   const selectedType = ref<TypeData | null>(null);
   const editingType = ref<TypeData | null>(null);
   const editingPart = ref<EditingPart | null>(null);
@@ -60,7 +58,6 @@ export function usePartsManager(cmsData: ZeroCodeData, options?: PartsManagerOpt
   // Computed Properties
   // ========================================
   const currentTypes = computed(() => {
-    if (isCategoryHidden(activeCategory.value)) return [];
     const parts = cmsData.parts;
     if (activeCategory.value === 'common') {
       return parts.common;
@@ -185,9 +182,9 @@ export function usePartsManager(cmsData: ZeroCodeData, options?: PartsManagerOpt
   }
 
   function startCreating() {
-    if (isCategoryHidden(activeCategory.value)) {
+    if (isActiveCategoryFileManaged.value) {
       logger.warn(
-        `usePartsManager: category "${activeCategory.value}" is hidden; startCreating blocked`
+        `usePartsManager: category "${activeCategory.value}" is file-managed; startCreating blocked`
       );
       return;
     }
@@ -210,9 +207,9 @@ export function usePartsManager(cmsData: ZeroCodeData, options?: PartsManagerOpt
   }
 
   function startEditingType(type: TypeData) {
-    if (isCategoryHidden(activeCategory.value)) {
+    if (isActiveCategoryFileManaged.value) {
       logger.warn(
-        `usePartsManager: category "${activeCategory.value}" is hidden; startEditingType blocked`
+        `usePartsManager: category "${activeCategory.value}" is file-managed; startEditingType blocked`
       );
       return;
     }
@@ -223,12 +220,6 @@ export function usePartsManager(cmsData: ZeroCodeData, options?: PartsManagerOpt
   }
 
   function startEditingPart(type: TypeData, partIndex: number) {
-    if (isCategoryHidden(activeCategory.value)) {
-      logger.warn(
-        `usePartsManager: category "${activeCategory.value}" is hidden; startEditingPart blocked`
-      );
-      return;
-    }
     const part = type.parts[partIndex];
     if (!part) return;
 
@@ -247,9 +238,9 @@ export function usePartsManager(cmsData: ZeroCodeData, options?: PartsManagerOpt
   }
 
   async function addPartToType(type: TypeData) {
-    if (isCategoryHidden(activeCategory.value)) {
+    if (isActiveCategoryFileManaged.value) {
       logger.warn(
-        `usePartsManager: category "${activeCategory.value}" is hidden; addPartToType blocked`
+        `usePartsManager: category "${activeCategory.value}" is file-managed; addPartToType blocked`
       );
       return;
     }
@@ -285,9 +276,9 @@ export function usePartsManager(cmsData: ZeroCodeData, options?: PartsManagerOpt
 
   async function saveType() {
     if (!editingType.value) return;
-    if (isCategoryHidden(activeCategory.value)) {
+    if (isActiveCategoryFileManaged.value) {
       logger.warn(
-        `usePartsManager: category "${activeCategory.value}" is hidden; saveType blocked`
+        `usePartsManager: category "${activeCategory.value}" is file-managed; saveType blocked`
       );
       return;
     }
@@ -347,9 +338,9 @@ export function usePartsManager(cmsData: ZeroCodeData, options?: PartsManagerOpt
 
   async function savePart() {
     if (!editingPart.value) return;
-    if (isCategoryHidden(activeCategory.value)) {
+    if (isActiveCategoryFileManaged.value) {
       logger.warn(
-        `usePartsManager: category "${activeCategory.value}" is hidden; savePart blocked`
+        `usePartsManager: category "${activeCategory.value}" is file-managed; savePart blocked`
       );
       return;
     }
@@ -403,6 +394,7 @@ export function usePartsManager(cmsData: ZeroCodeData, options?: PartsManagerOpt
   }
 
   function deletePart(type: TypeData & { _partIndex?: number }) {
+    if (isActiveCategoryFileManaged.value) return;
     const targetType = currentTypes.value.find((t) => t.id === type.id);
     if (!targetType) return;
 
@@ -637,6 +629,7 @@ export function usePartsManager(cmsData: ZeroCodeData, options?: PartsManagerOpt
   }
 
   function addPartSlot(partIndex: number, slotName?: string) {
+    if (isActiveCategoryFileManaged.value) return;
     let selectedSlotName: string | null = slotName || null;
 
     if (!selectedSlotName) {
@@ -658,6 +651,7 @@ export function usePartsManager(cmsData: ZeroCodeData, options?: PartsManagerOpt
   }
 
   function removePartSlot(partIndex: number, slotName: string) {
+    if (isActiveCategoryFileManaged.value) return;
     const slots = getPartSlots(partIndex);
     if (!slots?.[slotName]) return;
 
@@ -669,6 +663,7 @@ export function usePartsManager(cmsData: ZeroCodeData, options?: PartsManagerOpt
   }
 
   function updatePartSlotAllowedParts(partIndex: number, slotName: string, value: string[]) {
+    if (isActiveCategoryFileManaged.value) return;
     const success = updatePartSlots(partIndex, slotName, (slots) => {
       if (slots[slotName]) {
         slots[slotName].allowedParts = value;
@@ -684,6 +679,7 @@ export function usePartsManager(cmsData: ZeroCodeData, options?: PartsManagerOpt
   // 並べ替え関数
   // ========================================
   function handleReorderClick(type: TypeData, partIndex: number) {
+    if (isActiveCategoryFileManaged.value) return;
     // 1回目のクリック: 移動元を選択
     if (!reorderSourcePart.value) {
       reorderSourcePart.value = { type: type.type, partIndex };
@@ -733,9 +729,9 @@ export function usePartsManager(cmsData: ZeroCodeData, options?: PartsManagerOpt
     source: { type: string; partIndex: number },
     target: { type: string; partIndex: number }
   ) {
-    if (isCategoryHidden(activeCategory.value)) {
+    if (isActiveCategoryFileManaged.value) {
       logger.warn(
-        `usePartsManager: category "${activeCategory.value}" is hidden; reorderParts blocked`
+        `usePartsManager: category "${activeCategory.value}" is file-managed; reorderParts blocked`
       );
       return;
     }
@@ -760,9 +756,9 @@ export function usePartsManager(cmsData: ZeroCodeData, options?: PartsManagerOpt
   // タイプ削除・タイプ並べ替え
   // ========================================
   function deletePartType(type: string) {
-    if (isCategoryHidden(activeCategory.value)) {
+    if (isActiveCategoryFileManaged.value) {
       logger.warn(
-        `usePartsManager: category "${activeCategory.value}" is hidden; deletePartType blocked`
+        `usePartsManager: category "${activeCategory.value}" is file-managed; deletePartType blocked`
       );
       return;
     }
@@ -788,9 +784,9 @@ export function usePartsManager(cmsData: ZeroCodeData, options?: PartsManagerOpt
 
   function reorderPartTypes(sourceType: string, targetType: string) {
     if (sourceType === targetType) return;
-    if (isCategoryHidden(activeCategory.value)) {
+    if (isActiveCategoryFileManaged.value) {
       logger.warn(
-        `usePartsManager: category "${activeCategory.value}" is hidden; reorderPartTypes blocked`
+        `usePartsManager: category "${activeCategory.value}" is file-managed; reorderPartTypes blocked`
       );
       return;
     }
@@ -829,9 +825,9 @@ export function usePartsManager(cmsData: ZeroCodeData, options?: PartsManagerOpt
   }
 
   function startReorderType(type: string) {
-    if (isCategoryHidden(activeCategory.value)) {
+    if (isActiveCategoryFileManaged.value) {
       logger.warn(
-        `usePartsManager: category "${activeCategory.value}" is hidden; startReorderType blocked`
+        `usePartsManager: category "${activeCategory.value}" is file-managed; startReorderType blocked`
       );
       return;
     }
@@ -902,9 +898,8 @@ export function usePartsManager(cmsData: ZeroCodeData, options?: PartsManagerOpt
   // エクスポート
   // ========================================
   return {
-    // 非表示カテゴリ
-    visibleCategories,
-    isCategoryHidden,
+    // ファイルで管理するカテゴリ
+    isActiveCategoryFileManaged,
 
     // 並べ替え
     reorderSourcePart,
